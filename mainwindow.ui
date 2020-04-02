@@ -71,16 +71,16 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="button_addEmitter">
         <property name="text">
-         <string>Émetteur</string>
+         <string>Ajouter un émetteur</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton_5">
+       <widget class="QPushButton" name="button_addReceiver">
         <property name="text">
-         <string>Récepteur</string>
+         <string>Ajouter un récepteur</string>
         </property>
        </widget>
       </item>
@@ -101,7 +101,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton_6">
+       <widget class="QPushButton" name="button_eraseObject">
         <property name="text">
          <string>Effacer un objet</string>
         </property>
@@ -130,7 +130,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

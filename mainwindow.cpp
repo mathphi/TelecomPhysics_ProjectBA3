@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    // Create the graphics scene
     m_scene = new QGraphicsScene();
     ui->graphicsView->setScene(m_scene);
 
@@ -22,6 +23,10 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+/**
+ * @brief MainWindow::addBrickWall
+ * Slot called when the button "Add brick wall" is clicked
+ */
 void MainWindow::addBrickWall(){
     m_scene->addEllipse(0,0,100,150);
 
