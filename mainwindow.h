@@ -30,6 +30,9 @@ public:
 
 public slots:
     void addBrickWall();
+    void addConcreteWall();
+    void addPartitionWall();
+
     void graphicsScenePressed(QPoint mouse_pos);
     void graphicsSceneReleased(QPoint mouse_pos);
     void graphicsSceneMouseMoved(QPoint mouse_pos);
