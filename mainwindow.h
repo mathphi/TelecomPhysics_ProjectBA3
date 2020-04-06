@@ -34,6 +34,7 @@ public slots:
     void addConcreteWall();
     void addPartitionWall();
     void toggleEraseMode(bool state);
+    void eraseAll();
 
     void graphicsSceneRightReleased(QPoint mouse_pos);
     void graphicsSceneLeftReleased(QPoint mouse_pos);
@@ -42,6 +43,7 @@ public slots:
 
 private:
     QPoint moveAligned(QPoint start, QPoint actual);
+    QPoint attractivePoint(QPoint actual);
 
     Ui::MainWindow *ui;
     SimulationScene *m_scene;

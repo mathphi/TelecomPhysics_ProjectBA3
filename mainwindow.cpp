@@ -7,8 +7,9 @@
 #include <QGraphicsScene>
 #include <QGraphicsLineItem>
 
-#define ALIGN_THRESHOLD 10
-#define ERASER_SIZE 15
+#define ALIGN_THRESHOLD 16
+#define ERASER_SIZE 20
+#define PROXIMITY_SIZE 16
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -36,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->button_addConcreteWall, SIGNAL(clicked()), this, SLOT(addConcreteWall()));
     connect(ui->button_addPartition,    SIGNAL(clicked()), this, SLOT(addPartitionWall()));
     connect(ui->button_eraseObject,     SIGNAL(toggled(bool)), this, SLOT(toggleEraseMode(bool)));
+    connect(ui->button_eraseAll,        SIGNAL(clicked()), this, SLOT(eraseAll()));
 
     connect(m_scene, SIGNAL(mouseRightReleased(QPoint)),  this, SLOT(graphicsSceneRightReleased(QPoint)));
     connect(m_scene, SIGNAL(mouseLeftReleased(QPoint)), this, SLOT(graphicsSceneLeftReleased(QPoint)));
@@ -106,6 +108,20 @@ void MainWindow::toggleEraseMode(bool state) {
     }
 }
 
+void MainWindow::eraseAll(){
+    int answer = QMessageBox::question(this, "Confirmation de la suppression", "Etes-vous sûr de vouloir tout supprimer ?\n Ce serait dommage de tout recommencer de zéro");
+
+    if (answer == QMessageBox::No){
+        return;
+    }
+
+    foreach (QGraphicsItem *item, m_scene->items()) {
+        m_scene->removeItem(item);
+        delete item;
+    }
+
+}
+
 /**
  * @brief MainWindow::graphicsScenePressed
  * @param pos
@@ -143,6 +159,7 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos) {
         switch (m_draw_action) {
         case DrawActions::BrickWall: {
             // Add a brick wall to the scene
+            pos = attractivePoint(pos);
             QLine line(pos, pos);
             m_drawing_item = new BrickWall(line);
             m_scene->addItem(m_drawing_item);
@@ -150,6 +167,7 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos) {
         }
         case DrawActions::ConcreteWall: {
             // Add a concrete wall to the scene
+            pos = attractivePoint(pos);
             QLine line(pos, pos);
             m_drawing_item = new ConcreteWall(line);
             m_scene->addItem(m_drawing_item);
@@ -157,6 +175,7 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos) {
         }
         case DrawActions::PartitionWall: {
             // Add a partition wall to the scene
+            pos = attractivePoint(pos);
             QLine line(pos, pos);
             m_drawing_item = new PartitionWall(line);
             m_scene->addItem(m_drawing_item);
@@ -229,6 +248,8 @@ void MainWindow::graphicsSceneMouseMoved(QPoint pos){
         // Get the current line's coordinates
         QLine line = wall_item->line().toLine();
 
+        pos = attractivePoint(pos);
+
         QLine new_line = QLine(line.p1(), moveAligned(line.p1(), pos));
 
         // Replace the target point of the line by the position of the mouse
@@ -261,4 +282,31 @@ QPoint MainWindow::moveAligned(QPoint start, QPoint actual){
     }
     return end;
 
+}
+
+QPoint MainWindow::attractivePoint(QPoint actual){
+    QRect rect(actual - QPoint(PROXIMITY_SIZE/2, PROXIMITY_SIZE/2), QSize(PROXIMITY_SIZE, PROXIMITY_SIZE) );
+    double min_dist = PROXIMITY_SIZE + 1;
+    QPoint closest_point = actual;
+
+    foreach (QGraphicsItem *item,  m_scene->items(rect)) {
+        Wall* wall_item =  (Wall*) item;
+        if (wall_item){
+            QLineF bounding_line1(actual, wall_item->line().p1());
+            QLineF bounding_line2(actual, wall_item->line().p2());
+
+            double lenght1 = bounding_line1.length();
+            double lenght2 = bounding_line2.length();
+
+            if (lenght1 < min_dist){
+                min_dist = lenght1;
+                closest_point = wall_item->line().p1().toPoint();
+            }
+            if (lenght2 < min_dist){
+                min_dist = lenght2;
+                closest_point = wall_item->line().p2().toPoint();
+            }
+        }
+    }
+    return closest_point;
 }

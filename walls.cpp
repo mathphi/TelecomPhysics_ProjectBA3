@@ -1,4 +1,5 @@
 #include "walls.h"
+#include <QPen>
 
 // Wall's relative permittivity
 #define BRICK_R_PERMITTIVITY      4.6
@@ -15,6 +16,8 @@
 #define CONCRETE_THICKNESS_DEFAULT   30
 #define PARTITION_THICKNESS_DEFAULT  10
 
+//Wall's visual thickness
+#define VISUAL_THICKNESS 8
 
 Wall::Wall(QLine line, int thickness) : QGraphicsLineItem(line) {
     m_thickness = thickness;
@@ -25,12 +28,13 @@ int Wall::getThickness(){
 }
 
 
-BrickWall::BrickWall(QLine line, int thickness) : Wall(line, thickness) {}
+BrickWall::BrickWall(QLine line, int thickness) : Wall(line, thickness) {
+    QPen pen(QBrush(QColor(201, 63, 24)),VISUAL_THICKNESS);
+    setPen(pen);
+}
 
 // This constructor is equivalent to the main constructor but using a default thickness
-BrickWall::BrickWall(QLine line) : Wall(line, BRICK_THICKNESS_DEFAULT) {
-    BrickWall(line, BRICK_THICKNESS_DEFAULT);
-}
+BrickWall::BrickWall(QLine line) : BrickWall(line, BRICK_THICKNESS_DEFAULT) {}
 
 
 double BrickWall::getRelPermitivity() {
@@ -41,12 +45,13 @@ double BrickWall::getConductivity() {
 }
 
 
-ConcreteWall::ConcreteWall(QLine line, int thickness) : Wall(line, thickness) {}
+ConcreteWall::ConcreteWall(QLine line, int thickness) : Wall(line, thickness) {
+    QPen pen(QBrush(QColor(156, 155, 154)),VISUAL_THICKNESS);
+    setPen(pen);
+}
 
 // This constructor is equivalent to the main constructor but using a default thickness
-ConcreteWall::ConcreteWall(QLine line) : Wall(line, CONCRETE_THICKNESS_DEFAULT) {
-    ConcreteWall(line, CONCRETE_THICKNESS_DEFAULT);
-}
+ConcreteWall::ConcreteWall(QLine line) : ConcreteWall(line, CONCRETE_THICKNESS_DEFAULT) {}
 
 
 double ConcreteWall::getRelPermitivity() {
@@ -57,12 +62,13 @@ double ConcreteWall::getConductivity() {
 }
 
 
-PartitionWall::PartitionWall(QLine line, int thickness) : Wall(line, thickness) {}
+PartitionWall::PartitionWall(QLine line, int thickness) : Wall(line, thickness) {
+    QPen pen(QBrush(QColor(168, 125, 67)),VISUAL_THICKNESS);
+    setPen(pen);
+}
 
 // This constructor is equivalent to the main constructor but using a default thickness
-PartitionWall::PartitionWall(QLine line) : Wall(line, PARTITION_THICKNESS_DEFAULT) {
-    PartitionWall(line, PARTITION_THICKNESS_DEFAULT);
-}
+PartitionWall::PartitionWall(QLine line) : PartitionWall(line, PARTITION_THICKNESS_DEFAULT) {}
 
 double PartitionWall::getRelPermitivity() {
     return PARTITION_R_PERMITTIVITY;
