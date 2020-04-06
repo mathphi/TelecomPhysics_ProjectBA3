@@ -23,6 +23,7 @@ private:
 class BrickWall : public Wall
 {
 public:
+    BrickWall(QLine line);
     BrickWall(QLine line, int thickness);
 
     double getRelPermitivity();
@@ -33,6 +34,7 @@ public:
 class ConcreteWall : public Wall
 {
 public:
+    ConcreteWall(QLine line);
     ConcreteWall(QLine line, int thickness);
 
     double getRelPermitivity();
@@ -43,6 +45,7 @@ public:
 class PartitionWall : public Wall
 {
 public:
+    PartitionWall(QLine line);
     PartitionWall(QLine line, int thickness);
 
     double getRelPermitivity();

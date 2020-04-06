@@ -91,9 +91,23 @@ void MainWindow::graphicsSceneReleased(QPoint pos) {
         // Actions to do on the first click
         switch (m_draw_action) {
         case DrawActions::BrickWall: {
-            // Add a line to the scene
+            // Add a brick wall to the scene
             QLine line(pos, pos);
-            m_drawing_item = new QGraphicsLineItem(line);
+            m_drawing_item = new BrickWall(line);
+            m_scene->addItem(m_drawing_item);
+            break;
+        }
+        case DrawActions::ConcreteWall: {
+            // Add a concrete wall to the scene
+            QLine line(pos, pos);
+            m_drawing_item = new ConcreteWall(line);
+            m_scene->addItem(m_drawing_item);
+            break;
+        }
+        case DrawActions::PartitionWall: {
+            // Add a partition wall to the scene
+            QLine line(pos, pos);
+            m_drawing_item = new PartitionWall(line);
             m_scene->addItem(m_drawing_item);
             break;
         }
@@ -115,20 +129,22 @@ void MainWindow::graphicsSceneReleased(QPoint pos) {
  */
 void MainWindow::graphicsSceneMouseMoved(QPoint pos){
     // Nothing to do if we are not placing an item
-    if (m_drawing_item == nullptr){
+    if (m_drawing_item == nullptr) {
         return;
     }
 
     switch (m_draw_action) {
-    case DrawActions::BrickWall: {
-        // Cast the current drawing item as a QGraphicsLineItem
-        QGraphicsLineItem *line_item = (QGraphicsLineItem*) m_drawing_item;
+    case DrawActions::BrickWall:
+    case DrawActions::ConcreteWall:
+    case DrawActions::PartitionWall: {
+        // Cast the current drawing item as a Wall
+        Wall *wall_item = (Wall*) m_drawing_item;
 
         // Get the current line's coordinates
-        QLine line = line_item->line().toLine();
+        QLine line = wall_item->line().toLine();
 
         // Replace the target point of the line by the position of the mouse
-        line_item->setLine(QLine(line.p1(), pos));
+        wall_item->setLine(QLine(line.p1(), pos));
         break;
     }
     default:
