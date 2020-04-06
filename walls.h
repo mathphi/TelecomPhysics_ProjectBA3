@@ -3,6 +3,14 @@
 
 #include <QGraphicsLineItem>
 
+namespace WallType {
+enum WallType{
+    BrickWall       = 1,
+    ConcreteWall    = 2,
+    PartitionWall   = 3,
+};
+}
+
 // Abstract wall class
 class Wall : public QGraphicsLineItem
 {
@@ -14,9 +22,11 @@ public:
     // The 'virtual' keyword makes these functions abstracts
     virtual double getRelPermitivity() = 0;
     virtual double getConductivity() = 0;
+    virtual WallType::WallType getWallType()= 0;
 
 private:
     int  m_thickness;
+
 };
 
 
@@ -28,6 +38,7 @@ public:
 
     double getRelPermitivity();
     double getConductivity();
+    WallType::WallType getWallType();
 };
 
 
@@ -39,6 +50,8 @@ public:
 
     double getRelPermitivity();
     double getConductivity();
+    WallType::WallType getWallType();
+
 };
 
 
@@ -50,6 +63,8 @@ public:
 
     double getRelPermitivity();
     double getConductivity();
+    WallType::WallType getWallType();
+
 };
 
 #endif // WALL_H

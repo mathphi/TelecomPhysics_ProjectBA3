@@ -6,6 +6,7 @@
 #include <QMessageBox>
 #include <QGraphicsScene>
 #include <QGraphicsLineItem>
+#include <QFileDialog>
 
 #define ALIGN_THRESHOLD 16
 #define ERASER_SIZE 20
@@ -42,6 +43,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_scene, SIGNAL(mouseRightReleased(QPoint)),  this, SLOT(graphicsSceneRightReleased(QPoint)));
     connect(m_scene, SIGNAL(mouseLeftReleased(QPoint)), this, SLOT(graphicsSceneLeftReleased(QPoint)));
     connect(m_scene, SIGNAL(mouseMoved(QPoint)),    this, SLOT(graphicsSceneMouseMoved(QPoint)));
+
+    connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
+    connect(ui->actionOpen, SIGNAL(triggered()),this, SLOT(actionOpen()));
+    connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(actionSave()));
 }
 
 MainWindow::~MainWindow() {
@@ -114,12 +119,8 @@ void MainWindow::eraseAll(){
     if (answer == QMessageBox::No){
         return;
     }
-
-    foreach (QGraphicsItem *item, m_scene->items()) {
-        m_scene->removeItem(item);
-        delete item;
-    }
-
+    m_wall_list.clear();
+    m_scene->clear();
 }
 
 /**
@@ -309,4 +310,43 @@ QPoint MainWindow::attractivePoint(QPoint actual){
         }
     }
     return closest_point;
+}
+
+void MainWindow::actionOpen(){
+   QString file_path = QFileDialog::getOpenFileName(this,"Ouvrir un fichier", QString(), "*.rtmap");
+
+   if(file_path.isEmpty()){
+       return;
+   }
+   QFile file(file_path);
+   if(!file.open(QIODevice::ReadOnly)){
+       QMessageBox::critical(this, "Erreur", "Impossible d'ouvrir le fichier ");
+       return;
+   }
+
+   eraseAll();
+
+   QDataStream in(&file);
+   in >> m_wall_list;
+
+   foreach (Wall* w, m_wall_list ) {
+       m_scene->addItem(w);
+   }
+   file.close();
+}
+
+void MainWindow::actionSave(){
+    QString file_path = QFileDialog::getSaveFileName(this,"Enregistrer dans un fichier", QString(), "*.rtmap");
+
+    if(file_path.isEmpty()){
+        return;
+    }
+    QFile file(file_path);
+    if(!file.open(QIODevice::WriteOnly)){
+        QMessageBox::critical(this, "Erreur", "Impossible d'ouvrir le fichier ");
+        return;
+    }
+    QDataStream out (& file);
+    out << m_wall_list;
+    file.close();
 }

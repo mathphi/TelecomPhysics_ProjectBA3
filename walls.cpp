@@ -1,6 +1,7 @@
 #include "walls.h"
 #include <QPen>
-
+#include <QDataStream>
+#include <QList>
 // Wall's relative permittivity
 #define BRICK_R_PERMITTIVITY      4.6
 #define CONCRETE_R_PERMITTIVITY   5
@@ -43,7 +44,9 @@ double BrickWall::getRelPermitivity() {
 double BrickWall::getConductivity() {
     return BRICK_CONDUCTIVITY;
 }
-
+WallType::WallType BrickWall::getWallType(){
+    return WallType::BrickWall;
+}
 
 ConcreteWall::ConcreteWall(QLine line, int thickness) : Wall(line, thickness) {
     QPen pen(QBrush(QColor(156, 155, 154)),VISUAL_THICKNESS);
@@ -60,7 +63,9 @@ double ConcreteWall::getRelPermitivity() {
 double ConcreteWall::getConductivity() {
     return CONCRETE_CONDUCTIVITY;
 }
-
+WallType::WallType ConcreteWall::getWallType(){
+    return WallType::ConcreteWall;
+}
 
 PartitionWall::PartitionWall(QLine line, int thickness) : Wall(line, thickness) {
     QPen pen(QBrush(QColor(168, 125, 67)),VISUAL_THICKNESS);
@@ -75,4 +80,40 @@ double PartitionWall::getRelPermitivity() {
 }
 double PartitionWall::getConductivity() {
     return PARTITION_CONDUCTIVITY;
+}
+WallType::WallType PartitionWall::getWallType(){
+    return WallType::PartitionWall;
+}
+
+QDataStream &operator>>(QDataStream &in, Wall *&w) {
+    int type;
+    int thickness;
+    QLine line;
+
+    in >> type;
+    in >> thickness;
+    in >> line;
+
+    switch (type) {
+    case WallType::BrickWall:
+        w = new BrickWall(line,thickness);
+        break;
+    case WallType::ConcreteWall:
+        w = new ConcreteWall(line,thickness);
+        break;
+    case WallType::PartitionWall:
+        w = new PartitionWall(line,thickness);
+        break;
+    }
+
+    return in;
+}
+
+QDataStream &operator<<(QDataStream &out, Wall *w) {
+    out << w->getWallType();
+    out << w->getThickness();
+    out << w->line().toLine();
+
+
+    return out;
 }

@@ -40,6 +40,8 @@ public slots:
     void graphicsSceneLeftReleased(QPoint mouse_pos);
     void graphicsSceneMouseMoved(QPoint mouse_pos);
 
+    void actionOpen();
+    void actionSave();
 
 private:
     QPoint moveAligned(QPoint start, QPoint actual);
