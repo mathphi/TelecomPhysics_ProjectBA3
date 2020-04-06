@@ -19,8 +19,10 @@ protected:
 
 
 signals:
-    void mousePressed(QPoint pos);
-    void mouseReleased(QPoint pos);
+    void mouseLeftPressed(QPoint pos);
+    void mouseLeftReleased(QPoint pos);
+    void mouseRightPressed(QPoint pos);
+    void mouseRightReleased(QPoint pos);
     void mouseMoved(QPoint pos);
 
 

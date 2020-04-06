@@ -2,11 +2,24 @@
 #include <QGraphicsSceneMouseEvent>
 
 void SimulationScene::mousePressEvent(QGraphicsSceneMouseEvent *event){
-    emit mousePressed(event->scenePos().toPoint());
+    if (event->button() == Qt::LeftButton){
+        emit mouseLeftPressed(event->scenePos().toPoint());
+    }
+    else if (event->button() == Qt::RightButton){
+
+        emit mouseRightPressed(event->scenePos().toPoint());
+
+    }
 
 }
 void SimulationScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event){
-    emit mouseReleased(event->scenePos().toPoint());
+    if (event->button() == Qt::LeftButton){
+        emit mouseLeftReleased(event->scenePos().toPoint());
+    }
+    else if (event->button() == Qt::RightButton){
+        emit mouseRightReleased(event->scenePos().toPoint());
+
+    }
 
 }
 void SimulationScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
