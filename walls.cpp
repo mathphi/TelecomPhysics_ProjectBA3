@@ -1,7 +1,7 @@
 #include "walls.h"
+
 #include <QPen>
-#include <QDataStream>
-#include <QList>
+
 // Wall's relative permittivity
 #define BRICK_R_PERMITTIVITY      4.6
 #define CONCRETE_R_PERMITTIVITY   5
@@ -17,8 +17,9 @@
 #define CONCRETE_THICKNESS_DEFAULT   30
 #define PARTITION_THICKNESS_DEFAULT  10
 
-//Wall's visual thickness
-#define VISUAL_THICKNESS 8
+// Wall's visual thickness
+#define VISUAL_THICKNESS 4
+
 
 Wall::Wall(QLine line, int thickness) : QGraphicsLineItem(line) {
     m_thickness = thickness;
@@ -30,7 +31,7 @@ int Wall::getThickness(){
 
 
 BrickWall::BrickWall(QLine line, int thickness) : Wall(line, thickness) {
-    QPen pen(QBrush(QColor(201, 63, 24)),VISUAL_THICKNESS);
+    QPen pen(QBrush(QColor(201, 63, 24)), VISUAL_THICKNESS, Qt::SolidLine);
     setPen(pen);
 }
 
@@ -48,8 +49,9 @@ WallType::WallType BrickWall::getWallType(){
     return WallType::BrickWall;
 }
 
+
 ConcreteWall::ConcreteWall(QLine line, int thickness) : Wall(line, thickness) {
-    QPen pen(QBrush(QColor(156, 155, 154)),VISUAL_THICKNESS);
+    QPen pen(QBrush(QColor(156, 155, 154)), VISUAL_THICKNESS, Qt::DashLine);
     setPen(pen);
 }
 
@@ -67,8 +69,9 @@ WallType::WallType ConcreteWall::getWallType(){
     return WallType::ConcreteWall;
 }
 
+
 PartitionWall::PartitionWall(QLine line, int thickness) : Wall(line, thickness) {
-    QPen pen(QBrush(QColor(168, 125, 67)),VISUAL_THICKNESS);
+    QPen pen(QBrush(QColor(168, 125, 67)), VISUAL_THICKNESS, Qt::DotLine);
     setPen(pen);
 }
 
@@ -84,6 +87,7 @@ double PartitionWall::getConductivity() {
 WallType::WallType PartitionWall::getWallType(){
     return WallType::PartitionWall;
 }
+
 
 QDataStream &operator>>(QDataStream &in, Wall *&w) {
     int type;
@@ -113,7 +117,6 @@ QDataStream &operator<<(QDataStream &out, Wall *w) {
     out << w->getWallType();
     out << w->getThickness();
     out << w->line().toLine();
-
 
     return out;
 }

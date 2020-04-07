@@ -3,6 +3,7 @@
 
 #include <QGraphicsLineItem>
 
+// Type used to recognize the saved classes into a file
 namespace WallType {
 enum WallType{
     BrickWall       = 1,
@@ -26,7 +27,6 @@ public:
 
 private:
     int  m_thickness;
-
 };
 
 
@@ -51,7 +51,6 @@ public:
     double getRelPermitivity();
     double getConductivity();
     WallType::WallType getWallType();
-
 };
 
 
@@ -64,7 +63,10 @@ public:
     double getRelPermitivity();
     double getConductivity();
     WallType::WallType getWallType();
-
 };
+
+// Operator overload to write objects from the Wall class into a files
+QDataStream &operator>>(QDataStream &in, Wall *&w);
+QDataStream &operator<<(QDataStream &out, Wall *w);
 
 #endif // WALL_H

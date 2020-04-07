@@ -43,6 +43,9 @@ public slots:
     void actionOpen();
     void actionSave();
 
+    void clearAllItems();
+    void cancelCurrentDrawing();
+
 private:
     QPoint moveAligned(QPoint start, QPoint actual);
     QPoint attractivePoint(QPoint actual);

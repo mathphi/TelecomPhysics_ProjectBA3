@@ -24,8 +24,6 @@ signals:
     void mouseRightPressed(QPoint pos);
     void mouseRightReleased(QPoint pos);
     void mouseMoved(QPoint pos);
-
-
 };
 
 #endif // SIMULATIONSCENE_H
