@@ -35,11 +35,12 @@ MainWindow::MainWindow(QWidget *parent)
     QRect scene_rect(QPoint(0,0), ui->graphicsView->size());
     ui->graphicsView->setSceneRect(scene_rect);
 
-    connect(ui->button_addBrickWall,    SIGNAL(clicked()), this, SLOT(addBrickWall()));
-    connect(ui->button_addConcreteWall, SIGNAL(clicked()), this, SLOT(addConcreteWall()));
-    connect(ui->button_addPartition,    SIGNAL(clicked()), this, SLOT(addPartitionWall()));
-    connect(ui->button_eraseObject,     SIGNAL(toggled(bool)), this, SLOT(toggleEraseMode(bool)));
-    connect(ui->button_eraseAll,        SIGNAL(clicked()), this, SLOT(eraseAll()));
+    connect(ui->button_addBrickWall,    SIGNAL(clicked()),      this, SLOT(addBrickWall()));
+    connect(ui->button_addConcreteWall, SIGNAL(clicked()),      this, SLOT(addConcreteWall()));
+    connect(ui->button_addPartition,    SIGNAL(clicked()),      this, SLOT(addPartitionWall()));
+    connect(ui->button_eraseObject,     SIGNAL(toggled(bool)),  this, SLOT(toggleEraseMode(bool)));
+    connect(ui->button_eraseAll,        SIGNAL(clicked()),      this, SLOT(eraseAll()));
+    connect(ui->button_addEmitter,      SIGNAL(clicked()),      this, SLOT(addEmitter()));
 
     connect(m_scene, SIGNAL(mouseRightReleased(QPoint)),  this, SLOT(graphicsSceneRightReleased(QPoint)));
     connect(m_scene, SIGNAL(mouseLeftReleased(QPoint)), this, SLOT(graphicsSceneLeftReleased(QPoint)));
@@ -65,9 +66,6 @@ void MainWindow::addBrickWall() {
 
     m_draw_action = DrawActions::BrickWall;
     m_drawing_item = nullptr;
-
-    // Mouse design
-    ui->graphicsView->setCursor(Qt::CrossCursor);
 }
 
 /**
@@ -79,9 +77,6 @@ void MainWindow::addConcreteWall() {
 
     m_draw_action = DrawActions::ConcreteWall;
     m_drawing_item = nullptr;
-
-    // Mouse design
-    ui->graphicsView->setCursor(Qt::CrossCursor);
 }
 
 /**
@@ -93,9 +88,6 @@ void MainWindow::addPartitionWall() {
 
     m_draw_action = DrawActions::PartitionWall;
     m_drawing_item = nullptr;
-
-    // Mouse design
-    ui->graphicsView->setCursor(Qt::CrossCursor);
 }
 
 void MainWindow::toggleEraseMode(bool state) {
@@ -113,9 +105,6 @@ void MainWindow::toggleEraseMode(bool state) {
 
         m_drawing_item = rect_item;
         m_scene->addItem(m_drawing_item);
-
-        // Hide the cursor's pointer
-        ui->graphicsView->setCursor(Qt::BlankCursor);
     }
 
     else {
@@ -128,8 +117,6 @@ void MainWindow::toggleEraseMode(bool state) {
 
         m_draw_action = DrawActions::None;
         m_drawing_item = nullptr;
-        ui->graphicsView->setCursor(Qt::ArrowCursor);
-
     }
 }
 
@@ -147,9 +134,17 @@ void MainWindow::eraseAll() {
 }
 
 void MainWindow::addEmitter(){
+    cancelCurrentDrawing();
+
     //TODO dialog
+
+    // Create an HalfWaveDipole to place on the scene
     m_draw_action = DrawActions::Emitter;
     m_drawing_item = new HalfWaveDipole(2.4e9, 2, 1);
+
+    // Hide the item until the mouse come on the scene
+    m_drawing_item->setVisible(false);
+    m_scene->addItem(m_drawing_item);
 }
 
 /**
@@ -165,7 +160,6 @@ void MainWindow::clearAllItems() {
 
     m_draw_action = DrawActions::None;
     m_drawing_item = nullptr;
-    ui->graphicsView->setCursor(Qt::ArrowCursor);
 
     // Clear the lists and the graphics scene
     m_wall_list.clear();
@@ -194,9 +188,6 @@ void MainWindow::cancelCurrentDrawing() {
 
     m_draw_action = DrawActions::None;
     m_drawing_item = nullptr;
-
-    // Mouse design
-    ui->graphicsView->setCursor(Qt::ArrowCursor);
 }
 
 /**
@@ -266,9 +257,6 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos) {
 
             m_drawing_item = nullptr;
             m_draw_action = DrawActions::None;
-
-            // Mouse design
-            ui->graphicsView->setCursor(Qt::ArrowCursor);
             break;
         }
         case DrawActions::Erase: {
@@ -302,7 +290,6 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos) {
         default:
             break;
         }
-
     }
 }
 
@@ -316,12 +303,20 @@ void MainWindow::graphicsSceneMouseMoved(QPoint pos) {
     // Show mouse tracker only if we are placing something
     setMouseTrackerVisible(m_draw_action != DrawActions::None);
 
+    // Hide the mouse cursor on drawing (use the mouse tracker lines)
+    if (m_draw_action != DrawActions::None) {
+        ui->graphicsView->setCursor(Qt::BlankCursor);
+    }
+    else {
+        ui->graphicsView->setCursor(Qt::ArrowCursor);
+    }
+
     // Mouse tracker follows the mouse if visible
     if (m_mouse_tracker_visible) {
         setMouseTrackerPosition(pos);
     }
 
-    // Nothing to do if we are not placing an item
+    // No more thing to do if we are not placing an item
     if (m_drawing_item == nullptr) {
         return;
     }
@@ -355,6 +350,14 @@ void MainWindow::graphicsSceneMouseMoved(QPoint pos) {
 
         // The rectangle of the eraser starts hidden
         m_drawing_item->show();
+        break;
+    }
+    case DrawActions::Emitter: {
+        m_drawing_item->setPos(pos);
+
+        if (!m_drawing_item->isVisible()) {
+            m_drawing_item->setVisible(true);
+        }
         break;
     }
     default:
@@ -429,7 +432,7 @@ QPoint MainWindow::attractivePoint(QPoint actual) {
     return attractive_point;
 }
 
-/////////////////////////////// Mouse tracker section //////////////////////////////////
+////////////////////////////////// Mouse tracker section /////////////////////////////////////
 
 void MainWindow::initMouseTracker() {
     // Add two lines to the scene that will track the mouse cursor when visible

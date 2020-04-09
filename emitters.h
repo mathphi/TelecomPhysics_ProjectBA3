@@ -9,8 +9,8 @@ class Emitter : public QGraphicsItem
 public:
     Emitter (double frequency, double power, double efficiency);
 
-    virtual std::complex <double> getEffectiveHeight(double theta, double phi)=0;
-    virtual double getGain (double theta, double phi )=0;
+    virtual std::complex<double> getEffectiveHeight(double theta, double phi) = 0;
+    virtual double getGain (double theta, double phi) = 0;
     double getPower();
     double getFrequency();
     double getEfficiency();
@@ -32,7 +32,9 @@ public:
     std::complex<double> getEffectiveHeight(double theta, double phi) override;
     double getGain(double theta, double phi) override;
 
-    Ssvoid paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+    QRectF boundingRect() const override;
+    QPainterPath shape() const override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override;
 
 
 };
