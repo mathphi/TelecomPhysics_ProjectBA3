@@ -19,12 +19,14 @@ SOURCES += \
     emitters.cpp \
     main.cpp \
     mainwindow.cpp \
+    receivers.cpp \
     simulationscene.cpp \
     walls.cpp
 
 HEADERS += \
     emitters.h \
     mainwindow.h \
+    receivers.h \
     simulationscene.h \
     walls.h
 

@@ -48,15 +48,15 @@ std::complex <double> HalfWaveDipole::getEffectiveHeight(double theta, double ph
 
 QRectF HalfWaveDipole::boundingRect() const
 {
-    return QRectF(-EMITTER_WIDTH/2 - 2, -EMITTER_HEIGHT - 2,
-                  EMITTER_WIDTH + 4, EMITTER_HEIGHT + 4);
+    return QRectF(-EMITTER_WIDTH/2 - 2 -4 , -EMITTER_HEIGHT - 2 -15,
+                  EMITTER_WIDTH + 4 +10, EMITTER_HEIGHT + 4 +15);
 }
 
 QPainterPath HalfWaveDipole::shape() const
 {
     QPainterPath path;
-    path.addRect(-EMITTER_WIDTH/2 - 2, -EMITTER_HEIGHT - 2,
-                 EMITTER_WIDTH + 4, EMITTER_HEIGHT + 4);
+    path.addRect(-EMITTER_WIDTH/2 - 2 -4 , -EMITTER_HEIGHT - 2 -15,
+                 EMITTER_WIDTH + 4 +10, EMITTER_HEIGHT + 4 +15);
     return path;
 }
 
@@ -67,4 +67,5 @@ void HalfWaveDipole::paint(QPainter *painter, const QStyleOptionGraphicsItem *, 
     painter->drawEllipse(-EMITTER_WIDTH/2, -EMITTER_HEIGHT,
                          EMITTER_WIDTH, EMITTER_WIDTH);
     painter->drawLine(0, 0, 0, -(EMITTER_HEIGHT - EMITTER_WIDTH));
+    painter->drawText(-EMITTER_WIDTH/2 -5, -EMITTER_HEIGHT -8,"λ/2");
 }

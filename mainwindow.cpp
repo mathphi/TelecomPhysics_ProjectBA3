@@ -2,6 +2,7 @@
 #include "mainwindow.h"
 #include "walls.h"
 #include "emitters.h"
+#include "receivers.h"
 
 #include <QDebug>
 #include <QMessageBox>
@@ -41,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->button_eraseObject,     SIGNAL(toggled(bool)),  this, SLOT(toggleEraseMode(bool)));
     connect(ui->button_eraseAll,        SIGNAL(clicked()),      this, SLOT(eraseAll()));
     connect(ui->button_addEmitter,      SIGNAL(clicked()),      this, SLOT(addEmitter()));
+    connect(ui->button_addReceiver,     SIGNAL(clicked()),      this, SLOT(addReceiver()));
 
     connect(m_scene, SIGNAL(mouseRightReleased(QPoint)),  this, SLOT(graphicsSceneRightReleased(QPoint)));
     connect(m_scene, SIGNAL(mouseLeftReleased(QPoint)), this, SLOT(graphicsSceneLeftReleased(QPoint)));
@@ -142,6 +144,21 @@ void MainWindow::addEmitter(){
     m_draw_action = DrawActions::Emitter;
     m_drawing_item = new HalfWaveDipole(2.4e9, 2, 1);
 
+
+    // Hide the item until the mouse come on the scene
+    m_drawing_item->setVisible(false);
+    m_scene->addItem(m_drawing_item);
+
+}
+
+void MainWindow::addReceiver(){
+    cancelCurrentDrawing();
+
+    // Create an Receiver to place on the scene
+    m_draw_action = DrawActions::Receiver;
+    m_drawing_item = new Receiver();
+
+
     // Hide the item until the mouse come on the scene
     m_drawing_item->setVisible(false);
     m_scene->addItem(m_drawing_item);
@@ -163,6 +180,7 @@ void MainWindow::clearAllItems() {
 
     // Clear the lists and the graphics scene
     m_wall_list.clear();
+    m_emitter_list.clear();
     m_scene->clear();
 
     // Re-init mouse trackers on the scene
@@ -271,8 +289,8 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos) {
             trash.removeAll(rect_item);
 
             // Remove the mouse trackers from the trash selection list
-            trash.removeAll(mouse_tracker_x);
-            trash.removeAll(mouse_tracker_y);
+            trash.removeAll(m_mouse_tracker_x);
+            trash.removeAll(m_mouse_tracker_y);
 
             // Remove each items from the graphics scene and delete it
             foreach (QGraphicsItem *item, trash) {
@@ -281,12 +299,32 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos) {
                 // If it's a Wall -> remove it from the walls list
                 if (dynamic_cast<Wall*>(item)) {
                     m_wall_list.removeAll((Wall*) item);
+
+                }
+                else if (dynamic_cast<Emitter*> (item)){
+                   m_emitter_list.removeAll((Emitter*)item);
                 }
 
                 delete item;
             }
             break;
+
         }
+        case DrawActions::Emitter:{
+            Emitter *emitter = (Emitter*) m_draw_action;
+            m_emitter_list.append(emitter);
+            m_drawing_item = nullptr;
+            m_draw_action = DrawActions::None;
+            break;
+        }
+        case DrawActions::Receiver:{
+            Receiver *receiver = (Receiver*) m_draw_action;
+            m_receiver_list.append(receiver);
+            m_drawing_item = nullptr;
+            m_draw_action = DrawActions::None;
+            break;
+        }
+
         default:
             break;
         }
@@ -352,7 +390,8 @@ void MainWindow::graphicsSceneMouseMoved(QPoint pos) {
         m_drawing_item->show();
         break;
     }
-    case DrawActions::Emitter: {
+    case DrawActions::Emitter:
+    case DrawActions::Receiver:{
         m_drawing_item->setPos(pos);
 
         if (!m_drawing_item->isVisible()) {
@@ -438,23 +477,23 @@ void MainWindow::initMouseTracker() {
     // Add two lines to the scene that will track the mouse cursor when visible
     QPen tracker_pen(QBrush(QColor(0, 0, 255, 100)), 1, Qt::DotLine);
 
-    mouse_tracker_x = new QGraphicsLineItem();
-    mouse_tracker_y = new QGraphicsLineItem();
+    m_mouse_tracker_x = new QGraphicsLineItem();
+    m_mouse_tracker_y = new QGraphicsLineItem();
 
-    mouse_tracker_x->setPen(tracker_pen);
-    mouse_tracker_y->setPen(tracker_pen);
+    m_mouse_tracker_x->setPen(tracker_pen);
+    m_mouse_tracker_y->setPen(tracker_pen);
 
     setMouseTrackerVisible(false);
 
-    m_scene->addItem(mouse_tracker_x);
-    m_scene->addItem(mouse_tracker_y);
+    m_scene->addItem(m_mouse_tracker_x);
+    m_scene->addItem(m_mouse_tracker_y);
 }
 
 void MainWindow::setMouseTrackerVisible(bool visible) {
     m_mouse_tracker_visible = visible;
 
-    mouse_tracker_x->setVisible(visible);
-    mouse_tracker_y->setVisible(visible);
+    m_mouse_tracker_x->setVisible(visible);
+    m_mouse_tracker_y->setVisible(visible);
 }
 
 void MainWindow::setMouseTrackerPosition(QPoint pos) {
@@ -465,8 +504,8 @@ void MainWindow::setMouseTrackerPosition(QPoint pos) {
     QLine x_line(pos.x(), -view->height(), pos.x(), view->height());
     QLine y_line(-view->width(), pos.y(), view->width(), pos.y());
 
-    mouse_tracker_x->setLine(x_line);
-    mouse_tracker_y->setLine(y_line);
+    m_mouse_tracker_x->setLine(x_line);
+    m_mouse_tracker_y->setLine(y_line);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////

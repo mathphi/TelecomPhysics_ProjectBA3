@@ -5,6 +5,8 @@
 #include <QGraphicsScene>
 #include "simulationscene.h"
 #include "walls.h"
+#include "emitters.h"
+#include "receivers.h"
 
 namespace DrawActions {
 enum DrawActions{
@@ -14,6 +16,7 @@ enum DrawActions{
     PartitionWall,
     Erase,
     Emitter,
+    Receiver,
 };
 }
 
@@ -37,6 +40,7 @@ public slots:
     void toggleEraseMode(bool state);
     void eraseAll();
     void addEmitter();
+    void addReceiver();
 
     void graphicsSceneRightReleased(QPoint mouse_pos);
     void graphicsSceneLeftReleased(QPoint mouse_pos);
@@ -65,9 +69,11 @@ private:
     QGraphicsItem *m_drawing_item;
 
     QList<Wall*> m_wall_list; // List of all walls on the map
+    QList<Emitter*> m_emitter_list;
+    QList<Receiver*> m_receiver_list;
 
     bool m_mouse_tracker_visible;
-    QGraphicsLineItem *mouse_tracker_x;
-    QGraphicsLineItem *mouse_tracker_y;
+    QGraphicsLineItem *m_mouse_tracker_x;
+    QGraphicsLineItem *m_mouse_tracker_y;
 };
 #endif // MAINWINDOW_H
