@@ -38,3 +38,20 @@ void Receiver::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidge
     painter->drawEllipse(-8/2, -8/2, 8, 8);
 
 }
+
+
+QDataStream &operator>>(QDataStream &in, Receiver *&r) {
+    QPoint pos;
+    in >> pos;
+
+    r = new Receiver();
+    r->setPos(pos);
+
+    return in;
+}
+
+QDataStream &operator<<(QDataStream &out, Receiver *r) {
+    out << r->pos().toPoint();
+
+    return out;
+}

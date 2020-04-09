@@ -13,4 +13,8 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override;
 };
 
+// Operator overload to write objects from the Receiver class into a files
+QDataStream &operator>>(QDataStream &in, Receiver *&r);
+QDataStream &operator<<(QDataStream &out, Receiver *r);
+
 #endif // RECEIVER_H

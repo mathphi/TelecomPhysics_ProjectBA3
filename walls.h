@@ -23,7 +23,7 @@ public:
     // The 'virtual' keyword makes these functions abstracts
     virtual double getRelPermitivity() = 0;
     virtual double getConductivity() = 0;
-    virtual WallType::WallType getWallType()= 0;
+    virtual WallType::WallType getWallType() = 0;
 
 private:
     int  m_thickness;

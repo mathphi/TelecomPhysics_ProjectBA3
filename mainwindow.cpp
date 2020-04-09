@@ -144,11 +144,9 @@ void MainWindow::addEmitter(){
     m_draw_action = DrawActions::Emitter;
     m_drawing_item = new HalfWaveDipole(2.4e9, 2, 1);
 
-
     // Hide the item until the mouse come on the scene
     m_drawing_item->setVisible(false);
     m_scene->addItem(m_drawing_item);
-
 }
 
 void MainWindow::addReceiver(){
@@ -157,7 +155,6 @@ void MainWindow::addReceiver(){
     // Create an Receiver to place on the scene
     m_draw_action = DrawActions::Receiver;
     m_drawing_item = new Receiver();
-
 
     // Hide the item until the mouse come on the scene
     m_drawing_item->setVisible(false);
@@ -181,6 +178,7 @@ void MainWindow::clearAllItems() {
     // Clear the lists and the graphics scene
     m_wall_list.clear();
     m_emitter_list.clear();
+    m_receiver_list.clear();
     m_scene->clear();
 
     // Re-init mouse trackers on the scene
@@ -277,6 +275,22 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos) {
             m_draw_action = DrawActions::None;
             break;
         }
+        case DrawActions::Emitter: {
+            Emitter *emitter = (Emitter*) m_drawing_item;
+            m_emitter_list.append(emitter);
+
+            m_drawing_item = nullptr;
+            m_draw_action = DrawActions::None;
+            break;
+        }
+        case DrawActions::Receiver: {
+            Receiver *receiver = (Receiver*) m_drawing_item;
+            m_receiver_list.append(receiver);
+
+            m_drawing_item = nullptr;
+            m_draw_action = DrawActions::None;
+            break;
+        }
         case DrawActions::Erase: {
             QGraphicsRectItem *rect_item = (QGraphicsRectItem*) m_drawing_item;
 
@@ -301,30 +315,17 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos) {
                     m_wall_list.removeAll((Wall*) item);
 
                 }
-                else if (dynamic_cast<Emitter*> (item)){
-                   m_emitter_list.removeAll((Emitter*)item);
+                else if (dynamic_cast<Emitter*>(item)){
+                   m_emitter_list.removeAll((Emitter*) item);
+                }
+                else if (dynamic_cast<Receiver*>(item)){
+                   m_receiver_list.removeAll((Receiver*) item);
                 }
 
                 delete item;
             }
             break;
-
         }
-        case DrawActions::Emitter:{
-            Emitter *emitter = (Emitter*) m_draw_action;
-            m_emitter_list.append(emitter);
-            m_drawing_item = nullptr;
-            m_draw_action = DrawActions::None;
-            break;
-        }
-        case DrawActions::Receiver:{
-            Receiver *receiver = (Receiver*) m_draw_action;
-            m_receiver_list.append(receiver);
-            m_drawing_item = nullptr;
-            m_draw_action = DrawActions::None;
-            break;
-        }
-
         default:
             break;
         }
@@ -541,10 +542,18 @@ void MainWindow::actionOpen() {
    // Read data from the file
    QDataStream in(&file);
    in >> m_wall_list;
+   in >> m_emitter_list;
+   in >> m_receiver_list;
 
    // Update the graphics scene with read data
-   foreach (Wall* w, m_wall_list ) {
+   foreach (Wall* w, m_wall_list) {
        m_scene->addItem(w);
+   }
+   foreach (Emitter* e, m_emitter_list) {
+       m_scene->addItem(e);
+   }
+   foreach (Receiver* r, m_receiver_list) {
+       m_scene->addItem(r);
    }
 
    // Close the file
@@ -572,8 +581,10 @@ void MainWindow::actionSave() {
     }
 
     // Write current data into the file
-    QDataStream out (& file);
+    QDataStream out (&file);
     out << m_wall_list;
+    out << m_emitter_list;
+    out << m_receiver_list;
 
     // Close the file
     file.close();
