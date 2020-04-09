@@ -13,35 +13,41 @@ enum EmitterType {
 class Emitter : public QGraphicsItem
 {
 public:
-    Emitter (double frequency, double power, double efficiency);
+    Emitter (double frequency, double power, double efficiency, double resistance);
 
     virtual EmitterType::EmitterType getEmitterType() = 0;
+    virtual QString getEmitterLabel() = 0;
+
     virtual std::complex<double> getEffectiveHeight(double theta, double phi) = 0;
     virtual double getGain (double theta, double phi) = 0;
+
+    QRectF boundingRect() const override;
+    QPainterPath shape() const override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override;
 
     double getPower();
     double getFrequency();
     double getEfficiency();
+    double getResistivity();
 
 private:
     double m_frequency;
     double m_power;
     double m_efficiency;
+    double m_resistance;
 };
 
 
 class HalfWaveDipole : public Emitter
 {
 public:
-    HalfWaveDipole(double frequency, double power, double efficiency);
+    HalfWaveDipole(double frequency, double power, double efficiency, double resistance);
 
     EmitterType::EmitterType getEmitterType() override;
+    QString getEmitterLabel() override;
+
     std::complex<double> getEffectiveHeight(double theta, double phi) override;
     double getGain(double theta, double phi) override;
-
-    QRectF boundingRect() const override;
-    QPainterPath shape() const override;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override;
 };
 
 // Operator overload to write objects from the Emitter class into a files

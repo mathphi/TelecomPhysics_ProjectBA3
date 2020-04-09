@@ -11,10 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Simulation ray-tracing</string>
-  </property>
-  <property name="windowOpacity">
-   <double>1.000000000000000</double>
+   <string>Ray-tracing Simulation</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">

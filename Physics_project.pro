@@ -16,6 +16,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    emitterdialog.cpp \
     emitters.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -24,6 +25,7 @@ SOURCES += \
     walls.cpp
 
 HEADERS += \
+    emitterdialog.h \
     emitters.h \
     mainwindow.h \
     receivers.h \
@@ -31,6 +33,7 @@ HEADERS += \
     walls.h
 
 FORMS += \
+    emitterdialog.ui \
     mainwindow.ui
 
 # Default rules for deployment.

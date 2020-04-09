@@ -3,40 +3,42 @@
 #include <QPainter>
 
 #define RECEIVER_SIZE 50
+#define RECEIVER_CIRCLE_SIZE 8
 
 Receiver::Receiver()
 {
 
 }
 
-QRectF Receiver::boundingRect() const
-{
-    return QRectF(-RECEIVER_SIZE/2 - 2  , -RECEIVER_SIZE/2 - 2 ,
-                  RECEIVER_SIZE + 4 , RECEIVER_SIZE + 4 );
+QRectF Receiver::boundingRect() const {
+    return QRectF(-RECEIVER_SIZE/2 - 2, -RECEIVER_SIZE/2 - 2,
+                  RECEIVER_SIZE + 4, RECEIVER_SIZE + 4);
 }
 
-QPainterPath Receiver::shape() const
-{
+QPainterPath Receiver::shape() const {
     QPainterPath path;
-    path.addRect(-RECEIVER_SIZE/2 - 2  , -RECEIVER_SIZE/2 - 2 ,
-                 RECEIVER_SIZE + 4 , RECEIVER_SIZE + 4 );
+    path.addRect(-RECEIVER_SIZE/2 - 2, -RECEIVER_SIZE/2 - 2,
+                 RECEIVER_SIZE + 4, RECEIVER_SIZE + 4);
     return path;
 }
 
-void Receiver::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *){
-    // Draw a circle over a line, with the origin at the end of the line
-
+void Receiver::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) {
+    // Draw a dash-dot lined square with a cross on his center
     painter->setBrush(Qt::transparent);
     painter->setPen(QPen(QBrush(Qt::black), 1,Qt::DashDotLine));
-    painter->drawRect(-RECEIVER_SIZE/2,-RECEIVER_SIZE/2,RECEIVER_SIZE,RECEIVER_SIZE);
+    painter->drawRect(-RECEIVER_SIZE/2, -RECEIVER_SIZE/2, RECEIVER_SIZE, RECEIVER_SIZE);
 
-    painter->drawLine(0, -RECEIVER_SIZE/2 , 0, RECEIVER_SIZE/2);
-    painter->drawLine( -RECEIVER_SIZE/2 , 0, RECEIVER_SIZE/2,0);
+    painter->drawLine(0, -RECEIVER_SIZE/2, 0, RECEIVER_SIZE/2);
+    painter->drawLine(-RECEIVER_SIZE/2, 0, RECEIVER_SIZE/2, 0);
 
+    // Draw a circle on the center of the drawn square
     painter->setPen(QPen(QBrush(Qt::black), 1));
     painter->setBrush(Qt::green);
-    painter->drawEllipse(-8/2, -8/2, 8, 8);
-
+    painter->drawEllipse(
+                -RECEIVER_CIRCLE_SIZE/2,
+                -RECEIVER_CIRCLE_SIZE/2,
+                RECEIVER_CIRCLE_SIZE,
+                RECEIVER_CIRCLE_SIZE);
 }
 
 

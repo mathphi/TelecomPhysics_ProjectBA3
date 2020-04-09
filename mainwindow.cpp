@@ -3,6 +3,7 @@
 #include "walls.h"
 #include "emitters.h"
 #include "receivers.h"
+#include "emitterdialog.h"
 
 #include <QDebug>
 #include <QMessageBox>
@@ -11,8 +12,8 @@
 #include <QFileDialog>
 
 #define ALIGN_THRESHOLD 16
-#define ERASER_SIZE 20
 #define PROXIMITY_SIZE 16
+#define ERASER_SIZE 20
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -135,21 +136,38 @@ void MainWindow::eraseAll() {
     clearAllItems();
 }
 
-void MainWindow::addEmitter(){
+void MainWindow::addEmitter() {
     cancelCurrentDrawing();
 
-    //TODO dialog
+    // Dialog to configure the antenna
+    EmitterDialog *emitter_dialog = new EmitterDialog(this);
+    int ans = emitter_dialog->exec();
 
-    // Create an HalfWaveDipole to place on the scene
+    if (ans == QDialog::Rejected)
+        return;
+
+    EmitterType::EmitterType type = emitter_dialog->getEmitterType();
+    double power      = emitter_dialog->getPower();
+    double frequency  = emitter_dialog->getFrequency();
+    double resistance = emitter_dialog->getResistance();
+    double efficiency = emitter_dialog->getEfficiency();
+
+    // Create an emitter of the selected type to place on the scene
+    switch (type) {
+    case EmitterType::HalfWaveDipole:
+        m_drawing_item = new HalfWaveDipole(frequency, power, efficiency, resistance);
+        break;
+    }
+
+    // We are placing an emitter
     m_draw_action = DrawActions::Emitter;
-    m_drawing_item = new HalfWaveDipole(2.4e9, 2, 1);
 
     // Hide the item until the mouse come on the scene
     m_drawing_item->setVisible(false);
     m_scene->addItem(m_drawing_item);
 }
 
-void MainWindow::addReceiver(){
+void MainWindow::addReceiver() {
     cancelCurrentDrawing();
 
     // Create an Receiver to place on the scene
