@@ -46,6 +46,12 @@ public slots:
     void clearAllItems();
     void cancelCurrentDrawing();
 
+    void setMouseTrackerVisible(bool visible);
+
+private slots:
+    void initMouseTracker();
+    void setMouseTrackerPosition(QPoint pos);
+
 private:
     QPoint moveAligned(QPoint start, QPoint actual);
     QPoint attractivePoint(QPoint actual);
@@ -55,6 +61,11 @@ private:
 
     DrawActions::DrawActions m_draw_action;
     QGraphicsItem *m_drawing_item;
-    QList<Wall*> m_wall_list; //list of all walls on the map
+
+    QList<Wall*> m_wall_list; // List of all walls on the map
+
+    bool m_mouse_tracker_visible;
+    QGraphicsLineItem *mouse_tracker_x;
+    QGraphicsLineItem *mouse_tracker_y;
 };
 #endif // MAINWINDOW_H

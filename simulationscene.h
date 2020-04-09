@@ -9,16 +9,9 @@
 class SimulationScene : public QGraphicsScene
 {
     Q_OBJECT
+
 public:
-    SimulationScene(QObject* parent = nullptr);
-
-    bool isMouseTrackerVisible();
-    void setMouseTrackerVisible(bool visible);
-
-    void removeItem(QGraphicsItem *item);
-
-public slots:
-    void clear();
+    SimulationScene(QObject* parent = nullptr) : QGraphicsScene (parent) {}
 
 protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
@@ -31,14 +24,6 @@ signals:
     void mouseRightPressed(QPoint pos);
     void mouseRightReleased(QPoint pos);
     void mouseMoved(QPoint pos);
-
-private:
-    void initMouseTracker();
-    void setMouseTrackerPosition(QPoint pos);
-
-    bool m_mouse_tracker_visible;
-    QGraphicsLineItem *mouse_tracker_x;
-    QGraphicsLineItem *mouse_tracker_y;
 };
 
 #endif // SIMULATIONSCENE_H
