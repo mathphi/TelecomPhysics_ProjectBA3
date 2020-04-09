@@ -62,8 +62,6 @@ void SimulationScene::setMouseTrackerVisible(bool visible) {
     mouse_tracker_y->setVisible(visible);
 }
 
-#include <QDebug>
-
 void SimulationScene::setMouseTrackerPosition(QPoint pos) {
     if (views().size() == 0) {
         // If there is no viewport
@@ -83,5 +81,15 @@ void SimulationScene::setMouseTrackerPosition(QPoint pos) {
 
 void SimulationScene::clear() {
     QGraphicsScene::clear();
+
+    // Re-init the mouse tracker
     initMouseTracker();
+}
+
+void SimulationScene::removeItem(QGraphicsItem *item) {
+    // Prevent to remove the mouse tracker items
+    if (item == mouse_tracker_x || item == mouse_tracker_y)
+        return;
+
+    QGraphicsScene::removeItem(item);
 }

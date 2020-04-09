@@ -15,6 +15,8 @@ public:
     bool isMouseTrackerVisible();
     void setMouseTrackerVisible(bool visible);
 
+    void removeItem(QGraphicsItem *item);
+
 public slots:
     void clear();
 
@@ -22,7 +24,6 @@ protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
-
 
 signals:
     void mouseLeftPressed(QPoint pos);
