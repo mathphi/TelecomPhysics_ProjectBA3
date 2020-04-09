@@ -1,6 +1,7 @@
 #include "ui_mainwindow.h"
 #include "mainwindow.h"
 #include "walls.h"
+#include "emitters.h"
 
 #include <QDebug>
 #include <QMessageBox>
@@ -143,6 +144,12 @@ void MainWindow::eraseAll() {
     }
 
     clearAllItems();
+}
+
+void MainWindow::addEmitter(){
+    //TODO dialog
+    m_draw_action = DrawActions::Emitter;
+    m_drawing_item = new HalfWaveDipole(2.4e9, 2, 1);
 }
 
 /**

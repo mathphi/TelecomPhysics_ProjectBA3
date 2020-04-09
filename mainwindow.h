@@ -13,6 +13,7 @@ enum DrawActions{
     ConcreteWall,
     PartitionWall,
     Erase,
+    Emitter,
 };
 }
 
@@ -35,6 +36,7 @@ public slots:
     void addPartitionWall();
     void toggleEraseMode(bool state);
     void eraseAll();
+    void addEmitter();
 
     void graphicsSceneRightReleased(QPoint mouse_pos);
     void graphicsSceneLeftReleased(QPoint mouse_pos);
