@@ -274,7 +274,7 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos) {
                 m_scene->removeItem(item);
 
                 // If it's a Wall -> remove it from the walls list
-                if ((Wall*) item) {
+                if (dynamic_cast<Wall*>(item)) {
                     m_wall_list.removeAll((Wall*) item);
                 }
 
@@ -296,6 +296,9 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos) {
  * Slot called when the mouse move over the graphics scene
  */
 void MainWindow::graphicsSceneMouseMoved(QPoint pos) {
+    // Show mouse tracker only if we are placing something
+    m_scene->setMouseTrackerVisible(m_draw_action != DrawActions::None);
+
     // Nothing to do if we are not placing an item
     if (m_drawing_item == nullptr) {
         return;
@@ -313,6 +316,7 @@ void MainWindow::graphicsSceneMouseMoved(QPoint pos) {
 
         // Apply the moveAligned algorithm
         pos = moveAligned(line.p1(), pos);
+
         // Apply the attractivePoint algorithm
         pos = attractivePoint(pos);
 
@@ -336,7 +340,6 @@ void MainWindow::graphicsSceneMouseMoved(QPoint pos) {
     }
 }
 
-
 QPoint MainWindow::moveAligned(QPoint start, QPoint actual) {
     QPoint delta = actual - start;
     QPoint end = actual;
@@ -355,41 +358,53 @@ QPoint MainWindow::moveAligned(QPoint start, QPoint actual) {
 }
 
 QPoint MainWindow::attractivePoint(QPoint actual) {
-    // Observation rectangle
-    QRect rect(actual - QPoint(PROXIMITY_SIZE/2, PROXIMITY_SIZE/2), QSize(PROXIMITY_SIZE, PROXIMITY_SIZE) );
-
     double min_dist = PROXIMITY_SIZE + 1;
-    QPoint closest_point = actual;
+    QPoint attractive_point = actual;
 
-    // Loop over each Wall inside the rectangle and keep the closest extremity
-    foreach (QGraphicsItem *item,  m_scene->items(rect)) {
+    // Loop over each Wall of the scene
+    foreach (QGraphicsItem *item, m_scene->items()) {
         // Skip this item if it's the current drawing item
         if (item == m_drawing_item)
             continue;
 
-        Wall* wall_item = (Wall*) item;
+        // Use the dynamic cast to be shure the item is a Wall
+        Wall* wall_item = dynamic_cast<Wall*>(item);
 
         // If this item is a wall
         if (wall_item) {
-            QLineF bounding_line1(actual, wall_item->line().p1());
-            QLineF bounding_line2(actual, wall_item->line().p2());
+            // Save the two points of the line in a list to loop over them
+            QList<QPointF> line_points;
+            line_points << wall_item->line().p1() << wall_item->line().p2();
 
-            double lenght1 = bounding_line1.length();
-            double lenght2 = bounding_line2.length();
+            // For the two points of the line (start and end points)
+            foreach (QPointF pt, line_points) {
+                QLineF bounding_line(actual, pt);
 
-            // Keep the one with the closest distance to the mouse position
-            if (lenght1 < min_dist) {
-                min_dist = lenght1;
-                closest_point = wall_item->line().p1().toPoint();
-            }
-            if (lenght2 < min_dist) {
-                min_dist = lenght2;
-                closest_point = wall_item->line().p2().toPoint();
+                double true_lenght       = bounding_line.length();
+                double horizontal_length = abs(actual.x() - pt.x());
+                double vertical_length   = abs(actual.y() - pt.y());
+
+                // Keep the one with the closest distance to the mouse position
+                if (true_lenght < min_dist) {
+                    // Point over point alignment
+                    min_dist = true_lenght;
+                    attractive_point = pt.toPoint();
+                }
+                else {
+                    if (horizontal_length < PROXIMITY_SIZE) {
+                        // Horizontal alignment
+                        attractive_point = QPoint(pt.x(), attractive_point.y());
+                    }
+                    if (vertical_length < PROXIMITY_SIZE) {
+                        // Vertical alignment
+                        attractive_point = QPoint(attractive_point.x(), pt.y());
+                    }
+                }
             }
         }
     }
 
-    return closest_point;
+    return attractive_point;
 }
 
 void MainWindow::actionOpen() {
