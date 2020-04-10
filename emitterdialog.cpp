@@ -9,6 +9,9 @@ EmitterDialog::EmitterDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    // Disable the help button on title bar
+    setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+
     // Add items to the antenna type combobox
     ui->combobox_antenna_type->addItem("Dipôle λ/2", EmitterType::HalfWaveDipole);
 
@@ -33,7 +36,7 @@ EmitterType::EmitterType EmitterDialog::getEmitterType() {
 }
 
 double EmitterDialog::getPower() {
-    return ui->spinbox_power->value();
+    return Emitter::convertPowerToWatts(ui->spinbox_power->value());
 }
 
 double EmitterDialog::getFrequency() {
@@ -53,14 +56,12 @@ double EmitterDialog::getEfficiency() {
  * @param value
  *
  * This slots update the label to show the converted power in watts
- * from the given value in dBm (formula from the specifications
- * document of the project)
+ * from the given value in dBm
  */
 void EmitterDialog::powerSpinboxChanged(double value) {
     QString suffix = "W";
 
-    // Compute the power in Watts from the dBm
-    double power_watts = pow(10.0, value/10.0) / 1000.0;
+    double power_watts = Emitter::convertPowerToWatts(value);
 
     // Convert to readable units and values
     if (power_watts < 1e-3) {

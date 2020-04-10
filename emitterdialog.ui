@@ -55,7 +55,7 @@
      <item row="1" column="0">
       <widget class="QLabel" name="label_frequency">
        <property name="text">
-        <string>Fréquence d'émission</string>
+        <string>Fréquence</string>
        </property>
       </widget>
      </item>

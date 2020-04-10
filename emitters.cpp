@@ -23,7 +23,46 @@ Emitter::Emitter (double frequency, double power, double efficiency, double resi
     m_power      = power;
     m_efficiency = efficiency;
     m_resistance = resistance;
+
+    // Setup the tooltip with all emitter's info
+    QString tip("<b>Fréquence:</b> %1 GHz<br/>"
+                "<b>Puissance:</b> %2 dBm<br/>"
+                "<b>Résistance:</b> %3 Ω<br/>"
+                "<b>Rendement:</b> %4 %");
+
+    tip = tip.arg(frequency, 0, 'f', 2)
+            .arg(convertPowerTodBm(power), 0, 'f', 2)
+            .arg(resistance, 0, 'f', 2)
+            .arg(efficiency, 0, 'f', 1);
+
+    setToolTip(tip);
 }
+
+/**
+ * @brief Emitter::convertPowerToWatts
+ * @param power_dbm
+ * @return
+ *
+ * This function returns the converted power in watts from a dBm value
+ * (formula from the specifications document of the project)
+ */
+double Emitter::convertPowerToWatts(double power_dbm) {
+    // Compute the power in Watts from the dBm
+    return pow(10.0, power_dbm/10.0) / 1000.0;
+}
+
+/**
+ * @brief Emitter::convertPowerToWatts
+ * @param power_dbm
+ * @return
+ *
+ * This function returns the converted power in dBm from a Watts value
+ */
+double Emitter::convertPowerTodBm(double power_watts) {
+    // Compute the power in dBm from the Watts
+    return 10 * log10(power_watts / 0.001);
+}
+
 
 QRectF Emitter::boundingRect() const {
     QRectF emitter_rect(-EMITTER_WIDTH/2 - 2, -EMITTER_HEIGHT - 2,

@@ -32,6 +32,9 @@ public:
     double getEfficiency();
     double getResistance();
 
+    static double convertPowerToWatts(double power_dbm);
+    static double convertPowerTodBm(double power_watts);
+
 private:
     double m_frequency;
     double m_power;
