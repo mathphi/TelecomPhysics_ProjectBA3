@@ -10,6 +10,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsLineItem>
 #include <QFileDialog>
+#include <QKeyEvent>
 
 #define ALIGN_THRESHOLD 16
 #define PROXIMITY_SIZE 16
@@ -37,22 +38,41 @@ MainWindow::MainWindow(QWidget *parent)
     QRect scene_rect(QPoint(0,0), ui->graphicsView->size());
     ui->graphicsView->setSceneRect(scene_rect);
 
-    connect(ui->button_addBrickWall,    SIGNAL(clicked()),      this, SLOT(addBrickWall()));
-    connect(ui->button_addConcreteWall, SIGNAL(clicked()),      this, SLOT(addConcreteWall()));
-    connect(ui->button_addPartition,    SIGNAL(clicked()),      this, SLOT(addPartitionWall()));
-    connect(ui->button_eraseObject,     SIGNAL(toggled(bool)),  this, SLOT(toggleEraseMode(bool)));
-    connect(ui->button_eraseAll,        SIGNAL(clicked()),      this, SLOT(eraseAll()));
-    connect(ui->button_addEmitter,      SIGNAL(clicked()),      this, SLOT(addEmitter()));
-    connect(ui->button_addReceiver,     SIGNAL(clicked()),      this, SLOT(addReceiver()));
 
-    connect(m_scene, SIGNAL(mouseRightReleased(QPoint)),  this, SLOT(graphicsSceneRightReleased(QPoint)));
-    connect(m_scene, SIGNAL(mouseLeftReleased(QPoint)), this, SLOT(graphicsSceneLeftReleased(QPoint)));
-    connect(m_scene, SIGNAL(mouseMoved(QPoint)),    this, SLOT(graphicsSceneMouseMoved(QPoint)));
-
+    //TODO: add a confirmation dialog before to quit...
+    // Window File menu actions
     connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
     connect(ui->actionOpen, SIGNAL(triggered()),this, SLOT(actionOpen()));
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(actionSave()));
 
+    // Window Edit menu actions
+    connect(ui->actionAddBrickWall,     SIGNAL(triggered()),   this, SLOT(addBrickWall()));
+    connect(ui->actionAddConcreteWall,  SIGNAL(triggered()),   this, SLOT(addConcreteWall()));
+    connect(ui->actionAddPartitionWall, SIGNAL(triggered()),   this, SLOT(addPartitionWall()));
+    connect(ui->actionAddEmitter,       SIGNAL(triggered()),   this, SLOT(addEmitter()));
+    connect(ui->actionAddReceiver,      SIGNAL(triggered()),   this, SLOT(addReceiver()));
+    connect(ui->actionEraseObject,      SIGNAL(triggered(bool)), this, SLOT(toggleEraseMode(bool)));
+    connect(ui->actionEraseAll,         SIGNAL(triggered()),   this, SLOT(eraseAll()));
+
+    // Right-panel buttons
+    connect(ui->button_addBrickWall,    SIGNAL(clicked()),      this, SLOT(addBrickWall()));
+    connect(ui->button_addConcreteWall, SIGNAL(clicked()),      this, SLOT(addConcreteWall()));
+    connect(ui->button_addPartition,    SIGNAL(clicked()),      this, SLOT(addPartitionWall()));
+    connect(ui->button_addEmitter,      SIGNAL(clicked()),      this, SLOT(addEmitter()));
+    connect(ui->button_addReceiver,     SIGNAL(clicked()),      this, SLOT(addReceiver()));
+    connect(ui->button_eraseObject,     SIGNAL(clicked(bool)),  this, SLOT(toggleEraseMode(bool)));
+    connect(ui->button_eraseAll,        SIGNAL(clicked()),      this, SLOT(eraseAll()));
+
+    // Scene events
+    connect(m_scene, SIGNAL(mouseRightReleased(QPoint,Qt::KeyboardModifiers)),
+            this, SLOT(graphicsSceneRightReleased(QPoint,Qt::KeyboardModifiers)));
+    connect(m_scene, SIGNAL(mouseLeftReleased(QPoint,Qt::KeyboardModifiers)),
+            this, SLOT(graphicsSceneLeftReleased(QPoint,Qt::KeyboardModifiers)));
+    connect(m_scene, SIGNAL(mouseMoved(QPoint,Qt::KeyboardModifiers)),
+            this, SLOT(graphicsSceneMouseMoved(QPoint,Qt::KeyboardModifiers)));
+    connect(m_scene, SIGNAL(keyPressed(QKeyEvent*)), this, SLOT(keyPressed(QKeyEvent*)));
+
+    // Initialize the mouse tracker on the scene
     initMouseTracker();
 }
 
@@ -94,6 +114,10 @@ void MainWindow::addPartitionWall() {
 }
 
 void MainWindow::toggleEraseMode(bool state) {
+    // Set both button and menu's action state
+    ui->button_eraseObject->setChecked(state);
+    ui->actionEraseObject->setChecked(state);
+
     if (state) {
         cancelCurrentDrawing();
 
@@ -101,25 +125,17 @@ void MainWindow::toggleEraseMode(bool state) {
         m_draw_action = DrawActions::Erase;
 
         // Draw a dashed rectangle that will follow the mouse cursor (erasing area)
-        QPen pen(QBrush(Qt::gray),1,Qt::DashLine);
-        QGraphicsRectItem *rect_item = new QGraphicsRectItem(0,0,ERASER_SIZE,ERASER_SIZE);
+        QPen pen(QBrush(Qt::gray), 1, Qt::DashLine);
+        QGraphicsRectItem *rect_item = new QGraphicsRectItem(0, 0, ERASER_SIZE, ERASER_SIZE);
         rect_item->hide();
         rect_item->setPen(pen);
 
         m_drawing_item = rect_item;
         m_scene->addItem(m_drawing_item);
     }
-
     else {
         // Stop erasing
-
-        if(m_drawing_item) {
-            m_scene->removeItem(m_drawing_item);
-            delete m_drawing_item;
-        }
-
-        m_draw_action = DrawActions::None;
-        m_drawing_item = nullptr;
+        cancelCurrentDrawing();
     }
 }
 
@@ -129,11 +145,9 @@ void MainWindow::eraseAll() {
                     "Confirmation de la suppression",
                     "Êtes-vous sûr de vouloir tout supprimer ?");
 
-    if (answer == QMessageBox::No) {
-        return;
+    if (answer == QMessageBox::Yes) {
+        clearAllItems();
     }
-
-    clearAllItems();
 }
 
 void MainWindow::addEmitter() {
@@ -185,13 +199,8 @@ void MainWindow::addReceiver() {
  * This function resets all the scene, lists and actions
  */
 void MainWindow::clearAllItems() {
-    // If we were erasing, uncheck the "Erase object" button
-    if (m_draw_action == DrawActions::Erase) {
-        ui->button_eraseObject->setChecked(false);
-    }
-
-    m_draw_action = DrawActions::None;
-    m_drawing_item = nullptr;
+    // Cancel the current drawing (if one)
+    cancelCurrentDrawing();
 
     // Clear the lists and the graphics scene
     m_wall_list.clear();
@@ -212,6 +221,7 @@ void MainWindow::cancelCurrentDrawing() {
     // If we were erasing, uncheck the "Erase object" button
     if (m_draw_action == DrawActions::Erase) {
         ui->button_eraseObject->setChecked(false);
+        ui->actionEraseObject->setChecked(false);
     }
 
     // Remove the current placing object from the scene and delete it
@@ -222,6 +232,22 @@ void MainWindow::cancelCurrentDrawing() {
 
     m_draw_action = DrawActions::None;
     m_drawing_item = nullptr;
+
+    // Hide the mouse tracker
+    setMouseTrackerVisible(false);
+}
+
+/**
+ * @brief MainWindow::keyPressed
+ * @param e
+ *
+ * Slot called when the used presses any key on the keyboard
+ */
+void MainWindow::keyPressed(QKeyEvent *e) {
+    // Cancel current drawing on Escape pressed
+    if (e->key() == Qt::Key_Escape) {
+        cancelCurrentDrawing();
+    }
 }
 
 /**
@@ -230,8 +256,9 @@ void MainWindow::cancelCurrentDrawing() {
  *
  * Slot called when the user releases the right button on the graphics scene
  */
-void MainWindow::graphicsSceneRightReleased(QPoint pos) {
+void MainWindow::graphicsSceneRightReleased(QPoint pos, Qt::KeyboardModifiers mod_keys) {
     Q_UNUSED(pos); // To avoid the compiler's warning (unused variable 'pos')
+    Q_UNUSED(mod_keys);
 
     // Right click = cancel the current action
     cancelCurrentDrawing();
@@ -243,12 +270,14 @@ void MainWindow::graphicsSceneRightReleased(QPoint pos) {
  *
  * Slot called when the user releases the left button on the graphics scene
  */
-void MainWindow::graphicsSceneLeftReleased(QPoint pos) {
+void MainWindow::graphicsSceneLeftReleased(QPoint pos, Qt::KeyboardModifiers mod_keys) {
 
+    // If we aren't placing something yet
     if (m_drawing_item == nullptr) {
 
         // Actions to do on the first click
         switch (m_draw_action) {
+        //////////////////////////////// WALLS ACTIONS (1st click) /////////////////////////////////
         case DrawActions::BrickWall: {
             // Add a brick wall to the scene
             pos = attractivePoint(pos);
@@ -280,6 +309,7 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos) {
     else {
         // Action to do when we are placing an item
         switch (m_draw_action) {
+        //////////////////////////////// WALLS ACTIONS (2nd click) /////////////////////////////////
         case DrawActions::BrickWall:
         case DrawActions::ConcreteWall:
         case DrawActions::PartitionWall: {
@@ -289,26 +319,59 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos) {
             // Add the new Wall to the walls list
             m_wall_list.append(wall);
 
+            // Detach the drawn wall from the mouse
             m_drawing_item = nullptr;
-            m_draw_action = DrawActions::None;
+
+            // Repeat the last action if the control or shift key was pressed
+            if (mod_keys & (Qt::ShiftModifier | Qt::ControlModifier)) {
+                // Simulate a click on the same place, so we start a new wall of the
+                // same type at the end of the previous one
+                graphicsSceneLeftReleased(pos, mod_keys);
+            }
+            else {
+                m_draw_action = DrawActions::None;
+            }
             break;
         }
+        //////////////////////////////// EMITTER ACTION /////////////////////////////////
         case DrawActions::Emitter: {
             Emitter *emitter = (Emitter*) m_drawing_item;
             m_emitter_list.append(emitter);
 
-            m_drawing_item = nullptr;
-            m_draw_action = DrawActions::None;
+            // Repeat the last action if the control or shift key was pressed
+            if (mod_keys & (Qt::ShiftModifier | Qt::ControlModifier)) {
+                // Clone the last placed receiver and place it
+                m_drawing_item = emitter->clone();
+                m_drawing_item->setVisible(false);
+                m_scene->addItem(m_drawing_item);
+            }
+            else {
+                // Detach the placed emitter from the mouse
+                m_drawing_item = nullptr;
+                m_draw_action = DrawActions::None;
+            }
             break;
         }
+        //////////////////////////////// RECEIVER ACTION /////////////////////////////////
         case DrawActions::Receiver: {
             Receiver *receiver = (Receiver*) m_drawing_item;
             m_receiver_list.append(receiver);
 
-            m_drawing_item = nullptr;
-            m_draw_action = DrawActions::None;
+            // Repeat the last action if the control or shift key was pressed
+            if (mod_keys & (Qt::ShiftModifier | Qt::ControlModifier)) {
+                // Re-create a copy of the last placed receiver
+                m_drawing_item = new Receiver();
+                m_drawing_item->setVisible(false);
+                m_scene->addItem(m_drawing_item);
+            }
+            else {
+                // Detach the placed received from the mouse
+                m_drawing_item = nullptr;
+                m_draw_action = DrawActions::None;
+            }
             break;
         }
+        //////////////////////////////// ERASE ACTION /////////////////////////////////
         case DrawActions::Erase: {
             QGraphicsRectItem *rect_item = (QGraphicsRectItem*) m_drawing_item;
 
@@ -316,31 +379,30 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos) {
             QRectF rect (rect_item->pos(), rect_item->rect().size());
             QList<QGraphicsItem*> trash = m_scene->items(rect);
 
-            //TODO: use classes heritage to recognize which item is to be removed
-            // Remove the eraser's rectangle from the trash selection list
-            trash.removeAll(rect_item);
-
-            // Remove the mouse trackers from the trash selection list
-            trash.removeAll(m_mouse_tracker_x);
-            trash.removeAll(m_mouse_tracker_y);
-
             // Remove each items from the graphics scene and delete it
             foreach (QGraphicsItem *item, trash) {
-                m_scene->removeItem(item);
 
-                // If it's a Wall -> remove it from the walls list
+                // Remove only the known types
                 if (dynamic_cast<Wall*>(item)) {
-                    m_wall_list.removeAll((Wall*) item);
+                    m_scene->removeItem(item);
 
+                    // Remove it from the walls list
+                    m_wall_list.removeAll((Wall*) item);
+                    delete item;
                 }
                 else if (dynamic_cast<Emitter*>(item)){
-                   m_emitter_list.removeAll((Emitter*) item);
+                    m_scene->removeItem(item);
+                    m_emitter_list.removeAll((Emitter*) item);
+                    delete item;
                 }
                 else if (dynamic_cast<Receiver*>(item)){
-                   m_receiver_list.removeAll((Receiver*) item);
+                    m_scene->removeItem(item);
+                    m_receiver_list.removeAll((Receiver*) item);
+                    delete item;
                 }
 
-                delete item;
+                // Don't remove other items (ie: mouse tracker lines or
+                // eraser rectancgle)
             }
             break;
         }
@@ -356,7 +418,9 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos) {
  *
  * Slot called when the mouse move over the graphics scene
  */
-void MainWindow::graphicsSceneMouseMoved(QPoint pos) {
+void MainWindow::graphicsSceneMouseMoved(QPoint pos, Qt::KeyboardModifiers mod_keys) {
+    Q_UNUSED(mod_keys);
+
     // Show mouse tracker only if we are placing something
     setMouseTrackerVisible(m_draw_action != DrawActions::None);
 
@@ -379,6 +443,7 @@ void MainWindow::graphicsSceneMouseMoved(QPoint pos) {
     }
 
     switch (m_draw_action) {
+    //////////////////////////////// WALLS ACTIONS /////////////////////////////////
     case DrawActions::BrickWall:
     case DrawActions::ConcreteWall:
     case DrawActions::PartitionWall: {
@@ -401,14 +466,7 @@ void MainWindow::graphicsSceneMouseMoved(QPoint pos) {
         wall_item->setLine(new_line);
         break;
     }
-    case DrawActions::Erase: {
-        // The rectangle of the eraser is centered on the mouse
-        m_drawing_item->setPos(pos - QPoint(ERASER_SIZE/2,ERASER_SIZE/2));
-
-        // The rectangle of the eraser starts hidden
-        m_drawing_item->show();
-        break;
-    }
+    ////////////////////////// EMITTER/RECEIVER ACTION ////////////////////////////
     case DrawActions::Emitter:
     case DrawActions::Receiver:{
         m_drawing_item->setPos(pos);
@@ -416,6 +474,15 @@ void MainWindow::graphicsSceneMouseMoved(QPoint pos) {
         if (!m_drawing_item->isVisible()) {
             m_drawing_item->setVisible(true);
         }
+        break;
+    }
+    //////////////////////////////// ERASE ACTION /////////////////////////////////
+    case DrawActions::Erase: {
+        // The rectangle of the eraser is centered on the mouse
+        m_drawing_item->setPos(pos - QPoint(ERASER_SIZE/2,ERASER_SIZE/2));
+
+        // The rectangle of the eraser starts hidden
+        m_drawing_item->show();
         break;
     }
     default:
@@ -490,7 +557,8 @@ QPoint MainWindow::attractivePoint(QPoint actual) {
     return attractive_point;
 }
 
-////////////////////////////////// Mouse tracker section /////////////////////////////////////
+
+////////////////////////////////// MOUSE TRACKER SECTION /////////////////////////////////////
 
 void MainWindow::initMouseTracker() {
     // Add two lines to the scene that will track the mouse cursor when visible
@@ -527,7 +595,8 @@ void MainWindow::setMouseTrackerPosition(QPoint pos) {
     m_mouse_tracker_y->setLine(y_line);
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////// FILE SAVE/RESTORE HANDLING SECTION ///////////////////////////////////
 
 void MainWindow::actionOpen() {
     int answer = QMessageBox::question(

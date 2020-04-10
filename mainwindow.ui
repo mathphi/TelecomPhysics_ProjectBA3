@@ -143,7 +143,7 @@
      <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFichier">
+   <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>Fichier</string>
     </property>
@@ -152,7 +152,22 @@
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
-   <addaction name="menuFichier"/>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Éditer</string>
+    </property>
+    <addaction name="actionAddBrickWall"/>
+    <addaction name="actionAddConcreteWall"/>
+    <addaction name="actionAddPartitionWall"/>
+    <addaction name="separator"/>
+    <addaction name="actionAddEmitter"/>
+    <addaction name="actionAddReceiver"/>
+    <addaction name="separator"/>
+    <addaction name="actionEraseObject"/>
+    <addaction name="actionEraseAll"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOpen">
@@ -168,6 +183,44 @@
   <action name="actionExit">
    <property name="text">
     <string>Quitter</string>
+   </property>
+  </action>
+  <action name="actionAddBrickWall">
+   <property name="text">
+    <string>Ajouter un mur en brique</string>
+   </property>
+  </action>
+  <action name="actionAddConcreteWall">
+   <property name="text">
+    <string>Ajouter un mur en béton</string>
+   </property>
+  </action>
+  <action name="actionAddPartitionWall">
+   <property name="text">
+    <string>Ajouter une cloison</string>
+   </property>
+  </action>
+  <action name="actionAddEmitter">
+   <property name="text">
+    <string>Ajouter un émetteur</string>
+   </property>
+  </action>
+  <action name="actionAddReceiver">
+   <property name="text">
+    <string>Ajouter un récepteur</string>
+   </property>
+  </action>
+  <action name="actionEraseObject">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Effacer un objet</string>
+   </property>
+  </action>
+  <action name="actionEraseAll">
+   <property name="text">
+    <string>Effacer tout</string>
    </property>
   </action>
  </widget>

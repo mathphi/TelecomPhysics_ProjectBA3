@@ -17,7 +17,7 @@ const QRectF TEXT_RECT(
         EMITTER_TEXT_WIDTH,
         EMITTER_TEXT_HEIGHT);
 
-Emitter::Emitter (double frequency, double power, double efficiency, double resistance) : QGraphicsItem(nullptr)
+Emitter::Emitter (double frequency, double power, double efficiency, double resistance) : QGraphicsItem()
 {
     m_frequency  = frequency;
     m_power      = power;
@@ -64,7 +64,7 @@ double Emitter::getPower() {
     return m_power;
 }
 
-double Emitter::getResistivity() {
+double Emitter::getResistance() {
     return  m_resistance;
 }
 
@@ -74,6 +74,16 @@ HalfWaveDipole::HalfWaveDipole(double frequency, double power, double efficiency
     : Emitter(frequency, power, efficiency, resistance)
 {
 
+}
+
+/**
+ * @brief clone
+ * @return
+ *
+ * This function returns a new HalfWaveDipole with the same properties
+ */
+Emitter* HalfWaveDipole::clone() {
+    return new HalfWaveDipole(getFrequency(), getPower(), getEfficiency(), getResistance());
 }
 
 EmitterType::EmitterType HalfWaveDipole::getEmitterType() {
@@ -128,7 +138,7 @@ QDataStream &operator<<(QDataStream &out, Emitter *e) {
     out << e->getPower();
     out << e->getFrequency();
     out << e->getEfficiency();
-    out << e->getResistivity();
+    out << e->getResistance();
     out << e->pos().toPoint();
 
     return out;

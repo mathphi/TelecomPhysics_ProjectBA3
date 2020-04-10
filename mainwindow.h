@@ -42,10 +42,6 @@ public slots:
     void addEmitter();
     void addReceiver();
 
-    void graphicsSceneRightReleased(QPoint mouse_pos);
-    void graphicsSceneLeftReleased(QPoint mouse_pos);
-    void graphicsSceneMouseMoved(QPoint mouse_pos);
-
     void actionOpen();
     void actionSave();
 
@@ -57,6 +53,12 @@ public slots:
 private slots:
     void initMouseTracker();
     void setMouseTrackerPosition(QPoint pos);
+
+    void graphicsSceneRightReleased(QPoint mouse_pos, Qt::KeyboardModifiers mod_keys);
+    void graphicsSceneLeftReleased(QPoint mouse_pos, Qt::KeyboardModifiers mod_keys);
+    void graphicsSceneMouseMoved(QPoint mouse_pos, Qt::KeyboardModifiers mod_keys);
+
+    void keyPressed(QKeyEvent *e);
 
 private:
     QPoint moveAligned(QPoint start, QPoint actual);

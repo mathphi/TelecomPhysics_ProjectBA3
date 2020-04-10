@@ -18,12 +18,18 @@ protected:
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
 
+    virtual void keyPressEvent(QKeyEvent *event) override;
+    virtual void keyReleaseEvent(QKeyEvent *event) override;
+
 signals:
-    void mouseLeftPressed(QPoint pos);
-    void mouseLeftReleased(QPoint pos);
-    void mouseRightPressed(QPoint pos);
-    void mouseRightReleased(QPoint pos);
-    void mouseMoved(QPoint pos);
+    void mouseLeftPressed(QPoint pos, Qt::KeyboardModifiers mod_keys);
+    void mouseLeftReleased(QPoint pos, Qt::KeyboardModifiers mod_keys);
+    void mouseRightPressed(QPoint pos, Qt::KeyboardModifiers mod_keys);
+    void mouseRightReleased(QPoint pos, Qt::KeyboardModifiers mod_keys);
+    void mouseMoved(QPoint pos, Qt::KeyboardModifiers mod_keys);
+
+    void keyPressed(QKeyEvent *e);
+    void keyReleased(QKeyEvent *e);
 };
 
 #endif // SIMULATIONSCENE_H

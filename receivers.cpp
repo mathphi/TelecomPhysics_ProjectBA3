@@ -5,7 +5,7 @@
 #define RECEIVER_SIZE 50
 #define RECEIVER_CIRCLE_SIZE 8
 
-Receiver::Receiver()
+Receiver::Receiver() : QGraphicsItem()
 {
 
 }

@@ -15,6 +15,8 @@ class Emitter : public QGraphicsItem
 public:
     Emitter (double frequency, double power, double efficiency, double resistance);
 
+    virtual Emitter* clone() = 0;
+
     virtual EmitterType::EmitterType getEmitterType() = 0;
     virtual QString getEmitterLabel() = 0;
 
@@ -28,7 +30,7 @@ public:
     double getPower();
     double getFrequency();
     double getEfficiency();
-    double getResistivity();
+    double getResistance();
 
 private:
     double m_frequency;
@@ -42,6 +44,8 @@ class HalfWaveDipole : public Emitter
 {
 public:
     HalfWaveDipole(double frequency, double power, double efficiency, double resistance);
+
+    Emitter* clone() override;
 
     EmitterType::EmitterType getEmitterType() override;
     QString getEmitterLabel() override;
