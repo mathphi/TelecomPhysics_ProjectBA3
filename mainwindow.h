@@ -3,10 +3,9 @@
 
 #include <QMainWindow>
 #include <QGraphicsScene>
+
 #include "simulationscene.h"
-#include "walls.h"
-#include "emitters.h"
-#include "receivers.h"
+#include "simulationhandler.h"
 
 namespace DrawActions {
 enum DrawActions{
@@ -50,6 +49,9 @@ public slots:
 
     void setMouseTrackerVisible(bool visible);
 
+protected:
+    void closeEvent(QCloseEvent *event);
+
 private slots:
     void initMouseTracker();
     void setMouseTrackerPosition(QPoint pos);
@@ -65,14 +67,12 @@ private:
     QPoint attractivePoint(QPoint actual);
 
     Ui::MainWindow *ui;
+
     SimulationScene *m_scene;
+    SimulationHandler *m_simulation_handler;
 
     DrawActions::DrawActions m_draw_action;
     QGraphicsItem *m_drawing_item;
-
-    QList<Wall*> m_wall_list; // List of all walls on the map
-    QList<Emitter*> m_emitter_list;
-    QList<Receiver*> m_receiver_list;
 
     bool m_mouse_tracker_visible;
     QGraphicsLineItem *m_mouse_tracker_x;

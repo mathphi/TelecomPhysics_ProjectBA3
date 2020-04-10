@@ -21,6 +21,8 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     receivers.cpp \
+    simulationdata.cpp \
+    simulationhandler.cpp \
     simulationscene.cpp \
     walls.cpp
 
@@ -29,6 +31,8 @@ HEADERS += \
     emitters.h \
     mainwindow.h \
     receivers.h \
+    simulationdata.h \
+    simulationhandler.h \
     simulationscene.h \
     walls.h
 

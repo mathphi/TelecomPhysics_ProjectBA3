@@ -23,6 +23,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    m_simulation_handler = new SimulationHandler();
+
     // This attribute will store the type of item we are drawing (a wall, an emitter,...)
     m_draw_action = DrawActions::None;
 
@@ -39,20 +41,19 @@ MainWindow::MainWindow(QWidget *parent)
     ui->graphicsView->setSceneRect(scene_rect);
 
 
-    //TODO: add a confirmation dialog before to quit...
     // Window File menu actions
     connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
-    connect(ui->actionOpen, SIGNAL(triggered()),this, SLOT(actionOpen()));
+    connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(actionOpen()));
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(actionSave()));
 
     // Window Edit menu actions
-    connect(ui->actionAddBrickWall,     SIGNAL(triggered()),   this, SLOT(addBrickWall()));
-    connect(ui->actionAddConcreteWall,  SIGNAL(triggered()),   this, SLOT(addConcreteWall()));
-    connect(ui->actionAddPartitionWall, SIGNAL(triggered()),   this, SLOT(addPartitionWall()));
-    connect(ui->actionAddEmitter,       SIGNAL(triggered()),   this, SLOT(addEmitter()));
-    connect(ui->actionAddReceiver,      SIGNAL(triggered()),   this, SLOT(addReceiver()));
+    connect(ui->actionAddBrickWall,     SIGNAL(triggered()),     this, SLOT(addBrickWall()));
+    connect(ui->actionAddConcreteWall,  SIGNAL(triggered()),     this, SLOT(addConcreteWall()));
+    connect(ui->actionAddPartitionWall, SIGNAL(triggered()),     this, SLOT(addPartitionWall()));
+    connect(ui->actionAddEmitter,       SIGNAL(triggered()),     this, SLOT(addEmitter()));
+    connect(ui->actionAddReceiver,      SIGNAL(triggered()),     this, SLOT(addReceiver()));
     connect(ui->actionEraseObject,      SIGNAL(triggered(bool)), this, SLOT(toggleEraseMode(bool)));
-    connect(ui->actionEraseAll,         SIGNAL(triggered()),   this, SLOT(eraseAll()));
+    connect(ui->actionEraseAll,         SIGNAL(triggered()),     this, SLOT(eraseAll()));
 
     // Right-panel buttons
     connect(ui->button_addBrickWall,    SIGNAL(clicked()),      this, SLOT(addBrickWall()));
@@ -78,6 +79,22 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow() {
     delete ui;
+}
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+    int ans = QMessageBox::question(
+                this,
+                "Quitter",
+                "Les modifications non enregistrées seront perdues.\n"
+                "Voulez-vous vraiment quitter la simulation ?");
+
+    // Close the window only if the user clicked the Yes button
+    if (ans == QMessageBox::Yes) {
+        event->accept();
+    }
+    else {
+        event->ignore();
+    }
 }
 
 /**
@@ -203,9 +220,7 @@ void MainWindow::clearAllItems() {
     cancelCurrentDrawing();
 
     // Clear the lists and the graphics scene
-    m_wall_list.clear();
-    m_emitter_list.clear();
-    m_receiver_list.clear();
+    m_simulation_handler->simulationData()->reset();
     m_scene->clear();
 
     // Re-init mouse trackers on the scene
@@ -316,8 +331,8 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos, Qt::KeyboardModifiers mod
             // Placing of the wall done (second click)
             Wall *wall = (Wall*) m_drawing_item;
 
-            // Add the new Wall to the walls list
-            m_wall_list.append(wall);
+            // Add the new Wall to the walls list in the simulation data
+            m_simulation_handler->simulationData()->attachWall(wall);
 
             // Detach the drawn wall from the mouse
             m_drawing_item = nullptr;
@@ -336,7 +351,9 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos, Qt::KeyboardModifiers mod
         //////////////////////////////// EMITTER ACTION /////////////////////////////////
         case DrawActions::Emitter: {
             Emitter *emitter = (Emitter*) m_drawing_item;
-            m_emitter_list.append(emitter);
+
+            // Add this emitter to the simulation data
+            m_simulation_handler->simulationData()->attachEmitter(emitter);
 
             // Repeat the last action if the control or shift key was pressed
             if (mod_keys & (Qt::ShiftModifier | Qt::ControlModifier)) {
@@ -355,7 +372,9 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos, Qt::KeyboardModifiers mod
         //////////////////////////////// RECEIVER ACTION /////////////////////////////////
         case DrawActions::Receiver: {
             Receiver *receiver = (Receiver*) m_drawing_item;
-            m_receiver_list.append(receiver);
+
+            // Add this receiver to the simulation data
+            m_simulation_handler->simulationData()->attachReceiver(receiver);
 
             // Repeat the last action if the control or shift key was pressed
             if (mod_keys & (Qt::ShiftModifier | Qt::ControlModifier)) {
@@ -387,17 +406,17 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos, Qt::KeyboardModifiers mod
                     m_scene->removeItem(item);
 
                     // Remove it from the walls list
-                    m_wall_list.removeAll((Wall*) item);
+                    m_simulation_handler->simulationData()->detachWall((Wall*) item);
                     delete item;
                 }
                 else if (dynamic_cast<Emitter*>(item)){
                     m_scene->removeItem(item);
-                    m_emitter_list.removeAll((Emitter*) item);
+                    m_simulation_handler->simulationData()->detachEmitter((Emitter*) item);
                     delete item;
                 }
                 else if (dynamic_cast<Receiver*>(item)){
                     m_scene->removeItem(item);
-                    m_receiver_list.removeAll((Receiver*) item);
+                    m_simulation_handler->simulationData()->detachReceiver((Receiver*) item);
                     delete item;
                 }
 
@@ -628,18 +647,16 @@ void MainWindow::actionOpen() {
 
    // Read data from the file
    QDataStream in(&file);
-   in >> m_wall_list;
-   in >> m_emitter_list;
-   in >> m_receiver_list;
+   in >> m_simulation_handler->simulationData();
 
    // Update the graphics scene with read data
-   foreach (Wall* w, m_wall_list) {
+   foreach (Wall* w, m_simulation_handler->simulationData()->getWallsList()) {
        m_scene->addItem(w);
    }
-   foreach (Emitter* e, m_emitter_list) {
+   foreach (Emitter* e, m_simulation_handler->simulationData()->getEmittersList()) {
        m_scene->addItem(e);
    }
-   foreach (Receiver* r, m_receiver_list) {
+   foreach (Receiver* r, m_simulation_handler->simulationData()->getReceiverList()) {
        m_scene->addItem(r);
    }
 
@@ -669,9 +686,7 @@ void MainWindow::actionSave() {
 
     // Write current data into the file
     QDataStream out (&file);
-    out << m_wall_list;
-    out << m_emitter_list;
-    out << m_receiver_list;
+    out << m_simulation_handler->simulationData();
 
     // Close the file
     file.close();
