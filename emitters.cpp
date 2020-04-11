@@ -17,7 +17,7 @@ const QRectF TEXT_RECT(
         EMITTER_TEXT_WIDTH,
         EMITTER_TEXT_HEIGHT);
 
-Emitter::Emitter (double frequency, double power, double efficiency, double resistance) : QGraphicsItem()
+Emitter::Emitter (double frequency, double power, double efficiency, double resistance) : SimulationItem()
 {
     m_frequency  = frequency;
     m_power      = power;
@@ -87,7 +87,7 @@ void Emitter::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget
     painter->drawEllipse(-EMITTER_WIDTH/2, -EMITTER_HEIGHT, EMITTER_WIDTH, EMITTER_WIDTH);
     painter->drawLine(0, 0, 0, -(EMITTER_HEIGHT - EMITTER_WIDTH));
 
-    // Draw the label the the emitter
+    // Draw the label of the emitter
     painter->drawText(TEXT_RECT, Qt::AlignHCenter | Qt::AlignTop, getEmitterLabel());
 }
 

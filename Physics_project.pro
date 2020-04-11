@@ -23,6 +23,7 @@ SOURCES += \
     receivers.cpp \
     simulationdata.cpp \
     simulationhandler.cpp \
+    simulationitem.cpp \
     simulationscene.cpp \
     walls.cpp
 
@@ -33,6 +34,7 @@ HEADERS += \
     receivers.h \
     simulationdata.h \
     simulationhandler.h \
+    simulationitem.h \
     simulationscene.h \
     walls.h
 

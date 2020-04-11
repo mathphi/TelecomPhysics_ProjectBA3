@@ -219,12 +219,20 @@ void MainWindow::clearAllItems() {
     // Cancel the current drawing (if one)
     cancelCurrentDrawing();
 
-    // Clear the lists and the graphics scene
+    // Clear the lists
     m_simulation_handler->simulationData()->reset();
-    m_scene->clear();
 
-    // Re-init mouse trackers on the scene
-    initMouseTracker();
+    // Remove all SimulationItem from the scene
+    foreach (QGraphicsItem *item, m_scene->items()) {
+        // Don't remove other items (ie: mouse tracker lines or
+        // eraser rectancgle) than the type SimulationItem
+        if (!(dynamic_cast<SimulationItem*>(item))) {
+            continue;
+        }
+
+        m_scene->removeItem(item);
+        delete item;
+    }
 }
 
 /**
@@ -297,7 +305,9 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos, Qt::KeyboardModifiers mod
             // Add a brick wall to the scene
             pos = attractivePoint(pos);
             QLine line(pos, pos);
-            m_drawing_item = new BrickWall(line);
+            BrickWall *wall = new BrickWall(line);
+            wall->setPlacingMode(true);
+            m_drawing_item = wall;
             m_scene->addItem(m_drawing_item);
             break;
         }
@@ -305,7 +315,9 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos, Qt::KeyboardModifiers mod
             // Add a concrete wall to the scene
             pos = attractivePoint(pos);
             QLine line(pos, pos);
-            m_drawing_item = new ConcreteWall(line);
+            ConcreteWall *wall = new ConcreteWall(line);
+            wall->setPlacingMode(true);
+            m_drawing_item = wall;
             m_scene->addItem(m_drawing_item);
             break;
         }
@@ -313,7 +325,9 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos, Qt::KeyboardModifiers mod
             // Add a partition wall to the scene
             pos = attractivePoint(pos);
             QLine line(pos, pos);
-            m_drawing_item = new PartitionWall(line);
+            PartitionWall *wall = new PartitionWall(line);
+            wall->setPlacingMode(true);
+            m_drawing_item = wall;
             m_scene->addItem(m_drawing_item);
             break;
         }
@@ -330,6 +344,14 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos, Qt::KeyboardModifiers mod
         case DrawActions::PartitionWall: {
             // Placing of the wall done (second click)
             Wall *wall = (Wall*) m_drawing_item;
+
+            // If the wall has a null length, don't place it
+            if (wall->getLine().length() == 0.0) {
+                break;
+            }
+
+            // Disable the placing mode
+            wall->setPlacingMode(false);
 
             // Add the new Wall to the walls list in the simulation data
             m_simulation_handler->simulationData()->attachWall(wall);
@@ -400,28 +422,28 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos, Qt::KeyboardModifiers mod
 
             // Remove each items from the graphics scene and delete it
             foreach (QGraphicsItem *item, trash) {
+                // Don't remove other items (ie: mouse tracker lines or
+                // eraser rectancgle) than the type SimulationItem
+                if (!(dynamic_cast<SimulationItem*>(item))) {
+                    continue;
+                }
 
-                // Remove only the known types
+                // Remove the item from the scene
+                m_scene->removeItem(item);
+
+                // Action for some types of items
                 if (dynamic_cast<Wall*>(item)) {
-                    m_scene->removeItem(item);
-
                     // Remove it from the walls list
                     m_simulation_handler->simulationData()->detachWall((Wall*) item);
-                    delete item;
                 }
                 else if (dynamic_cast<Emitter*>(item)){
-                    m_scene->removeItem(item);
                     m_simulation_handler->simulationData()->detachEmitter((Emitter*) item);
-                    delete item;
                 }
                 else if (dynamic_cast<Receiver*>(item)){
-                    m_scene->removeItem(item);
                     m_simulation_handler->simulationData()->detachReceiver((Receiver*) item);
-                    delete item;
                 }
 
-                // Don't remove other items (ie: mouse tracker lines or
-                // eraser rectancgle)
+                delete item;
             }
             break;
         }
@@ -470,7 +492,7 @@ void MainWindow::graphicsSceneMouseMoved(QPoint pos, Qt::KeyboardModifiers mod_k
         Wall *wall_item = (Wall*) m_drawing_item;
 
         // Get the current line's coordinates
-        QLine line = wall_item->line().toLine();
+        QLine line = wall_item->getLine().toLine();
 
         // Apply the moveAligned algorithm
         pos = moveAligned(line.p1(), pos);
@@ -514,12 +536,12 @@ QPoint MainWindow::moveAligned(QPoint start, QPoint actual) {
     QPoint end = actual;
 
     // Align by X if we are close to the starting X position
-    if (abs(delta.x()) < ALIGN_THRESHOLD) {
+    if (abs(delta.x()) < ALIGN_THRESHOLD && abs(delta.x()) < abs(delta.y())) {
         end.setX(start.x());
     }
 
     // Align by Y if we are close to the starting Y position
-    if (abs(delta.y()) < ALIGN_THRESHOLD) {
+    else if (abs(delta.y()) < ALIGN_THRESHOLD) {
         end.setY(start.y());
     }
 
@@ -543,7 +565,7 @@ QPoint MainWindow::attractivePoint(QPoint actual) {
         if (wall_item) {
             // Save the two points of the line in a list to loop over them
             QList<QPointF> line_points;
-            line_points << wall_item->line().p1() << wall_item->line().p2();
+            line_points << wall_item->getLine().p1() << wall_item->getLine().p2();
 
             // For the two points of the line (start and end points)
             foreach (QPointF pt, line_points) {

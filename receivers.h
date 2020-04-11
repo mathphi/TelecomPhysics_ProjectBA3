@@ -3,7 +3,9 @@
 
 #include <QGraphicsItem>
 
-class Receiver : public QGraphicsItem
+#include "simulationitem.h"
+
+class Receiver : public SimulationItem
 {
 public:
     Receiver();

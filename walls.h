@@ -1,7 +1,10 @@
 #ifndef WALL_H
 #define WALL_H
 
-#include <QGraphicsLineItem>
+#include <QGraphicsItem>
+#include <QPen>
+
+#include "simulationitem.h"
 
 // Type used to recognize the saved classes into a file
 namespace WallType {
@@ -13,28 +16,43 @@ enum WallType{
 }
 
 // Abstract wall class
-class Wall : public QGraphicsLineItem
+class Wall : public SimulationItem
 {
 public:
-    Wall(QLine line, int thickness);
+    Wall(QLineF line, int thickness);
+
+    QLineF getLine();
+    void setLine(QLineF line);
 
     int getThickness();
+
+    QPen getPen();
+    void setPen(QPen pen);
 
     // The 'virtual' keyword makes these functions abstracts
     virtual double getRelPermitivity() = 0;
     virtual double getConductivity() = 0;
     virtual WallType::WallType getWallType() = 0;
 
+    QRectF boundingRect() const override;
+    QPainterPath shape() const override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override;
+
 private:
+    QRectF getLengthTextRect() const;
+
+    QLineF m_line;
     int  m_thickness;
+
+    QPen m_pen;
 };
 
 
 class BrickWall : public Wall
 {
 public:
-    BrickWall(QLine line);
-    BrickWall(QLine line, int thickness);
+    BrickWall(QLineF line);
+    BrickWall(QLineF line, int thickness);
 
     double getRelPermitivity();
     double getConductivity();
@@ -45,8 +63,8 @@ public:
 class ConcreteWall : public Wall
 {
 public:
-    ConcreteWall(QLine line);
-    ConcreteWall(QLine line, int thickness);
+    ConcreteWall(QLineF line);
+    ConcreteWall(QLineF line, int thickness);
 
     double getRelPermitivity();
     double getConductivity();
@@ -57,8 +75,8 @@ public:
 class PartitionWall : public Wall
 {
 public:
-    PartitionWall(QLine line);
-    PartitionWall(QLine line, int thickness);
+    PartitionWall(QLineF line);
+    PartitionWall(QLineF line, int thickness);
 
     double getRelPermitivity();
     double getConductivity();

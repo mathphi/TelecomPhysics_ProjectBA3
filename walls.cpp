@@ -1,6 +1,7 @@
 #include "walls.h"
 
 #include <QPen>
+#include <QPainter>
 
 // Wall's relative permittivity
 #define BRICK_R_PERMITTIVITY      4.6
@@ -20,23 +21,120 @@
 // Wall's visual thickness
 #define VISUAL_THICKNESS 4
 
+// Text showing the length of the wall while placing
+#define WALL_TEXT_WIDTH 50
+#define WALL_TEXT_HEIGHT 20
 
-Wall::Wall(QLine line, int thickness) : QGraphicsLineItem(line) {
+
+Wall::Wall(QLineF line, int thickness) : SimulationItem() {
+    m_line = line;
     m_thickness = thickness;
+}
+
+QLineF Wall::getLine() {
+    return m_line;
+}
+
+void Wall::setLine(QLineF line) {
+    prepareGeometryChange();
+    m_line = line;
+    update();
 }
 
 int Wall::getThickness(){
     return m_thickness;
 }
 
+QPen Wall::getPen() {
+    return m_pen;
+}
 
-BrickWall::BrickWall(QLine line, int thickness) : Wall(line, thickness) {
+void Wall::setPen(QPen pen) {
+    prepareGeometryChange();
+    m_pen = pen;
+    update();
+}
+
+QRectF Wall::getLengthTextRect() const {
+    const qreal line_length = m_line.length();
+
+    // Place the text at the center and beside the line
+    return QRectF(m_line.center().x() - WALL_TEXT_WIDTH/2 + WALL_TEXT_WIDTH*0.7 * m_line.dy() / (line_length + 0.1),
+                  m_line.center().y() - WALL_TEXT_HEIGHT/2 - WALL_TEXT_HEIGHT*0.8 * m_line.dx() / (line_length + 0.1),
+                  WALL_TEXT_WIDTH,
+                  WALL_TEXT_HEIGHT);
+}
+
+QRectF Wall::boundingRect() const {
+    // Return the rectangle containing the line
+    return shape().controlPointRect();
+}
+
+QPainterPath Wall::shape() const {
+    QPainterPath path;
+    path.moveTo(m_line.p1());
+    path.lineTo(m_line.p2());
+
+    // Add the wall's length text if we are in placing mode
+    if (placingMode()) {
+        path.addRect(getLengthTextRect());
+    }
+
+    // Take care or the width of the pen
+    QPainterPathStroker ps;
+    ps.setWidth(m_pen.widthF());
+    ps.setJoinStyle(m_pen.joinStyle());
+    ps.setMiterLimit(m_pen.miterLimit());
+
+    QPainterPath p = ps.createStroke(path);
+    p.addPath(path);
+    return p;
+}
+
+void Wall::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) {
+    if (placingMode()) {
+        // Draw the wall half-transparent while placing
+        painter->setOpacity(0.6);
+    }
+
+    // No line to paint if his length is null
+    if (m_line.p1() == m_line.p2())
+        return;
+
+    // Draw a circle over a line, with the origin at the end of the line
+    painter->setPen(m_pen);
+    //painter->setBrush(Qt::red);
+    painter->drawLine(m_line);
+
+    if (placingMode()) {
+        // Draw the text at full opacity level
+        painter->setOpacity(1);
+
+        // Reset the pen to black for the text
+        painter->setPen(Qt::black);
+
+        //TODO: replace the line.length() by the true length (in meters)
+        QString length_str = QString("%1 m").arg(m_line.length(), 0, 'f', 2);
+
+        // Align left when the text is on the right side of the line, align right else
+        Qt::AlignmentFlag align_flag = (m_line.dy() >= 0 ? Qt::AlignLeft : Qt::AlignRight);
+
+        // Draw length beside the wall
+        painter->drawText(getLengthTextRect(),
+                          align_flag | Qt::AlignVCenter | Qt::TextDontClip,
+                          length_str);
+    }
+}
+
+
+
+BrickWall::BrickWall(QLineF line, int thickness) : Wall(line, thickness) {
     QPen pen(QBrush(QColor(201, 63, 24)), VISUAL_THICKNESS, Qt::SolidLine);
     setPen(pen);
 }
 
 // This constructor is equivalent to the main constructor but using a default thickness
-BrickWall::BrickWall(QLine line) : BrickWall(line, BRICK_THICKNESS_DEFAULT) {}
+BrickWall::BrickWall(QLineF line) : BrickWall(line, BRICK_THICKNESS_DEFAULT) {}
 
 
 double BrickWall::getRelPermitivity() {
@@ -50,13 +148,13 @@ WallType::WallType BrickWall::getWallType(){
 }
 
 
-ConcreteWall::ConcreteWall(QLine line, int thickness) : Wall(line, thickness) {
+ConcreteWall::ConcreteWall(QLineF line, int thickness) : Wall(line, thickness) {
     QPen pen(QBrush(QColor(156, 155, 154)), VISUAL_THICKNESS, Qt::DashLine);
     setPen(pen);
 }
 
 // This constructor is equivalent to the main constructor but using a default thickness
-ConcreteWall::ConcreteWall(QLine line) : ConcreteWall(line, CONCRETE_THICKNESS_DEFAULT) {}
+ConcreteWall::ConcreteWall(QLineF line) : ConcreteWall(line, CONCRETE_THICKNESS_DEFAULT) {}
 
 
 double ConcreteWall::getRelPermitivity() {
@@ -70,13 +168,13 @@ WallType::WallType ConcreteWall::getWallType(){
 }
 
 
-PartitionWall::PartitionWall(QLine line, int thickness) : Wall(line, thickness) {
+PartitionWall::PartitionWall(QLineF line, int thickness) : Wall(line, thickness) {
     QPen pen(QBrush(QColor(168, 125, 67)), VISUAL_THICKNESS, Qt::DotLine);
     setPen(pen);
 }
 
 // This constructor is equivalent to the main constructor but using a default thickness
-PartitionWall::PartitionWall(QLine line) : PartitionWall(line, PARTITION_THICKNESS_DEFAULT) {}
+PartitionWall::PartitionWall(QLineF line) : PartitionWall(line, PARTITION_THICKNESS_DEFAULT) {}
 
 double PartitionWall::getRelPermitivity() {
     return PARTITION_R_PERMITTIVITY;
@@ -100,13 +198,13 @@ QDataStream &operator>>(QDataStream &in, Wall *&w) {
 
     switch (type) {
     case WallType::BrickWall:
-        w = new BrickWall(line,thickness);
+        w = new BrickWall(line, thickness);
         break;
     case WallType::ConcreteWall:
-        w = new ConcreteWall(line,thickness);
+        w = new ConcreteWall(line, thickness);
         break;
     case WallType::PartitionWall:
-        w = new PartitionWall(line,thickness);
+        w = new PartitionWall(line, thickness);
         break;
     }
 
@@ -116,7 +214,7 @@ QDataStream &operator>>(QDataStream &in, Wall *&w) {
 QDataStream &operator<<(QDataStream &out, Wall *w) {
     out << w->getWallType();
     out << w->getThickness();
-    out << w->line().toLine();
+    out << w->getLine().toLine();
 
     return out;
 }

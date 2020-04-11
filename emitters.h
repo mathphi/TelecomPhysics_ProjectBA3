@@ -1,6 +1,8 @@
 #ifndef EMITTER_H
 #define EMITTER_H
 
+#include "simulationitem.h"
+
 #include <QGraphicsItem>
 #include <complex>
 
@@ -10,7 +12,7 @@ enum EmitterType {
 };
 }
 
-class Emitter : public QGraphicsItem
+class Emitter : public SimulationItem
 {
 public:
     Emitter (double frequency, double power, double efficiency, double resistance);
