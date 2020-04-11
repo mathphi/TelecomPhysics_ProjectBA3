@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>antenna.ico</file>
+    </qresource>
+</RCC>
