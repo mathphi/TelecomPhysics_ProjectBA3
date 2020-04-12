@@ -1,4 +1,5 @@
 #include "walls.h"
+#include "simulationscene.h"
 
 #include <QPen>
 #include <QPainter>

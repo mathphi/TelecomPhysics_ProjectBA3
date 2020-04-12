@@ -33,6 +33,9 @@ public:
     ~MainWindow();
 
 public slots:
+    void updateSceneRect();
+    void moveSceneView(QPointF delta);
+
     void addBrickWall();
     void addConcreteWall();
     void addPartitionWall();
@@ -51,12 +54,15 @@ public slots:
 
 protected:
     void closeEvent(QCloseEvent *event);
+    void showEvent(QShowEvent *event);
+    void resizeEvent(QResizeEvent *event);
 
 private slots:
     void initMouseTracker();
     void setMouseTrackerPosition(QPoint pos);
 
     void graphicsSceneRightReleased(QPoint mouse_pos, Qt::KeyboardModifiers mod_keys);
+    void graphicsSceneLeftPressed(QPoint mouse_pos, Qt::KeyboardModifiers mod_keys);
     void graphicsSceneLeftReleased(QPoint mouse_pos, Qt::KeyboardModifiers mod_keys);
     void graphicsSceneMouseMoved(QPoint mouse_pos, Qt::KeyboardModifiers mod_keys);
 
@@ -77,5 +83,8 @@ private:
     bool m_mouse_tracker_visible;
     QGraphicsLineItem *m_mouse_tracker_x;
     QGraphicsLineItem *m_mouse_tracker_y;
+
+    bool m_dragging_view;
+    QPointF m_drag_init_pos;
 };
 #endif // MAINWINDOW_H

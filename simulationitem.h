@@ -3,7 +3,7 @@
 
 #include <QGraphicsItem>
 
-#include "simulationscene.h"
+class SimulationScene;
 
 class SimulationItem : public QGraphicsItem
 {

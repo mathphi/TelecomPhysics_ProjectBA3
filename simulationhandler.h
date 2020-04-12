@@ -4,6 +4,8 @@
 #include <QObject>
 
 #include "simulationdata.h"
+#include "simulationitem.h"
+#include "simulationscene.h"
 
 class SimulationHandler : QObject
 {

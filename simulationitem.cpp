@@ -1,4 +1,5 @@
 #include "simulationitem.h"
+#include "simulationscene.h"
 
 SimulationItem::SimulationItem() : QGraphicsItem()
 {

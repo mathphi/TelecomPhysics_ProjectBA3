@@ -5,6 +5,8 @@
 #include <QGraphicsScene>
 #include <QGraphicsItem>
 
+#include "simulationitem.h"
+
 
 class SimulationScene : public QGraphicsScene
 {

@@ -31,6 +31,9 @@ MainWindow::MainWindow(QWidget *parent)
     // This attribute will store the item we are drawing (a line, a rectangle,...)
     m_drawing_item = nullptr;
 
+    // This attribute is true when we are dragging the scene view with the mouse
+    m_dragging_view = false;
+
     // Create the graphics scene
     m_scene = new SimulationScene();
     ui->graphicsView->setScene(m_scene);
@@ -39,6 +42,8 @@ MainWindow::MainWindow(QWidget *parent)
     // Dimensions of the scene
     QRect scene_rect(QPoint(0,0), ui->graphicsView->size());
     ui->graphicsView->setSceneRect(scene_rect);
+    ui->graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    ui->graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
 
     // Window File menu actions
@@ -64,9 +69,11 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->button_eraseObject,     SIGNAL(clicked(bool)),  this, SLOT(toggleEraseMode(bool)));
     connect(ui->button_eraseAll,        SIGNAL(clicked()),      this, SLOT(eraseAll()));
 
-    // Scene events
+    // Scene events handling
     connect(m_scene, SIGNAL(mouseRightReleased(QPoint,Qt::KeyboardModifiers)),
             this, SLOT(graphicsSceneRightReleased(QPoint,Qt::KeyboardModifiers)));
+    connect(m_scene, SIGNAL(mouseLeftPressed(QPoint,Qt::KeyboardModifiers)),
+            this, SLOT(graphicsSceneLeftPressed(QPoint,Qt::KeyboardModifiers)));
     connect(m_scene, SIGNAL(mouseLeftReleased(QPoint,Qt::KeyboardModifiers)),
             this, SLOT(graphicsSceneLeftReleased(QPoint,Qt::KeyboardModifiers)));
     connect(m_scene, SIGNAL(mouseMoved(QPoint,Qt::KeyboardModifiers)),
@@ -95,6 +102,42 @@ void MainWindow::closeEvent(QCloseEvent *event) {
     else {
         event->ignore();
     }
+}
+
+void MainWindow::showEvent(QShowEvent *event) {
+    updateSceneRect();
+    event->accept();
+}
+
+void MainWindow::resizeEvent(QResizeEvent *event) {
+    updateSceneRect();
+    event->accept();
+}
+
+/**
+ * @brief MainWindow::updateSceneRect
+ *
+ * This function updates the scene rect (when the window is resized or shown)
+ */
+void MainWindow::updateSceneRect() {
+    // Get the previous scene rect defined and extract his position from the center of the graphics view
+    QRectF prev_rect = ui->graphicsView->sceneRect();
+    QPointF prev_pos = prev_rect.topLeft() + QPointF(prev_rect.width() + 2, prev_rect.height() + 2) / 2.0;
+
+    // Apply the previous position to the new graphics view size
+    QPointF new_pos = prev_pos - QPointF(ui->graphicsView->width(), ui->graphicsView->height()) / 2.0;
+    QRectF new_rect(new_pos, ui->graphicsView->size() - QSize(2, 2));
+
+    // Apply the new computed scene rect
+    ui->graphicsView->setSceneRect(new_rect);
+}
+
+void MainWindow::moveSceneView(QPointF delta) {
+    ui->graphicsView->setSceneRect(
+                ui->graphicsView->sceneRect().x() + delta.x(),
+                ui->graphicsView->sceneRect().y() + delta.y(),
+                ui->graphicsView->sceneRect().width(),
+                ui->graphicsView->sceneRect().height());
 }
 
 /**
@@ -271,6 +314,21 @@ void MainWindow::keyPressed(QKeyEvent *e) {
     if (e->key() == Qt::Key_Escape) {
         cancelCurrentDrawing();
     }
+
+    //////////////////// Keyboard controls of the scene view ////////////////////
+    else if (e->key() == Qt::Key_Left) {
+        moveSceneView(QPointF(-10, 0));
+    }
+    else if (e->key() == Qt::Key_Right) {
+        moveSceneView(QPointF(10, 0));
+    }
+    else if (e->key() == Qt::Key_Up) {
+        moveSceneView(QPointF(0, -10));
+    }
+    else if (e->key() == Qt::Key_Down) {
+        moveSceneView(QPointF(0, 10));
+    }
+    /////////////////////////////////////////////////////////////////////////////
 }
 
 /**
@@ -291,9 +349,33 @@ void MainWindow::graphicsSceneRightReleased(QPoint pos, Qt::KeyboardModifiers mo
  * @brief MainWindow::graphicsSceneLeftReleased
  * @param pos
  *
+ * Slot called when the user presses the left button on the graphics scene
+ */
+void MainWindow::graphicsSceneLeftPressed(QPoint pos, Qt::KeyboardModifiers mod_keys) {
+    Q_UNUSED(mod_keys);
+
+    // If no draw action pending -> start view dragging
+    if (m_draw_action == DrawActions::None) {
+        m_dragging_view = true;
+        m_drag_init_pos = pos;
+        ui->graphicsView->setCursor(Qt::ClosedHandCursor);
+    }
+}
+
+/**
+ * @brief MainWindow::graphicsSceneLeftReleased
+ * @param pos
+ *
  * Slot called when the user releases the left button on the graphics scene
  */
 void MainWindow::graphicsSceneLeftReleased(QPoint pos, Qt::KeyboardModifiers mod_keys) {
+
+    // End the dragging action when the mouse is released
+    if (m_dragging_view) {
+        m_dragging_view = false;
+        m_drag_init_pos = QPointF();
+        ui->graphicsView->setCursor(Qt::ArrowCursor);
+    }
 
     // If we aren't placing something yet
     if (m_drawing_item == nullptr) {
@@ -451,6 +533,9 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos, Qt::KeyboardModifiers mod
             break;
         }
     }
+
+    // Show mouse tracker only if we are placing something
+    setMouseTrackerVisible(m_draw_action != DrawActions::None);
 }
 
 /**
@@ -462,16 +547,13 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos, Qt::KeyboardModifiers mod
 void MainWindow::graphicsSceneMouseMoved(QPoint pos, Qt::KeyboardModifiers mod_keys) {
     Q_UNUSED(mod_keys);
 
+    // Move the scene to follow the drag movement of the mouse
+    if (m_dragging_view) {
+        moveSceneView(m_drag_init_pos - pos);
+    }
+
     // Show mouse tracker only if we are placing something
     setMouseTrackerVisible(m_draw_action != DrawActions::None);
-
-    // Hide the mouse cursor on drawing (use the mouse tracker lines)
-    if (m_draw_action != DrawActions::None) {
-        ui->graphicsView->setCursor(Qt::BlankCursor);
-    }
-    else {
-        ui->graphicsView->setCursor(Qt::ArrowCursor);
-    }
 
     // Mouse tracker follows the mouse if visible
     if (m_mouse_tracker_visible) {
@@ -622,15 +704,22 @@ void MainWindow::setMouseTrackerVisible(bool visible) {
 
     m_mouse_tracker_x->setVisible(visible);
     m_mouse_tracker_y->setVisible(visible);
+
+    // Hide the mouse cursor when we use the mouse tracker lines
+    if (visible) {
+        ui->graphicsView->setCursor(Qt::BlankCursor);
+    }
+    else if (ui->graphicsView->cursor() == Qt::BlankCursor) {
+        ui->graphicsView->setCursor(Qt::ArrowCursor);
+    }
 }
 
 void MainWindow::setMouseTrackerPosition(QPoint pos) {
     // Get the viewport dimensions
     QGraphicsView *view = ui->graphicsView;
 
-    //TODO: get properly the viewport dimensions
-    QLine x_line(pos.x(), -view->height(), pos.x(), view->height());
-    QLine y_line(-view->width(), pos.y(), view->width(), pos.y());
+    QLine x_line(pos.x(), view->sceneRect().y(), pos.x(), view->sceneRect().height()-1);
+    QLine y_line(view->sceneRect().x(), pos.y(), view->sceneRect().width()-1, pos.y());
 
     m_mouse_tracker_x->setLine(x_line);
     m_mouse_tracker_y->setLine(y_line);
