@@ -4,6 +4,18 @@
 #include <QGraphicsView>
 
 
+#define SIMULATION_SCALE 50.0
+
+/**
+ * @brief SimulationScene::simulationScale
+ * @return
+ *
+ * This function returns the number of pixels per meter
+ */
+qreal SimulationScene::simulationScale() {
+    return SIMULATION_SCALE;
+}
+
 void SimulationScene::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
         emit mouseLeftPressed(event->scenePos().toPoint(), event->modifiers());

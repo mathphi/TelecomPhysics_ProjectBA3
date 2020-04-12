@@ -24,6 +24,8 @@ public:
     QLineF getLine();
     void setLine(QLineF line);
 
+    QLineF getRealLine();
+
     int getThickness();
 
     QPen getPen();

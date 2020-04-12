@@ -41,6 +41,17 @@ void Wall::setLine(QLineF line) {
     update();
 }
 
+/**
+ * @brief Wall::getRealLine
+ * @return
+ *
+ * This function returns the real line of the wall (in meters)
+ */
+QLineF Wall::getRealLine() {
+    qreal scale = simulationScene()->simulationScale();
+    return QLineF(m_line.p1() / scale, m_line.p2() / scale);
+}
+
 int Wall::getThickness(){
     return m_thickness;
 }
@@ -58,7 +69,7 @@ void Wall::setPen(QPen pen) {
 QRectF Wall::getLengthTextRect() const {
     const qreal line_length = m_line.length();
 
-    // Place the text at the center and beside the line
+    // Place the text at the center and beside the line (line_length + 0.1 to avoid to divide by 0)
     return QRectF(m_line.center().x() - WALL_TEXT_WIDTH/2 + WALL_TEXT_WIDTH*0.7 * m_line.dy() / (line_length + 0.1),
                   m_line.center().y() - WALL_TEXT_HEIGHT/2 - WALL_TEXT_HEIGHT*0.8 * m_line.dx() / (line_length + 0.1),
                   WALL_TEXT_WIDTH,
@@ -113,8 +124,8 @@ void Wall::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
         // Reset the pen to black for the text
         painter->setPen(Qt::black);
 
-        //TODO: replace the line.length() by the true length (in meters)
-        QString length_str = QString("%1 m").arg(m_line.length(), 0, 'f', 2);
+        // Show the true length in meters with an accuracy of the centimeter
+        QString length_str = QString("%1 m").arg(getRealLine().length(), 0, 'f', 2);
 
         // Align left when the text is on the right side of the line, align right else
         Qt::AlignmentFlag align_flag = (m_line.dy() >= 0 ? Qt::AlignLeft : Qt::AlignRight);

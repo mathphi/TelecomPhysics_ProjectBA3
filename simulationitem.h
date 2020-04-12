@@ -3,6 +3,8 @@
 
 #include <QGraphicsItem>
 
+#include "simulationscene.h"
+
 class SimulationItem : public QGraphicsItem
 {
 public:
@@ -10,6 +12,10 @@ public:
 
     bool placingMode() const;
     void setPlacingMode(bool on);
+
+    QPointF getRealPos();
+
+    SimulationScene *simulationScene();
 
 private:
     bool m_placing_mode;

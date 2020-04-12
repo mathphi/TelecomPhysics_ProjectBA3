@@ -14,3 +14,25 @@ void SimulationItem::setPlacingMode(bool on) {
     m_placing_mode = on;
     update();
 }
+
+/**
+ * @brief SimulationItem::getRealPos
+ * @return
+ *
+ * Returns the real position of the item (in meters)
+ */
+QPointF SimulationItem::getRealPos() {
+    qreal scale = simulationScene()->simulationScale();
+    return pos() / scale;
+}
+
+/**
+ * @brief SimulationItem::simulationScene
+ * @return
+ *
+ * Returns the current simulation scene for the item,
+ * or nullptr if the item is not stored in a scene simulation scene
+ */
+SimulationScene *SimulationItem::simulationScene() {
+    return dynamic_cast<SimulationScene*>(scene());
+}
