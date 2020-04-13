@@ -17,6 +17,8 @@ public:
 
     static QPointF mirror(QPointF origin, Wall *wall);
 
+    void recursiveCompute(int level, QPoint emitter_pos, QPoint receiver_pos, Wall *wall);
+
 private:
     SimulationData *m_simulation_data;
 };

@@ -27,3 +27,14 @@ QPointF SimulationHandler::mirror(QPointF origin, Wall *wall) {
 
     return QPointF(-a*cos(theta) - b*sin(theta), a*sin(theta) - b*cos(theta)) + wall->getLine().p1();
 }
+
+void SimulationHandler::recursiveCompute(int level, QPoint emitter_pos, QPoint receiver_pos, Wall *wall){
+    QPointF image = mirror(emitter_pos, wall);
+    QLineF virtual_ray (image, receiver_pos);
+    QPointF th_reflexion_pt;
+    QLineF::IntersectionType i_t = virtual_ray.intersects(wall->getLine(),&th_reflexion_pt);
+    if(i_t != QLineF::BoundedIntersection){
+        return;
+    }
+    double dn = virtual_ray.length();
+}

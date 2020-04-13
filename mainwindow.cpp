@@ -459,11 +459,6 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos, Qt::KeyboardModifiers mod
             // Add this emitter to the simulation data
             m_simulation_handler->simulationData()->attachEmitter(emitter);
 
-            foreach (Wall* w, m_simulation_handler->simulationData()->getWallsList()) {
-                QPointF pt = SimulationHandler::mirror(emitter->pos(), w);
-                m_scene->addEllipse(pt.x()-1, pt.y()-1, 2, 2);
-            }
-
             // Repeat the last action if the control or shift key was pressed
             if (mod_keys & (Qt::ShiftModifier | Qt::ControlModifier)) {
                 // Clone the last placed receiver and place it
