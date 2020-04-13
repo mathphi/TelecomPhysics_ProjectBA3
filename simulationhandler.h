@@ -15,8 +15,11 @@ public:
 
     SimulationData *simulationData();
 
+    static QPointF mirror(QPointF origin, Wall *wall);
+
 private:
     SimulationData *m_simulation_data;
 };
 
 #endif // SIMULATIONHANDLER_H
+
