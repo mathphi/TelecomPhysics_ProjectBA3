@@ -177,6 +177,9 @@ void MainWindow::addPartitionWall() {
 
     m_draw_action = DrawActions::PartitionWall;
     m_drawing_item = nullptr;
+
+    //TODO getrid ofthis
+    m_simulation_handler->computeAllRays();
 }
 
 void MainWindow::toggleEraseMode(bool state) {
