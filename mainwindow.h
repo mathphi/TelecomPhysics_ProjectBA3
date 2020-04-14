@@ -35,6 +35,9 @@ public:
 public slots:
     void updateSceneRect();
     void moveSceneView(QPointF delta);
+    void scaleView(double scale, QPointF pos = QPointF());
+    void resetView();
+    void bestView();
 
     void addBrickWall();
     void addConcreteWall();
@@ -46,6 +49,11 @@ public slots:
 
     void actionOpen();
     void actionSave();
+
+    void actionZoomIn();
+    void actionZoomOut();
+    void actionZoomReset();
+    void actionZoomBest();
 
     void clearAllItems();
     void cancelCurrentDrawing();

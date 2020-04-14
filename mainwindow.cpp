@@ -60,6 +60,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionEraseObject,      SIGNAL(triggered(bool)), this, SLOT(toggleEraseMode(bool)));
     connect(ui->actionEraseAll,         SIGNAL(triggered()),     this, SLOT(eraseAll()));
 
+    // Window View menu actions
+    connect(ui->actionZoomIn,       SIGNAL(triggered()), this, SLOT(actionZoomIn()));
+    connect(ui->actionZoomOut,      SIGNAL(triggered()), this, SLOT(actionZoomOut()));
+    connect(ui->actionZoomReset,    SIGNAL(triggered()), this, SLOT(actionZoomReset()));
+    connect(ui->actionZoomBest,     SIGNAL(triggered()), this, SLOT(actionZoomBest()));
+
     // Right-panel buttons
     connect(ui->button_addBrickWall,    SIGNAL(clicked()),      this, SLOT(addBrickWall()));
     connect(ui->button_addConcreteWall, SIGNAL(clicked()),      this, SLOT(addConcreteWall()));
@@ -144,6 +150,51 @@ void MainWindow::moveSceneView(QPointF delta) {
                 ui->graphicsView->sceneRect().y() + delta.y(),
                 ui->graphicsView->sceneRect().width(),
                 ui->graphicsView->sceneRect().height());
+}
+
+void MainWindow::scaleView(double scale, QPointF pos) {
+    //TODO: zoom point must be 'pos'
+    ui->graphicsView->scale(scale, scale);
+
+    // The scene dimensions changed
+    updateSceneRect();
+}
+
+void MainWindow::resetView() {
+    ui->graphicsView->resetTransform();
+    updateSceneRect();
+
+    QPointF view_delta(
+                ui->graphicsView->sceneRect().x() + ui->graphicsView->sceneRect().width() / 2.0,
+                ui->graphicsView->sceneRect().y() + ui->graphicsView->sceneRect().height() / 2.0);
+
+    moveSceneView(-view_delta);
+}
+
+void MainWindow::bestView() {
+    // Get the bounding rectangle of all items of the scene
+    QRectF bounding_rect = m_scene->itemsBoundingRect();
+
+    // Add a margin to this rectangle
+    bounding_rect.adjust(-100.0, -100.0, 100.0, 100.0);
+
+    // Get the most limiting scale factor
+    qreal scale_factor = qMin(
+                ui->graphicsView->width() / bounding_rect.width(),
+                ui->graphicsView->height() / bounding_rect.height());
+
+    // Scale the view to fit the bounding rect in the view
+    scaleView(scale_factor);
+
+    QRectF view_rect(
+                bounding_rect.x(),
+                bounding_rect.y(),
+                ui->graphicsView->sceneRect().width() / 2.0,
+                ui->graphicsView->sceneRect().height() / 2.0);
+
+    qDebug() << ui->graphicsView->sceneRect() << bounding_rect << view_rect;
+
+    ui->graphicsView->setSceneRect(view_rect);
 }
 
 /**
@@ -350,15 +401,10 @@ void MainWindow::keyPressed(QKeyEvent *e) {
  * It is used to zoom in/out the scene.
  */
 void MainWindow::graphicsSceneWheelEvent(QPoint pos, int delta, Qt::KeyboardModifiers mod_keys) {
-    Q_UNUSED(pos);
     Q_UNUSED(mod_keys);
 
-    //TODO: zoom point must be 'pos'
     qreal scale_factor = 1.0 - delta / 5000.0;
-    ui->graphicsView->scale(scale_factor, scale_factor);
-
-    // The scene dimensions changed
-    updateSceneRect();
+    scaleView(scale_factor, pos);
 }
 
 /**
@@ -748,6 +794,7 @@ void MainWindow::setMouseTrackerPosition(QPoint pos) {
     // Get the viewport dimensions
     QGraphicsView *view = ui->graphicsView;
 
+    //FIXME: wrong when we drag the scene
     QLine x_line(pos.x(), view->sceneRect().y(), pos.x(), view->sceneRect().height()-1);
     QLine y_line(view->sceneRect().x(), pos.y(), view->sceneRect().width()-1, pos.y());
 
@@ -755,6 +802,7 @@ void MainWindow::setMouseTrackerPosition(QPoint pos) {
     m_mouse_tracker_y->setLine(y_line);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////// FILE SAVE/RESTORE HANDLING SECTION ///////////////////////////////////
 
@@ -832,3 +880,25 @@ void MainWindow::actionSave() {
     // Close the file
     file.close();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////// ZOOM ACTIONS FUNCTIONS /////////////////////////////////////////
+
+void MainWindow::actionZoomIn() {
+    scaleView(1.1);
+}
+
+void MainWindow::actionZoomOut() {
+    scaleView(0.9);
+}
+
+void MainWindow::actionZoomReset() {
+    resetView();
+}
+
+void MainWindow::actionZoomBest() {
+    bestView();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
