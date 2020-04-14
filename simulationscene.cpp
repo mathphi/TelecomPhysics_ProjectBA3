@@ -40,6 +40,11 @@ void SimulationScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
 }
 
 
+void SimulationScene::wheelEvent(QGraphicsSceneWheelEvent *event) {
+    emit mouseWheelEvent(event->pos().toPoint(), event->delta(), event->modifiers());
+}
+
+
 void SimulationScene::keyPressEvent(QKeyEvent *event) {
     emit keyPressed(event);
 }

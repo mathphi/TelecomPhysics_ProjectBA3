@@ -66,6 +66,8 @@ private slots:
     void graphicsSceneLeftReleased(QPoint mouse_pos, Qt::KeyboardModifiers mod_keys);
     void graphicsSceneMouseMoved(QPoint mouse_pos, Qt::KeyboardModifiers mod_keys);
 
+    void graphicsSceneWheelEvent(QPoint pos, int delta, Qt::KeyboardModifiers mod_keys);
+
     void keyPressed(QKeyEvent *e);
 
 private:

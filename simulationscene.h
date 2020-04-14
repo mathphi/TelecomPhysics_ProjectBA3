@@ -22,6 +22,8 @@ protected:
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
 
+    virtual void wheelEvent(QGraphicsSceneWheelEvent *event) override;
+
     virtual void keyPressEvent(QKeyEvent *event) override;
     virtual void keyReleaseEvent(QKeyEvent *event) override;
 
@@ -31,6 +33,8 @@ signals:
     void mouseRightPressed(QPoint pos, Qt::KeyboardModifiers mod_keys);
     void mouseRightReleased(QPoint pos, Qt::KeyboardModifiers mod_keys);
     void mouseMoved(QPoint pos, Qt::KeyboardModifiers mod_keys);
+
+    void mouseWheelEvent(QPoint pos, int delta, Qt::KeyboardModifiers mod_keys);
 
     void keyPressed(QKeyEvent *e);
     void keyReleased(QKeyEvent *e);

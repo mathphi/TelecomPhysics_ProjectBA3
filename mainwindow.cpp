@@ -78,6 +78,8 @@ MainWindow::MainWindow(QWidget *parent)
             this, SLOT(graphicsSceneLeftReleased(QPoint,Qt::KeyboardModifiers)));
     connect(m_scene, SIGNAL(mouseMoved(QPoint,Qt::KeyboardModifiers)),
             this, SLOT(graphicsSceneMouseMoved(QPoint,Qt::KeyboardModifiers)));
+    connect(m_scene, SIGNAL(mouseWheelEvent(QPoint,int,Qt::KeyboardModifiers)),
+            this, SLOT(graphicsSceneWheelEvent(QPoint,int,Qt::KeyboardModifiers)));
     connect(m_scene, SIGNAL(keyPressed(QKeyEvent*)), this, SLOT(keyPressed(QKeyEvent*)));
 
     // Initialize the mouse tracker on the scene
@@ -120,13 +122,17 @@ void MainWindow::resizeEvent(QResizeEvent *event) {
  * This function updates the scene rect (when the window is resized or shown)
  */
 void MainWindow::updateSceneRect() {
+    // The scale factor is the diagonal components of the transformation matrix
+    qreal scale_factor = ui->graphicsView->transform().m11();
+
     // Get the previous scene rect defined and extract his position from the center of the graphics view
     QRectF prev_rect = ui->graphicsView->sceneRect();
     QPointF prev_pos = prev_rect.topLeft() + QPointF(prev_rect.width() + 2, prev_rect.height() + 2) / 2.0;
 
     // Apply the previous position to the new graphics view size
+    // Remove 5px to the new size to avoid the scrolls bars
     QPointF new_pos = prev_pos - QPointF(ui->graphicsView->width(), ui->graphicsView->height()) / 2.0;
-    QRectF new_rect(new_pos, ui->graphicsView->size() - QSize(2, 2));
+    QRectF new_rect(new_pos / scale_factor, ui->graphicsView->size() / scale_factor - QSize(4, 4));
 
     // Apply the new computed scene rect
     ui->graphicsView->setSceneRect(new_rect);
@@ -329,6 +335,27 @@ void MainWindow::keyPressed(QKeyEvent *e) {
         moveSceneView(QPointF(0, 10));
     }
     /////////////////////////////////////////////////////////////////////////////
+}
+
+/**
+ * @brief MainWindow::graphicsSceneWheelEvent
+ * @param pos
+ * @param delta
+ * @param mod_keys
+ *
+ * Slot called when the user use the mouse wheel.
+ * It is used to zoom in/out the scene.
+ */
+void MainWindow::graphicsSceneWheelEvent(QPoint pos, int delta, Qt::KeyboardModifiers mod_keys) {
+    Q_UNUSED(pos);
+    Q_UNUSED(mod_keys);
+
+    //TODO: zoom point must be 'pos'
+    qreal scale_factor = 1.0 - delta / 5000.0;
+    ui->graphicsView->scale(scale_factor, scale_factor);
+
+    // The scene dimensions changed
+    updateSceneRect();
 }
 
 /**
