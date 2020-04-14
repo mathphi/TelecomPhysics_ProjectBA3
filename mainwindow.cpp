@@ -23,8 +23,6 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    m_simulation_handler = new SimulationHandler();
-
     // This attribute will store the type of item we are drawing (a wall, an emitter,...)
     m_draw_action = DrawActions::None;
 
@@ -45,6 +43,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     ui->graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
+    // The simulation handler manages the simulation's data
+    m_simulation_handler = new SimulationHandler(m_scene);
 
     // Window File menu actions
     connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));

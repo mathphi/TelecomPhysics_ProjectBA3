@@ -34,6 +34,6 @@ QPointF SimulationItem::getRealPos() {
  * Returns the current simulation scene for the item,
  * or nullptr if the item is not stored in a scene simulation scene
  */
-SimulationScene *SimulationItem::simulationScene() {
+SimulationScene *SimulationItem::simulationScene() const {
     return dynamic_cast<SimulationScene*>(scene());
 }

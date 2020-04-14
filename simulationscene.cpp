@@ -12,7 +12,7 @@
  *
  * This function returns the number of pixels per meter
  */
-qreal SimulationScene::simulationScale() {
+qreal SimulationScene::simulationScale() const {
     return SIMULATION_SCALE;
 }
 

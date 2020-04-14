@@ -1,9 +1,11 @@
 #include "receivers.h"
+#include "simulationscene.h"
 
 #include <QPainter>
 
-#define RECEIVER_SIZE 50
-#define RECEIVER_CIRCLE_SIZE 8
+// We want a receiver that is a square of 1 meter side
+#define RECEIVER_SIZE 1.0 * simulationScene()->simulationScale()
+#define RECEIVER_CIRCLE_SIZE 8 // Size of the circle at the center (in pixels)
 
 Receiver::Receiver() : SimulationItem()
 {

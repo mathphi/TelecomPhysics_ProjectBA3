@@ -15,7 +15,7 @@ class SimulationScene : public QGraphicsScene
 public:
     SimulationScene(QObject* parent = nullptr) : QGraphicsScene (parent) {}
 
-    qreal simulationScale();
+    qreal simulationScale() const;
 
 protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;

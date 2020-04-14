@@ -15,7 +15,7 @@ public:
 
     QPointF getRealPos();
 
-    SimulationScene *simulationScene();
+    SimulationScene *simulationScene() const;
 
 private:
     bool m_placing_mode;
