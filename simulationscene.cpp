@@ -1,4 +1,5 @@
 #include "simulationscene.h"
+#include "simulationitem.h"
 
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
@@ -16,32 +17,51 @@ qreal SimulationScene::simulationScale() const {
     return SIMULATION_SCALE;
 }
 
+/**
+ * @brief SimulationScene::simulationBoundingRect
+ * @return
+ *
+ * This function returns the bounding rect containing all simulation items of the scene
+ */
+QRectF SimulationScene::simulationBoundingRect() {
+    QRectF bounding_rect;
+
+    foreach (QGraphicsItem *item, items()) {
+        SimulationItem *s_i = dynamic_cast<SimulationItem*>(item);
+
+        if (s_i) {
+            bounding_rect = bounding_rect.united(s_i->boundingRect());
+        }
+    }
+
+    return bounding_rect;
+}
+
 void SimulationScene::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
-        emit mouseLeftPressed(event->scenePos().toPoint(), event->modifiers());
+        emit mouseLeftPressed(event);
     }
     else if (event->button() == Qt::RightButton) {
-
-        emit mouseRightPressed(event->scenePos().toPoint(), event->modifiers());
+        emit mouseRightPressed(event);
     }
 }
 
 void SimulationScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
     if (event->button() == Qt::LeftButton) {
-        emit mouseLeftReleased(event->scenePos().toPoint(), event->modifiers());
+        emit mouseLeftReleased(event);
     }
     else if (event->button() == Qt::RightButton) {
-        emit mouseRightReleased(event->scenePos().toPoint(), event->modifiers());
+        emit mouseRightReleased(event);
     }
 }
 
 void SimulationScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
-    emit mouseMoved(event->scenePos().toPoint(), event->modifiers());
+    emit mouseMoved(event);
 }
 
 
 void SimulationScene::wheelEvent(QGraphicsSceneWheelEvent *event) {
-    emit mouseWheelEvent(event->pos().toPoint(), event->delta(), event->modifiers());
+    emit mouseWheelEvent(event);
 }
 
 
