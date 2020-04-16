@@ -10,6 +10,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsLineItem>
 #include <QFileDialog>
+#include <QLabel>
 
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsSceneWheelEvent>
@@ -220,7 +221,7 @@ void MainWindow::bestView() {
     scaleView(scale_factor);
 
     // Apply the new rect scaled by the scale_factor
-    ui->graphicsView->setSceneRect(QRectF(view_rect.topLeft() / scale_factor, view_rect.size() / scale_factor));
+    ui->graphicsView->setSceneRect(QRectF(view_rect.topLeft(), view_rect.size()));
 
     // Clean the scene rect dimensions
     updateSceneRect();
