@@ -16,7 +16,7 @@
 qreal SimulationScene::simulationScale() const {
     return SIMULATION_SCALE;
 }
-
+#include <QDebug>
 /**
  * @brief SimulationScene::simulationBoundingRect
  * @return
@@ -30,7 +30,8 @@ QRectF SimulationScene::simulationBoundingRect() {
         SimulationItem *s_i = dynamic_cast<SimulationItem*>(item);
 
         if (s_i) {
-            bounding_rect = bounding_rect.united(s_i->boundingRect());
+            // Bounding rect is a rectangle containing bounding rects of all items
+            bounding_rect = bounding_rect.united(s_i->boundingRect().translated(s_i->pos()));
         }
     }
 
