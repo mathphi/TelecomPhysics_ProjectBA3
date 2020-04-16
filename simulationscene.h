@@ -17,6 +17,8 @@ public:
 
     qreal simulationScale() const;
 
+    QRectF simulationBoundingRect();
+
 protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
@@ -28,13 +30,13 @@ protected:
     virtual void keyReleaseEvent(QKeyEvent *event) override;
 
 signals:
-    void mouseLeftPressed(QPoint pos, Qt::KeyboardModifiers mod_keys);
-    void mouseLeftReleased(QPoint pos, Qt::KeyboardModifiers mod_keys);
-    void mouseRightPressed(QPoint pos, Qt::KeyboardModifiers mod_keys);
-    void mouseRightReleased(QPoint pos, Qt::KeyboardModifiers mod_keys);
-    void mouseMoved(QPoint pos, Qt::KeyboardModifiers mod_keys);
+    void mouseLeftPressed(QGraphicsSceneMouseEvent *event);
+    void mouseLeftReleased(QGraphicsSceneMouseEvent *events);
+    void mouseRightPressed(QGraphicsSceneMouseEvent *event);
+    void mouseRightReleased(QGraphicsSceneMouseEvent *event);
+    void mouseMoved(QGraphicsSceneMouseEvent *event);
 
-    void mouseWheelEvent(QPoint pos, int delta, Qt::KeyboardModifiers mod_keys);
+    void mouseWheelEvent(QGraphicsSceneWheelEvent *event);
 
     void keyPressed(QKeyEvent *e);
     void keyReleased(QKeyEvent *e);

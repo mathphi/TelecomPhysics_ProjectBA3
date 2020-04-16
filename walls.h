@@ -47,6 +47,8 @@ private:
     int  m_thickness;
 
     QPen m_pen;
+
+    qreal m_text_scale;
 };
 
 

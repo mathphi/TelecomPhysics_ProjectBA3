@@ -35,6 +35,9 @@ public:
 public slots:
     void updateSceneRect();
     void moveSceneView(QPointF delta);
+    void scaleView(double scale, QPointF pos = QPointF());
+    void resetView();
+    void bestView();
 
     void addBrickWall();
     void addConcreteWall();
@@ -46,6 +49,11 @@ public slots:
 
     void actionOpen();
     void actionSave();
+
+    void actionZoomIn();
+    void actionZoomOut();
+    void actionZoomReset();
+    void actionZoomBest();
 
     void clearAllItems();
     void cancelCurrentDrawing();
@@ -61,12 +69,12 @@ private slots:
     void initMouseTracker();
     void setMouseTrackerPosition(QPoint pos);
 
-    void graphicsSceneRightReleased(QPoint mouse_pos, Qt::KeyboardModifiers mod_keys);
-    void graphicsSceneLeftPressed(QPoint mouse_pos, Qt::KeyboardModifiers mod_keys);
-    void graphicsSceneLeftReleased(QPoint mouse_pos, Qt::KeyboardModifiers mod_keys);
-    void graphicsSceneMouseMoved(QPoint mouse_pos, Qt::KeyboardModifiers mod_keys);
+    void graphicsSceneRightReleased(QGraphicsSceneMouseEvent *event);
+    void graphicsSceneLeftPressed(QGraphicsSceneMouseEvent *event);
+    void graphicsSceneLeftReleased(QGraphicsSceneMouseEvent *event);
+    void graphicsSceneMouseMoved(QGraphicsSceneMouseEvent *event);
 
-    void graphicsSceneWheelEvent(QPoint pos, int delta, Qt::KeyboardModifiers mod_keys);
+    void graphicsSceneWheelEvent(QGraphicsSceneWheelEvent *event);
 
     void keyPressed(QKeyEvent *e);
 
@@ -87,6 +95,5 @@ private:
     QGraphicsLineItem *m_mouse_tracker_y;
 
     bool m_dragging_view;
-    QPointF m_drag_init_pos;
 };
 #endif // MAINWINDOW_H

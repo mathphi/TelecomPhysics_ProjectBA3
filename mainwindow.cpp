@@ -10,6 +10,10 @@
 #include <QGraphicsScene>
 #include <QGraphicsLineItem>
 #include <QFileDialog>
+#include <QLabel>
+
+#include <QGraphicsSceneMouseEvent>
+#include <QGraphicsSceneWheelEvent>
 #include <QKeyEvent>
 
 #define ALIGN_THRESHOLD 16
@@ -60,6 +64,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionEraseObject,      SIGNAL(triggered(bool)), this, SLOT(toggleEraseMode(bool)));
     connect(ui->actionEraseAll,         SIGNAL(triggered()),     this, SLOT(eraseAll()));
 
+    // Window View menu actions
+    connect(ui->actionZoomIn,       SIGNAL(triggered()), this, SLOT(actionZoomIn()));
+    connect(ui->actionZoomOut,      SIGNAL(triggered()), this, SLOT(actionZoomOut()));
+    connect(ui->actionZoomReset,    SIGNAL(triggered()), this, SLOT(actionZoomReset()));
+    connect(ui->actionZoomBest,     SIGNAL(triggered()), this, SLOT(actionZoomBest()));
+
     // Right-panel buttons
     connect(ui->button_addBrickWall,    SIGNAL(clicked()),      this, SLOT(addBrickWall()));
     connect(ui->button_addConcreteWall, SIGNAL(clicked()),      this, SLOT(addConcreteWall()));
@@ -70,16 +80,16 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->button_eraseAll,        SIGNAL(clicked()),      this, SLOT(eraseAll()));
 
     // Scene events handling
-    connect(m_scene, SIGNAL(mouseRightReleased(QPoint,Qt::KeyboardModifiers)),
-            this, SLOT(graphicsSceneRightReleased(QPoint,Qt::KeyboardModifiers)));
-    connect(m_scene, SIGNAL(mouseLeftPressed(QPoint,Qt::KeyboardModifiers)),
-            this, SLOT(graphicsSceneLeftPressed(QPoint,Qt::KeyboardModifiers)));
-    connect(m_scene, SIGNAL(mouseLeftReleased(QPoint,Qt::KeyboardModifiers)),
-            this, SLOT(graphicsSceneLeftReleased(QPoint,Qt::KeyboardModifiers)));
-    connect(m_scene, SIGNAL(mouseMoved(QPoint,Qt::KeyboardModifiers)),
-            this, SLOT(graphicsSceneMouseMoved(QPoint,Qt::KeyboardModifiers)));
-    connect(m_scene, SIGNAL(mouseWheelEvent(QPoint,int,Qt::KeyboardModifiers)),
-            this, SLOT(graphicsSceneWheelEvent(QPoint,int,Qt::KeyboardModifiers)));
+    connect(m_scene, SIGNAL(mouseRightReleased(QGraphicsSceneMouseEvent*)),
+            this, SLOT(graphicsSceneRightReleased(QGraphicsSceneMouseEvent*)));
+    connect(m_scene, SIGNAL(mouseLeftPressed(QGraphicsSceneMouseEvent*)),
+            this, SLOT(graphicsSceneLeftPressed(QGraphicsSceneMouseEvent*)));
+    connect(m_scene, SIGNAL(mouseLeftReleased(QGraphicsSceneMouseEvent*)),
+            this, SLOT(graphicsSceneLeftReleased(QGraphicsSceneMouseEvent*)));
+    connect(m_scene, SIGNAL(mouseMoved(QGraphicsSceneMouseEvent*)),
+            this, SLOT(graphicsSceneMouseMoved(QGraphicsSceneMouseEvent*)));
+    connect(m_scene, SIGNAL(mouseWheelEvent(QGraphicsSceneWheelEvent*)),
+            this, SLOT(graphicsSceneWheelEvent(QGraphicsSceneWheelEvent*)));
     connect(m_scene, SIGNAL(keyPressed(QKeyEvent*)), this, SLOT(keyPressed(QKeyEvent*)));
 
     // Initialize the mouse tracker on the scene
@@ -107,6 +117,7 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 }
 
 void MainWindow::showEvent(QShowEvent *event) {
+    resetView();
     updateSceneRect();
     event->accept();
 }
@@ -127,12 +138,12 @@ void MainWindow::updateSceneRect() {
 
     // Get the previous scene rect defined and extract his position from the center of the graphics view
     QRectF prev_rect = ui->graphicsView->sceneRect();
-    QPointF prev_pos = prev_rect.topLeft() + QPointF(prev_rect.width() + 2, prev_rect.height() + 2) / 2.0;
+    QPointF prev_pos = prev_rect.topLeft() + QPointF(prev_rect.width() + 4, prev_rect.height() + 4) / 2.0;
 
     // Apply the previous position to the new graphics view size
-    // Remove 5px to the new size to avoid the scrolls bars
-    QPointF new_pos = prev_pos - QPointF(ui->graphicsView->width(), ui->graphicsView->height()) / 2.0;
-    QRectF new_rect(new_pos / scale_factor, ui->graphicsView->size() / scale_factor - QSize(4, 4));
+    // Remove 4px to the new size to avoid the scrolls bars
+    QPointF new_pos = prev_pos - QPointF(ui->graphicsView->width(), ui->graphicsView->height()) / scale_factor / 2.0;
+    QRectF new_rect(new_pos, ui->graphicsView->size() / scale_factor - QSize(4, 4));
 
     // Apply the new computed scene rect
     ui->graphicsView->setSceneRect(new_rect);
@@ -144,6 +155,76 @@ void MainWindow::moveSceneView(QPointF delta) {
                 ui->graphicsView->sceneRect().y() + delta.y(),
                 ui->graphicsView->sceneRect().width(),
                 ui->graphicsView->sceneRect().height());
+}
+
+void MainWindow::scaleView(double scale, QPointF pos) {
+    QRectF scene_rect = ui->graphicsView->sceneRect();
+
+    // Compute the position of the mouse from the center of the scene
+    QPointF centered_pos = pos - scene_rect.topLeft() - (scene_rect.bottomRight() - scene_rect.topLeft()) / 2.0;
+
+    // Compute a delta position proportionnal to the scale factor and
+    // the centered mouse position
+    QPointF delta_pos = (scale - 1.0) * centered_pos;
+
+    // Apply the scaling and the delta position
+    ui->graphicsView->scale(scale, scale);
+    moveSceneView(delta_pos);
+
+    // The scene dimensions changed
+    updateSceneRect();
+}
+
+void MainWindow::resetView() {
+    ui->graphicsView->resetTransform();
+    ui->graphicsView->resetMatrix();
+    updateSceneRect();
+
+    QPointF view_delta(
+                ui->graphicsView->sceneRect().x() + ui->graphicsView->sceneRect().width() / 2.0,
+                ui->graphicsView->sceneRect().y() + ui->graphicsView->sceneRect().height() / 2.0);
+
+    moveSceneView(-view_delta);
+}
+
+void MainWindow::bestView() {
+    // Get the bounding rectangle of all items of the scene
+    QRectF bounding_rect = m_scene->simulationBoundingRect();
+
+    // If there is nothing on the scene, reset the view
+    if (bounding_rect.isNull()) {
+        resetView();
+        return;
+    }
+
+    // Add a margin to this rectangle
+    bounding_rect.adjust(-50.0, -50.0, 50.0, 50.0);
+
+    // The view scale is the diagonal components of the transformation matrix
+    qreal view_scale = ui->graphicsView->transform().m11();
+
+    // Get the most limiting scale factor
+    qreal scale_factor = qMin(
+                ui->graphicsView->width() / bounding_rect.width(),
+                ui->graphicsView->height() / bounding_rect.height());
+
+    scale_factor /= view_scale;
+
+    // Get the new rect
+    QRectF view_rect(
+                bounding_rect.x() + bounding_rect.width() / 2.0 - ui->graphicsView->width() / view_scale / 2.0,
+                bounding_rect.y() + bounding_rect.height() / 2.0 - ui->graphicsView->height() / view_scale / 2.0,
+                ui->graphicsView->width() / view_scale - 4,
+                ui->graphicsView->height() / view_scale - 4);
+
+    // Scale the view to fit the bounding rect in the view
+    scaleView(scale_factor);
+
+    // Apply the new rect scaled by the scale_factor
+    ui->graphicsView->setSceneRect(QRectF(view_rect.topLeft(), view_rect.size()));
+
+    // Clean the scene rect dimensions
+    updateSceneRect();
 }
 
 /**
@@ -349,16 +430,9 @@ void MainWindow::keyPressed(QKeyEvent *e) {
  * Slot called when the user use the mouse wheel.
  * It is used to zoom in/out the scene.
  */
-void MainWindow::graphicsSceneWheelEvent(QPoint pos, int delta, Qt::KeyboardModifiers mod_keys) {
-    Q_UNUSED(pos);
-    Q_UNUSED(mod_keys);
-
-    //TODO: zoom point must be 'pos'
-    qreal scale_factor = 1.0 - delta / 5000.0;
-    ui->graphicsView->scale(scale_factor, scale_factor);
-
-    // The scene dimensions changed
-    updateSceneRect();
+void MainWindow::graphicsSceneWheelEvent(QGraphicsSceneWheelEvent *event) {
+    qreal scale_factor = 1.0 - event->delta() / 5000.0;
+    scaleView(scale_factor, event->scenePos());
 }
 
 /**
@@ -367,10 +441,7 @@ void MainWindow::graphicsSceneWheelEvent(QPoint pos, int delta, Qt::KeyboardModi
  *
  * Slot called when the user releases the right button on the graphics scene
  */
-void MainWindow::graphicsSceneRightReleased(QPoint pos, Qt::KeyboardModifiers mod_keys) {
-    Q_UNUSED(pos); // To avoid the compiler's warning (unused variable 'pos')
-    Q_UNUSED(mod_keys);
-
+void MainWindow::graphicsSceneRightReleased(QGraphicsSceneMouseEvent *) {
     // Right click = cancel the current action
     cancelCurrentDrawing();
 }
@@ -381,13 +452,12 @@ void MainWindow::graphicsSceneRightReleased(QPoint pos, Qt::KeyboardModifiers mo
  *
  * Slot called when the user presses the left button on the graphics scene
  */
-void MainWindow::graphicsSceneLeftPressed(QPoint pos, Qt::KeyboardModifiers mod_keys) {
-    Q_UNUSED(mod_keys);
+void MainWindow::graphicsSceneLeftPressed(QGraphicsSceneMouseEvent *event) {
+    Q_UNUSED(event);
 
     // If no draw action pending -> start view dragging
     if (m_draw_action == DrawActions::None) {
         m_dragging_view = true;
-        m_drag_init_pos = pos;
         ui->graphicsView->setCursor(Qt::ClosedHandCursor);
     }
 }
@@ -398,12 +468,12 @@ void MainWindow::graphicsSceneLeftPressed(QPoint pos, Qt::KeyboardModifiers mod_
  *
  * Slot called when the user releases the left button on the graphics scene
  */
-void MainWindow::graphicsSceneLeftReleased(QPoint pos, Qt::KeyboardModifiers mod_keys) {
+void MainWindow::graphicsSceneLeftReleased(QGraphicsSceneMouseEvent *event) {
+    QPoint pos = event->scenePos().toPoint();
 
     // End the dragging action when the mouse is released
     if (m_dragging_view) {
         m_dragging_view = false;
-        m_drag_init_pos = QPointF();
         ui->graphicsView->setCursor(Qt::ArrowCursor);
     }
 
@@ -472,10 +542,10 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos, Qt::KeyboardModifiers mod
             m_drawing_item = nullptr;
 
             // Repeat the last action if the control or shift key was pressed
-            if (mod_keys & (Qt::ShiftModifier | Qt::ControlModifier)) {
+            if (event->modifiers() & (Qt::ShiftModifier | Qt::ControlModifier)) {
                 // Simulate a click on the same place, so we start a new wall of the
                 // same type at the end of the previous one
-                graphicsSceneLeftReleased(pos, mod_keys);
+                graphicsSceneLeftReleased(event);
             }
             else {
                 m_draw_action = DrawActions::None;
@@ -490,7 +560,7 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos, Qt::KeyboardModifiers mod
             m_simulation_handler->simulationData()->attachEmitter(emitter);
 
             // Repeat the last action if the control or shift key was pressed
-            if (mod_keys & (Qt::ShiftModifier | Qt::ControlModifier)) {
+            if (event->modifiers() & (Qt::ShiftModifier | Qt::ControlModifier)) {
                 // Clone the last placed receiver and place it
                 m_drawing_item = emitter->clone();
                 m_drawing_item->setVisible(false);
@@ -511,7 +581,7 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos, Qt::KeyboardModifiers mod
             m_simulation_handler->simulationData()->attachReceiver(receiver);
 
             // Repeat the last action if the control or shift key was pressed
-            if (mod_keys & (Qt::ShiftModifier | Qt::ControlModifier)) {
+            if (event->modifiers() & (Qt::ShiftModifier | Qt::ControlModifier)) {
                 // Re-create a copy of the last placed receiver
                 m_drawing_item = new Receiver();
                 m_drawing_item->setVisible(false);
@@ -574,12 +644,15 @@ void MainWindow::graphicsSceneLeftReleased(QPoint pos, Qt::KeyboardModifiers mod
  *
  * Slot called when the mouse move over the graphics scene
  */
-void MainWindow::graphicsSceneMouseMoved(QPoint pos, Qt::KeyboardModifiers mod_keys) {
-    Q_UNUSED(mod_keys);
+void MainWindow::graphicsSceneMouseMoved(QGraphicsSceneMouseEvent *event) {
+    QPoint pos = event->scenePos().toPoint();
 
-    // Move the scene to follow the drag movement of the mouse
+    // Move the scene to follow the drag movement of the mouse.
+    // Use the screenPos that is invariant of the sceneRect.
     if (m_dragging_view) {
-        moveSceneView(m_drag_init_pos - pos);
+        qreal view_scale = ui->graphicsView->transform().m11();
+        QPointF delta_mouse = event->lastScreenPos() - event->screenPos();
+        moveSceneView(delta_mouse / view_scale);
     }
 
     // Show mouse tracker only if we are placing something
@@ -710,12 +783,12 @@ QPoint MainWindow::attractivePoint(QPoint actual) {
     return attractive_point;
 }
 
-
 ////////////////////////////////// MOUSE TRACKER SECTION /////////////////////////////////////
 
 void MainWindow::initMouseTracker() {
     // Add two lines to the scene that will track the mouse cursor when visible
-    QPen tracker_pen(QBrush(QColor(0, 0, 255, 100)), 1, Qt::DotLine);
+    QPen tracker_pen(QBrush(QColor(0, 0, 255, 100)), 1.0 * devicePixelRatioF(), Qt::DotLine);
+    tracker_pen.setCosmetic(true);  // Keep the same pen width even if the view is scaled
 
     m_mouse_tracker_x = new QGraphicsLineItem();
     m_mouse_tracker_y = new QGraphicsLineItem();
@@ -748,13 +821,17 @@ void MainWindow::setMouseTrackerPosition(QPoint pos) {
     // Get the viewport dimensions
     QGraphicsView *view = ui->graphicsView;
 
-    QLine x_line(pos.x(), view->sceneRect().y(), pos.x(), view->sceneRect().height()-1);
-    QLine y_line(view->sceneRect().x(), pos.y(), view->sceneRect().width()-1, pos.y());
+    QLine x_line(pos.x(), view->sceneRect().y(),
+                 pos.x(), view->sceneRect().y() + view->sceneRect().height()-1);
+
+    QLine y_line(view->sceneRect().x(), pos.y(),
+                 view->sceneRect().x() + view->sceneRect().width()-1, pos.y());
 
     m_mouse_tracker_x->setLine(x_line);
     m_mouse_tracker_y->setLine(y_line);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////// FILE SAVE/RESTORE HANDLING SECTION ///////////////////////////////////
 
@@ -832,3 +909,25 @@ void MainWindow::actionSave() {
     // Close the file
     file.close();
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////// ZOOM ACTIONS FUNCTIONS /////////////////////////////////////////
+
+void MainWindow::actionZoomIn() {
+    scaleView(1.1);
+}
+
+void MainWindow::actionZoomOut() {
+    scaleView(0.9);
+}
+
+void MainWindow::actionZoomReset() {
+    resetView();
+}
+
+void MainWindow::actionZoomBest() {
+    bestView();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////

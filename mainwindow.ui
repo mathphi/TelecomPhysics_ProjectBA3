@@ -144,7 +144,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -170,8 +170,19 @@
     <addaction name="actionEraseObject"/>
     <addaction name="actionEraseAll"/>
    </widget>
+   <widget class="QMenu" name="menuAffichage">
+    <property name="title">
+     <string>Affichage</string>
+    </property>
+    <addaction name="actionZoomIn"/>
+    <addaction name="actionZoomOut"/>
+    <addaction name="separator"/>
+    <addaction name="actionZoomReset"/>
+    <addaction name="actionZoomBest"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
+   <addaction name="menuAffichage"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOpen">
@@ -225,6 +236,26 @@
   <action name="actionEraseAll">
    <property name="text">
     <string>Effacer tout</string>
+   </property>
+  </action>
+  <action name="actionZoomIn">
+   <property name="text">
+    <string>Zoom +</string>
+   </property>
+  </action>
+  <action name="actionZoomOut">
+   <property name="text">
+    <string>Zoom -</string>
+   </property>
+  </action>
+  <action name="actionZoomReset">
+   <property name="text">
+    <string>Vue par défaut</string>
+   </property>
+  </action>
+  <action name="actionZoomBest">
+   <property name="text">
+    <string>Vue ajustée</string>
    </property>
   </action>
  </widget>
