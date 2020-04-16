@@ -30,6 +30,8 @@
 Wall::Wall(QLineF line, int thickness) : SimulationItem() {
     m_line = line;
     m_thickness = thickness;
+
+    m_text_scale = 1.0;
 }
 
 QLineF Wall::getLine() {
@@ -68,13 +70,18 @@ void Wall::setPen(QPen pen) {
 }
 
 QRectF Wall::getLengthTextRect() const {
+    // Length of the line (in pixels)
     const qreal line_length = m_line.length();
 
+    // Unscaled WALL_TEXT_WIDTH and WALL_TEXT_HEIGHT
+    const qreal text_width = WALL_TEXT_WIDTH * m_text_scale;
+    const qreal text_height = WALL_TEXT_HEIGHT * m_text_scale;
+
     // Place the text at the center and beside the line (line_length + 0.1 to avoid to divide by 0)
-    return QRectF(m_line.center().x() - WALL_TEXT_WIDTH/2 + WALL_TEXT_WIDTH*0.7 * m_line.dy() / (line_length + 0.1),
-                  m_line.center().y() - WALL_TEXT_HEIGHT/2 - WALL_TEXT_HEIGHT*0.8 * m_line.dx() / (line_length + 0.1),
-                  WALL_TEXT_WIDTH,
-                  WALL_TEXT_HEIGHT);
+    return QRectF(m_line.center().x() - text_width/2 + text_width*0.7 * m_line.dy() / (line_length + 0.1),
+                  m_line.center().y() - text_height/2 - text_height*0.8 * m_line.dx() / (line_length + 0.1),
+                  text_width,
+                  text_height);
 }
 
 QRectF Wall::boundingRect() const {
@@ -113,9 +120,8 @@ void Wall::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
     if (m_line.p1() == m_line.p2())
         return;
 
-    // Draw a circle over a line, with the origin at the end of the line
+    // Draw a line using the pen specific for each wall
     painter->setPen(m_pen);
-    //painter->setBrush(Qt::red);
     painter->drawLine(m_line);
 
     if (placingMode()) {
@@ -124,6 +130,14 @@ void Wall::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 
         // Reset the pen to black for the text
         painter->setPen(Qt::black);
+
+        // Store the new text scale (inverse of the current view scale)
+        m_text_scale = 1.0 / painter->transform().m11();
+
+        // Scale the font size to keep a readable measure reagardless of the zoom
+        QFont f = painter->font();
+        f.setPointSizeF(f.pointSizeF() * m_text_scale);
+        painter->setFont(f);
 
         // Show the true length in meters with an accuracy of the centimeter
         QString length_str = QString("%1 m").arg(getRealLine().length(), 0, 'f', 2);
