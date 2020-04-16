@@ -6,6 +6,7 @@
 #include "simulationdata.h"
 #include "simulationitem.h"
 #include "simulationscene.h"
+#include "constants.h"
 
 class SimulationHandler : QObject
 {
@@ -31,6 +32,12 @@ public:
                         QList<QPointF> images = QList<QPointF>(),
                         QList<Wall*> walls = QList<Wall*>());
     void computeAllRays();
+
+    std::complex<double> complexPermittivity(double e_r, double sigma, double omega);
+    std::complex<double> characteristicImpedance(std::complex<double> e);
+    std::complex<double> propagationConstant(double omega, std::complex<double> e);
+    double air_nb_wave(double omega);
+
 private:
     SimulationData *m_simulation_data;
     SimulationScene *m_simulation_scene;
