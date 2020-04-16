@@ -18,8 +18,6 @@ public:
 
     static QPointF mirror(QPointF source, Wall *wall);
 
-    void recursiveCompute(int level, QPoint emitter_pos, QPoint receiver_pos, Wall *wall);
-
     void recursiveReflection(Emitter *emitter,
                              Receiver *receiver,
                              Wall *reflect_wall,
@@ -31,11 +29,12 @@ public:
                         Receiver *receiver,
                         QList<QPointF> images = QList<QPointF>(),
                         QList<Wall*> walls = QList<Wall*>());
+
     void computeAllRays();
 
-    std::complex<double> complexPermittivity(double e_r, double sigma, double omega);
-    std::complex<double> characteristicImpedance(std::complex<double> e);
-    std::complex<double> propagationConstant(double omega, std::complex<double> e);
+    complex<double> complexPermittivity(double e_r, double sigma, double omega);
+    complex<double> characteristicImpedance(complex<double> e);
+    complex<double> propagationConstant(double omega, complex<double> e);
     double air_nb_wave(double omega);
 
 private:

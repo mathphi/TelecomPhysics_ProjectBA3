@@ -16,7 +16,7 @@
 qreal SimulationScene::simulationScale() const {
     return SIMULATION_SCALE;
 }
-#include <QDebug>
+
 /**
  * @brief SimulationScene::simulationBoundingRect
  * @return

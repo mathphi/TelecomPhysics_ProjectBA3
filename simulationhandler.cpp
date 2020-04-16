@@ -137,15 +137,15 @@ void SimulationHandler::computeAllRays() {
     qDebug() << tm.nsecsElapsed();
 }
 
-std::complex<double> SimulationHandler::complexPermittivity(double e_r, double sigma, double omega){
-    return e_r*EPSILON_0 - std::complex<double>(1i)*sigma/omega;
+complex<double> SimulationHandler::complexPermittivity(double e_r, double sigma, double omega) {
+    return e_r*EPSILON_0 - 1i*sigma/omega;
 }
-std::complex<double> SimulationHandler::characteristicImpedance(std::complex<double> e){
-    return std::sqrt(MU_0/e);
+complex<double> SimulationHandler::characteristicImpedance(complex<double> e) {
+    return sqrt(MU_0/e);
 }
-std::complex<double> SimulationHandler::propagationConstant(double omega, std::complex<double> e){
-    return std::complex<double>(1i)*omega*std::sqrt(MU_0*e);  //disgusting
+complex<double> SimulationHandler::propagationConstant(double omega, complex<double> e) {
+    return 1i*omega*sqrt(MU_0*e);
 }
-double SimulationHandler::air_nb_wave(double omega){
+double SimulationHandler::air_nb_wave(double omega) {
     return omega*sqrt(MU_0*EPSILON_0);
 }

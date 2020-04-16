@@ -141,7 +141,7 @@ double HalfWaveDipole::getGain(double theta, double phi) {
     return eta*16.0/(3*M_PI)*pow(sin(theta),3);
 }
 
-std::complex <double> HalfWaveDipole::getEffectiveHeight(double theta, double phi) {
+complex<double> HalfWaveDipole::getEffectiveHeight(double theta, double phi) {
     Q_UNUSED(phi);
     double lambda = LIGHT_SPEED/getFrequency();
     return -lambda/M_PI * cos(M_PI/2 * cos(theta))/pow(sin(theta),2);

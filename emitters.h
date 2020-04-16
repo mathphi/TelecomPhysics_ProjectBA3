@@ -2,6 +2,7 @@
 #define EMITTER_H
 
 #include "simulationitem.h"
+#include "constants.h"
 
 #include <QGraphicsItem>
 #include <complex>
@@ -22,7 +23,7 @@ public:
     virtual EmitterType::EmitterType getEmitterType() = 0;
     virtual QString getEmitterLabel() = 0;
 
-    virtual std::complex<double> getEffectiveHeight(double theta, double phi) = 0;
+    virtual complex<double> getEffectiveHeight(double theta, double phi) = 0;
     virtual double getGain (double theta, double phi) = 0;
 
     QRectF boundingRect() const override;
@@ -55,7 +56,7 @@ public:
     EmitterType::EmitterType getEmitterType() override;
     QString getEmitterLabel() override;
 
-    std::complex<double> getEffectiveHeight(double theta, double phi) override;
+    complex<double> getEffectiveHeight(double theta, double phi) override;
     double getGain(double theta, double phi) override;
 };
 
