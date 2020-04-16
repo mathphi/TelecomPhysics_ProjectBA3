@@ -28,6 +28,7 @@ SOURCES += \
     walls.cpp
 
 HEADERS += \
+    constants.h \
     emitterdialog.h \
     emitters.h \
     mainwindow.h \

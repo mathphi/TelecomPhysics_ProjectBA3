@@ -1,7 +1,9 @@
 #include "emitters.h"
+#include "constants.h"
+
 #include <QPainter>
 
-#define LIGHT_SPEED 299792458.0 // [m/s]
+
 
 #define EMITTER_WIDTH 8
 #define EMITTER_HEIGHT 18
