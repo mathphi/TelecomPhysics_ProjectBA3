@@ -89,13 +89,18 @@ void SimulationHandler::computeRayPath(
     double scale = m_simulation_scene->simulationScale(); //TODO get rid of this
 
     QList<QLineF> rays;
+    complex<double> coeff = 1;
+    double dn;
+    Wall *target_wall = nullptr;
 
     for(int i = images.size()-1; i >= 0 ; i--){
         Wall *reflect_wall = walls[i];
         QPointF src_image = images[i];
 
         QLineF virtual_ray (src_image, target_point);
-
+        if (i == images.size()){
+            dn = virtual_ray.length();
+        }
         QPointF reflection_pt;
         QLineF::IntersectionType i_t = virtual_ray.intersects(reflect_wall->getRealLine(),&reflection_pt);
 
@@ -105,15 +110,21 @@ void SimulationHandler::computeRayPath(
 
         QLineF ray(reflection_pt, target_point);
         rays.append(ray);
+        coeff *= computeReflexion(emitter, reflect_wall, ray);
 
         //TODO check if transmission
         target_point = reflection_pt;
+        target_wall = reflect_wall;
 
     }
+
     QLineF ray(emitter->getRealPos(), target_point);
     rays.append(ray);
-    //TODO check if transmission
-
+    //TODO check if transmission.
+    if(images.size() == 0){
+        dn = ray.length();
+    }
+    complex<double> En = coeff*computeNominal_elec_field(emitter, ray, dn);
     foreach(QLineF r, rays) {
         m_simulation_scene->addLine(QLineF(r.p1()* scale, r.p2()*scale));
     }
@@ -148,4 +159,55 @@ complex<double> SimulationHandler::propagationConstant(double omega, complex<dou
 }
 double SimulationHandler::air_nb_wave(double omega) {
     return omega*sqrt(MU_0*EPSILON_0);
+}
+complex<double> SimulationHandler::computeReflexion(Emitter *e, Wall *w, QLineF ray_in){
+    double theta_i = M_PI/2.0 - w->getRealLine().angleTo(ray_in)/180.0*M_PI;
+    if(theta_i > M_PI/2){
+       theta_i = abs(theta_i - M_PI);
+    }
+    double omega = e->getFrequency()*2*M_PI;
+    complex<double> epsilon_tilde = complexPermittivity(w->getRelPermitivity(), w->getConductivity(), omega );
+    complex<double> Z1 = Z_AIR;
+    complex<double> Z2 = characteristicImpedance(epsilon_tilde);
+
+    double theta_t = asin(real(Z2/Z1)*sin(theta_i));
+
+    complex<double>gamma_orth = (Z2*cos(theta_i) - Z1*cos(theta_t)) / (Z1*cos(theta_i)+Z1 * cos(theta_t));
+    double s = w->getThickness()/cos(theta_t);
+
+    complex<double> gamma_m = propagationConstant(omega, epsilon_tilde);
+    complex<double> gamma_0 = propagationConstant(omega, EPSILON_0);
+    complex<double> reflection = gamma_orth + (1.0 - pow(gamma_orth,2.0)) * gamma_orth*exp(-2.0* gamma_m*s  + gamma_0*2.0*s*sin(theta_t)*sin(theta_i))/(1.0 - pow(gamma_orth,2.0)*exp(-2.0* gamma_m*s  + gamma_0*2.0*s*sin(theta_t)*sin(theta_i)));
+    return reflection;
+}
+complex<double> SimulationHandler::computeNominal_elec_field(Emitter *e, QLineF ray, double dn){
+    double GTX = e->getGain(M_PI, 0);
+            //TODO coompute thetaTX, phi
+    double PTX = e->getPower();
+    double omega = e->getFrequency()*2*M_PI;
+    complex<double> gamma_0 = propagationConstant(omega, EPSILON_0);
+    return sqrt(60*GTX*PTX)*exp(-gamma_0*dn)/dn;
+
+}
+
+complex<double> SimulationHandler::computeTransmissons(Emitter *e, QLineF ray, Wall *origin_wall, Wall *target_wall){
+    double omega = e->getFrequency()*2*M_PI;
+    complex<double> gamma_0 = propagationConstant(omega, EPSILON_0);
+
+    complex<double> coeff = 1;
+    foreach(Wall *w,simulationData()->getWallsList()){
+        if(w == origin_wall || w == target_wall){
+            continue;
+        }
+
+        QPointF pt;
+        QLineF::IntersectionType i_t = ray.intersects(w->getRealLine(),&pt);
+
+        if(i_t != QLineF::BoundedIntersection){
+            continue;
+        }
+
+    }
+
+
 }
