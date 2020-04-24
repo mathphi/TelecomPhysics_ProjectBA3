@@ -9,7 +9,7 @@
 
 namespace EmitterType {
 enum EmitterType {
-    HalfWaveDipole  = 1,
+    HalfWaveDipoleVert  = 1,
 };
 }
 
@@ -20,20 +20,22 @@ public:
 
     virtual Emitter* clone() = 0;
 
-    virtual EmitterType::EmitterType getEmitterType() = 0;
-    virtual QString getEmitterLabel() = 0;
+    virtual EmitterType::EmitterType getEmitterType() const = 0;
+    virtual QString getEmitterLabel() const = 0;
 
-    virtual complex<double> getEffectiveHeight(double theta, double phi) = 0;
-    virtual double getGain (double theta, double phi) = 0;
+    virtual complex<double> getEffectiveHeight(double theta, double phi) const = 0;
+    virtual double getGain (double theta, double phi) const = 0;
 
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override;
 
-    double getPower();
-    double getFrequency();
-    double getEfficiency();
-    double getResistance();
+    QPolygonF getPolyGain() const;
+
+    double getPower() const;
+    double getFrequency() const;
+    double getEfficiency() const;
+    double getResistance() const;
 
     static double convertPowerToWatts(double power_dbm);
     static double convertPowerTodBm(double power_watts);
@@ -53,11 +55,11 @@ public:
 
     Emitter* clone() override;
 
-    EmitterType::EmitterType getEmitterType() override;
-    QString getEmitterLabel() override;
+    EmitterType::EmitterType getEmitterType() const override;
+    QString getEmitterLabel() const override;
 
-    complex<double> getEffectiveHeight(double theta, double phi) override;
-    double getGain(double theta, double phi) override;
+    complex<double> getEffectiveHeight(double theta, double phi) const override;
+    double getGain(double theta, double phi) const override;
 };
 
 // Operator overload to write objects from the Emitter class into a files

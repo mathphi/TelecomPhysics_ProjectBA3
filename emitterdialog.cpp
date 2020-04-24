@@ -13,7 +13,7 @@ EmitterDialog::EmitterDialog(QWidget *parent) :
     setWindowFlag(Qt::WindowContextHelpButtonHint, false);
 
     // Add items to the antenna type combobox
-    ui->combobox_antenna_type->addItem("Dipôle λ/2", EmitterType::HalfWaveDipole);
+    ui->combobox_antenna_type->addItem("Dipôle λ/2 Vertical", EmitterType::HalfWaveDipoleVert);
 
     connect(ui->spinbox_power, SIGNAL(valueChanged(double)), this, SLOT(powerSpinboxChanged(double)));
 }
@@ -48,7 +48,7 @@ double EmitterDialog::getResistance() {
 }
 
 double EmitterDialog::getEfficiency() {
-    return ui->spinbox_efficiency->value();
+    return ui->spinbox_efficiency->value() / 100.0;
 }
 
 /**

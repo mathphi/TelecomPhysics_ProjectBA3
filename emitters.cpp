@@ -10,6 +10,8 @@
 #define EMITTER_TEXT_WIDTH 24
 #define EMITTER_TEXT_HEIGHT 20
 
+#define EMITTER_POLYGAIN_SIZE 7.0
+
 #define HALF_WAVE_LABEL "λ/2"
 
 // Defines the rectangle where to place the emitter's label
@@ -35,7 +37,7 @@ Emitter::Emitter (double frequency, double power, double efficiency, double resi
     tip = tip.arg(frequency, 0, 'f', 2)
             .arg(convertPowerTodBm(power), 0, 'f', 2)
             .arg(resistance, 0, 'f', 2)
-            .arg(efficiency, 0, 'f', 1);
+            .arg(efficiency * 100.0, 0, 'f', 1);
 
     setToolTip(tip);
 }
@@ -51,6 +53,26 @@ Emitter::Emitter (double frequency, double power, double efficiency, double resi
 double Emitter::convertPowerToWatts(double power_dbm) {
     // Compute the power in Watts from the dBm
     return pow(10.0, power_dbm/10.0) / 1000.0;
+}
+
+/**
+ * @brief Emitter::getPolyGain
+ * @return
+ *
+ * This function returns a polygon that represent the gain of the emitter around the phi angle
+ */
+QPolygonF Emitter::getPolyGain() const {
+    QPolygonF poly_gain1;
+    QPolygonF poly_gain2;
+    QPointF pt;
+
+    for (double phi = 0 ; phi < 2*M_PI ; phi += 0.2) {
+        pt = QPointF(cos(phi), sin(phi));
+        poly_gain1.append(pt * getGain(M_PI_2, phi) * EMITTER_POLYGAIN_SIZE);
+        poly_gain2.append(pt * getGain(-M_PI_2, phi) * EMITTER_POLYGAIN_SIZE);
+    }
+
+    return poly_gain1.united(poly_gain2);
 }
 
 /**
@@ -70,8 +92,10 @@ QRectF Emitter::boundingRect() const {
     QRectF emitter_rect(-EMITTER_WIDTH/2 - 2, -EMITTER_HEIGHT - 2,
                         EMITTER_WIDTH + 4, EMITTER_HEIGHT + 4);
 
+    QRectF gain_rect = getPolyGain().boundingRect();
+
     // Bounding rect contains the emitter and his text
-    return emitter_rect.united(TEXT_RECT);
+    return emitter_rect.united(gain_rect).united(TEXT_RECT);
 }
 
 QPainterPath Emitter::shape() const {
@@ -79,10 +103,16 @@ QPainterPath Emitter::shape() const {
     path.addRect(-EMITTER_WIDTH/2 - 2, -EMITTER_HEIGHT - 2,
                  EMITTER_WIDTH + 4, EMITTER_HEIGHT + 4);
     path.addRect(TEXT_RECT);
+    path.addPolygon(getPolyGain());
     return path;
 }
 
 void Emitter::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) {
+    // Draw the shape of the gain in blue
+    //painter->setPen(QPen(QBrush(Qt::blue), 1));
+    //painter->setBrush(Qt::transparent);
+    //painter->drawPolygon(getPolyGain());
+
     // Draw a circle over a line, with the origin at the end of the line
     painter->setPen(QPen(QBrush(Qt::black), 1));
     painter->setBrush(Qt::red);
@@ -93,19 +123,19 @@ void Emitter::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget
     painter->drawText(TEXT_RECT, Qt::AlignHCenter | Qt::AlignTop, getEmitterLabel());
 }
 
-double Emitter::getEfficiency() {
+double Emitter::getEfficiency() const {
     return m_efficiency;
 }
 
-double Emitter::getFrequency() {
+double Emitter::getFrequency() const {
     return m_frequency;
 }
 
-double Emitter::getPower() {
+double Emitter::getPower() const {
     return m_power;
 }
 
-double Emitter::getResistance() {
+double Emitter::getResistance() const {
     return  m_resistance;
 }
 
@@ -127,21 +157,21 @@ Emitter* HalfWaveDipole::clone() {
     return new HalfWaveDipole(getFrequency(), getPower(), getEfficiency(), getResistance());
 }
 
-EmitterType::EmitterType HalfWaveDipole::getEmitterType() {
-    return EmitterType::HalfWaveDipole;
+EmitterType::EmitterType HalfWaveDipole::getEmitterType() const {
+    return EmitterType::HalfWaveDipoleVert;
 }
 
-QString HalfWaveDipole::getEmitterLabel() {
+QString HalfWaveDipole::getEmitterLabel() const {
     return HALF_WAVE_LABEL;
 }
 
-double HalfWaveDipole::getGain(double theta, double phi) {
+double HalfWaveDipole::getGain(double theta, double phi) const {
     Q_UNUSED(phi);
     double eta = getEfficiency();
     return eta*16.0/(3*M_PI)*pow(sin(theta),3);
 }
 
-complex<double> HalfWaveDipole::getEffectiveHeight(double theta, double phi) {
+complex<double> HalfWaveDipole::getEffectiveHeight(double theta, double phi) const {
     Q_UNUSED(phi);
     double lambda = LIGHT_SPEED/getFrequency();
     return -lambda/M_PI * cos(M_PI/2 * cos(theta))/pow(sin(theta),2);
@@ -164,7 +194,7 @@ QDataStream &operator>>(QDataStream &in, Emitter *&e) {
     in >> pos;
 
     switch (type) {
-    case EmitterType::HalfWaveDipole:
+    case EmitterType::HalfWaveDipoleVert:
         e = new HalfWaveDipole(frequency, power, efficiency, resistivity);
         break;
     }

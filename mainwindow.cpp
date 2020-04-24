@@ -318,7 +318,7 @@ void MainWindow::addEmitter() {
 
     // Create an emitter of the selected type to place on the scene
     switch (type) {
-    case EmitterType::HalfWaveDipole:
+    case EmitterType::HalfWaveDipoleVert:
         m_drawing_item = new HalfWaveDipole(frequency, power, efficiency, resistance);
         break;
     }
