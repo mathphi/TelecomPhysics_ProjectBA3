@@ -7,6 +7,7 @@
 #include "simulationitem.h"
 #include "simulationscene.h"
 #include "constants.h"
+#include "raypath.h"
 
 class SimulationHandler : QObject
 {
@@ -39,12 +40,14 @@ public:
     complex<double> complexPermittivity(double e_r, double sigma, double omega);
     complex<double> characteristicImpedance(complex<double> e);
     complex<double> propagationConstant(double omega, complex<double> e);
-    double air_nb_wave(double omega);
-   // complex<double> reflexion_m(double theta, complex<double> Z1,Z2,complex<double>);
+
+    double computePower(Emitter *e, QList<RayPath*> rp_list);
+
 
 private:
     SimulationData *m_simulation_data;
     SimulationScene *m_simulation_scene;
+    QList<RayPath*> m_raypaths;
 };
 
 #endif // SIMULATIONHANDLER_H

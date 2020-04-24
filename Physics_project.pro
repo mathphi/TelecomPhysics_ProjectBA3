@@ -20,6 +20,7 @@ SOURCES += \
     emitters.cpp \
     main.cpp \
     mainwindow.cpp \
+    raypath.cpp \
     receivers.cpp \
     simulationdata.cpp \
     simulationhandler.cpp \
@@ -32,6 +33,7 @@ HEADERS += \
     emitterdialog.h \
     emitters.h \
     mainwindow.h \
+    raypath.h \
     receivers.h \
     simulationdata.h \
     simulationhandler.h \

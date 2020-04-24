@@ -98,7 +98,7 @@ void SimulationHandler::computeRayPath(
         QPointF src_image = images[i];
 
         QLineF virtual_ray (src_image, target_point);
-        if (i == images.size()){
+        if (i == images.size()-1){
             dn = virtual_ray.length();
         }
         QPointF reflection_pt;
@@ -110,9 +110,10 @@ void SimulationHandler::computeRayPath(
 
         QLineF ray(reflection_pt, target_point);
         rays.append(ray);
-        coeff *= computeReflexion(emitter, reflect_wall, ray);
 
-        //TODO check if transmission
+        coeff *= computeReflexion(emitter, reflect_wall, ray);
+        coeff*= computeTransmissons(emitter, ray, reflect_wall, target_wall );
+
         target_point = reflection_pt;
         target_wall = reflect_wall;
 
@@ -120,11 +121,16 @@ void SimulationHandler::computeRayPath(
 
     QLineF ray(emitter->getRealPos(), target_point);
     rays.append(ray);
-    //TODO check if transmission.
+    coeff*= computeTransmissons(emitter, ray);
+
     if(images.size() == 0){
         dn = ray.length();
     }
     complex<double> En = coeff*computeNominal_elec_field(emitter, ray, dn);
+    qDebug()<<dn<<norm(coeff);
+
+    RayPath *rp = new RayPath(rays, En);
+    m_raypaths.append(rp);
     foreach(QLineF r, rays) {
         m_simulation_scene->addLine(QLineF(r.p1()* scale, r.p2()*scale));
     }
@@ -133,17 +139,24 @@ void SimulationHandler::computeRayPath(
 void SimulationHandler::computeAllRays() {
     QElapsedTimer tm;
     tm.start();
+    //TODO suppress all objects in m_raypaths
+    m_raypaths.clear();
 
-    foreach(Emitter *e, simulationData()->getEmittersList()) {
-        foreach(Receiver *r , simulationData()->getReceiverList()) {
+    foreach(Receiver *r , simulationData()->getReceiverList()) {
+        foreach(Emitter *e, simulationData()->getEmittersList()) {
+
 
             computeRayPath(e, r);
 
             foreach(Wall *w, simulationData()->getWallsList()) {
                 recursiveReflection(e,r,w);
             }
+
+            double power = computePower(e, m_raypaths);
+            qDebug()<<power ;
         }
     }
+
 
     qDebug() << tm.nsecsElapsed();
 }
@@ -157,9 +170,7 @@ complex<double> SimulationHandler::characteristicImpedance(complex<double> e) {
 complex<double> SimulationHandler::propagationConstant(double omega, complex<double> e) {
     return 1i*omega*sqrt(MU_0*e);
 }
-double SimulationHandler::air_nb_wave(double omega) {
-    return omega*sqrt(MU_0*EPSILON_0);
-}
+
 complex<double> SimulationHandler::computeReflexion(Emitter *e, Wall *w, QLineF ray_in){
     double theta_i = M_PI/2.0 - w->getRealLine().angleTo(ray_in)/180.0*M_PI;
     if(theta_i > M_PI/2){
@@ -172,7 +183,7 @@ complex<double> SimulationHandler::computeReflexion(Emitter *e, Wall *w, QLineF 
 
     double theta_t = asin(real(Z2/Z1)*sin(theta_i));
 
-    complex<double>gamma_orth = (Z2*cos(theta_i) - Z1*cos(theta_t)) / (Z1*cos(theta_i)+Z1 * cos(theta_t));
+    complex<double>gamma_orth = (Z2*cos(theta_i) - Z1*cos(theta_t)) / (Z2*cos(theta_i)+ Z1 * cos(theta_t));
     double s = w->getThickness()/cos(theta_t);
 
     complex<double> gamma_m = propagationConstant(omega, epsilon_tilde);
@@ -216,16 +227,33 @@ complex<double> SimulationHandler::computeTransmissons(Emitter *e, QLineF ray, W
         }
         double theta_t = asin(real(Z2/Z1)*sin(theta_i));
 
-        complex<double>gamma_orth = (Z2*cos(theta_i) - Z1*cos(theta_t)) / (Z1*cos(theta_i)+Z1 * cos(theta_t));
+        complex<double>gamma_orth = (Z2*cos(theta_i) - Z1*cos(theta_t)) / (Z2*cos(theta_i)+ Z1 * cos(theta_t));
         double s = w->getThickness()/cos(theta_t);
 
         complex<double> gamma_m = propagationConstant(omega, epsilon_tilde);
 
-        complex<double> transmission = (1.0-pow(gamma_orth,2))*exp(-gamma_m*s)/(1.0-pow(gamma_orth,2)*exp(-2.0*gamma_m*s + 2.0*s*sin(theta_t)*sin(theta_i)));
+        complex<double> transmission = (1.0-pow(gamma_orth,2.0))*exp(-gamma_m*s)/(1.0-pow(gamma_orth,2.0)*exp(-2.0*gamma_m*s + gamma_0*2.0*s*sin(theta_t)*sin(theta_i)));
         coeff *= transmission;
     }
     return coeff;
 
 
 
+}
+
+double SimulationHandler::computePower(Emitter *e, QList<RayPath *> rp_list){
+    double Ra = e->getResistance();
+    double theta = M_PI_2;
+    double Prx = 0;
+
+    foreach(RayPath* rp, rp_list){
+        double phi = 0;
+        //TODO phi = incidence angle emiter
+        complex<double> he = e->getEffectiveHeight(theta,phi);
+        //norm = square of modulus
+        Prx += norm(he * rp->getElecField());
+
+    }
+    Prx *= 1.0/(8.0*Ra);
+    return Prx;
 }
