@@ -166,7 +166,7 @@ complex<double> SimulationHandler::computeReflexion(Emitter *e, Wall *w, QLineF 
        theta_i = abs(theta_i - M_PI);
     }
     double omega = e->getFrequency()*2*M_PI;
-    complex<double> epsilon_tilde = complexPermittivity(w->getRelPermitivity(), w->getConductivity(), omega );
+    complex<double> epsilon_tilde = complexPermittivity(w->getRelPermitivity(), w->getConductivity(), omega );//rel grave ?
     complex<double> Z1 = Z_AIR;
     complex<double> Z2 = characteristicImpedance(epsilon_tilde);
 
@@ -206,8 +206,26 @@ complex<double> SimulationHandler::computeTransmissons(Emitter *e, QLineF ray, W
         if(i_t != QLineF::BoundedIntersection){
             continue;
         }
+        complex<double> epsilon_tilde = complexPermittivity(w->getRelPermitivity(), w->getConductivity(), omega );
+        complex<double> Z1 = Z_AIR;
+        complex<double> Z2 = characteristicImpedance(epsilon_tilde);
 
+        double theta_i = M_PI/2.0 - w->getRealLine().angleTo(ray)/180.0*M_PI;
+        if(theta_i > M_PI/2){
+            theta_i = abs(theta_i - M_PI);
+        }
+        double theta_t = asin(real(Z2/Z1)*sin(theta_i));
+
+        complex<double>gamma_orth = (Z2*cos(theta_i) - Z1*cos(theta_t)) / (Z1*cos(theta_i)+Z1 * cos(theta_t));
+        double s = w->getThickness()/cos(theta_t);
+
+        complex<double> gamma_m = propagationConstant(omega, epsilon_tilde);
+
+        complex<double> transmission = (1.0-pow(gamma_orth,2))*exp(-gamma_m*s)/(1.0-pow(gamma_orth,2)*exp(-2.0*gamma_m*s + 2.0*s*sin(theta_t)*sin(theta_i)));
+        coeff *= transmission;
     }
+    return coeff;
+
 
 
 }
