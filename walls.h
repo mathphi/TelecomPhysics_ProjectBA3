@@ -19,14 +19,14 @@ enum WallType{
 class Wall : public SimulationItem
 {
 public:
-    Wall(QLineF line, int thickness);
+    Wall(QLineF line, double thickness);
 
     QLineF getLine();
     void setLine(QLineF line);
 
     QLineF getRealLine();
 
-    int getThickness();
+    double getThickness();
 
     QPen getPen();
     void setPen(QPen pen);
@@ -44,7 +44,7 @@ private:
     QRectF getLengthTextRect() const;
 
     QLineF m_line;
-    int  m_thickness;
+    double  m_thickness;
 
     QPen m_pen;
 
@@ -56,7 +56,7 @@ class BrickWall : public Wall
 {
 public:
     BrickWall(QLineF line);
-    BrickWall(QLineF line, int thickness);
+    BrickWall(QLineF line, double thickness);
 
     double getRelPermitivity();
     double getConductivity();
@@ -68,7 +68,7 @@ class ConcreteWall : public Wall
 {
 public:
     ConcreteWall(QLineF line);
-    ConcreteWall(QLineF line, int thickness);
+    ConcreteWall(QLineF line, double thickness);
 
     double getRelPermitivity();
     double getConductivity();
@@ -80,7 +80,7 @@ class PartitionWall : public Wall
 {
 public:
     PartitionWall(QLineF line);
-    PartitionWall(QLineF line, int thickness);
+    PartitionWall(QLineF line, double thickness);
 
     double getRelPermitivity();
     double getConductivity();

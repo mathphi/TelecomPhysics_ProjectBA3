@@ -14,12 +14,12 @@
 #define CONCRETE_CONDUCTIVITY   0.014
 #define PARTITION_CONDUCTIVITY  0.04
 
-// Wall's default thickness (cm)
-#define BRICK_THICKNESS_DEFAULT      15
-#define CONCRETE_THICKNESS_DEFAULT   30
-#define PARTITION_THICKNESS_DEFAULT  10
+// Wall's default thickness (meter)
+#define BRICK_THICKNESS_DEFAULT      0.15
+#define CONCRETE_THICKNESS_DEFAULT   0.30
+#define PARTITION_THICKNESS_DEFAULT  0.10
 
-// Wall's visual thickness
+// Wall's visual thickness (px)
 #define VISUAL_THICKNESS 4
 
 // Text showing the length of the wall while placing
@@ -27,7 +27,7 @@
 #define WALL_TEXT_HEIGHT 20
 
 
-Wall::Wall(QLineF line, int thickness) : SimulationItem() {
+Wall::Wall(QLineF line, double thickness) : SimulationItem() {
     m_line = line;
     m_thickness = thickness;
 
@@ -55,7 +55,7 @@ QLineF Wall::getRealLine() {
     return QLineF(m_line.p1() / scale, m_line.p2() / scale);
 }
 
-int Wall::getThickness(){
+double Wall::getThickness(){
     return m_thickness;
 }
 
@@ -154,7 +154,7 @@ void Wall::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 
 
 
-BrickWall::BrickWall(QLineF line, int thickness) : Wall(line, thickness) {
+BrickWall::BrickWall(QLineF line, double thickness) : Wall(line, thickness) {
     QPen pen(QBrush(QColor(201, 63, 24)), VISUAL_THICKNESS, Qt::SolidLine);
     setPen(pen);
 }
@@ -174,7 +174,7 @@ WallType::WallType BrickWall::getWallType(){
 }
 
 
-ConcreteWall::ConcreteWall(QLineF line, int thickness) : Wall(line, thickness) {
+ConcreteWall::ConcreteWall(QLineF line, double thickness) : Wall(line, thickness) {
     QPen pen(QBrush(QColor(156, 155, 154)), VISUAL_THICKNESS, Qt::DashLine);
     setPen(pen);
 }
@@ -194,7 +194,7 @@ WallType::WallType ConcreteWall::getWallType(){
 }
 
 
-PartitionWall::PartitionWall(QLineF line, int thickness) : Wall(line, thickness) {
+PartitionWall::PartitionWall(QLineF line, double thickness) : Wall(line, thickness) {
     QPen pen(QBrush(QColor(168, 125, 67)), VISUAL_THICKNESS, Qt::DotLine);
     setPen(pen);
 }

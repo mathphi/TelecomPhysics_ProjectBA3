@@ -3,6 +3,15 @@
 #include <QDebug>
 #include <QElapsedTimer>
 
+
+QDebug operator<<(QDebug debug, const complex<double> &c)
+{
+    QDebugStateSaver saver(debug);
+    debug.nospace() << '(' << real(c) << " + " << imag(c) << "i)";
+
+    return debug;
+}
+
 SimulationHandler::SimulationHandler(SimulationScene *scene)
 {
     m_simulation_data = new SimulationData();
@@ -121,13 +130,13 @@ void SimulationHandler::computeRayPath(
 
     QLineF ray(emitter->getRealPos(), target_point);
     rays.append(ray);
-    coeff*= computeTransmissons(emitter, ray);
+    coeff*= computeTransmissons(emitter, ray, nullptr, target_wall);
 
     if(images.size() == 0){
         dn = ray.length();
     }
     complex<double> En = coeff*computeNominal_elec_field(emitter, ray, dn);
-    qDebug()<<dn<<norm(coeff);
+    qDebug() << "En" << dn << coeff << En;
 
     RayPath *rp = new RayPath(rays, En);
     m_raypaths.append(rp);
@@ -153,7 +162,8 @@ void SimulationHandler::computeAllRays() {
             }
 
             double power = computePower(e, m_raypaths);
-            qDebug()<<power ;
+            qDebug() << power ;
+            qDebug() << m_raypaths.size();
         }
     }
 
@@ -192,7 +202,7 @@ complex<double> SimulationHandler::computeReflexion(Emitter *e, Wall *w, QLineF 
     return reflection;
 }
 complex<double> SimulationHandler::computeNominal_elec_field(Emitter *e, QLineF ray, double dn){
-    double GTX = e->getGain(M_PI, 0);
+    double GTX = e->getGain(M_PI_2, 0);
             //TODO coompute thetaTX, phi
     double PTX = e->getPower();
     double omega = e->getFrequency()*2*M_PI;
@@ -217,6 +227,7 @@ complex<double> SimulationHandler::computeTransmissons(Emitter *e, QLineF ray, W
         if(i_t != QLineF::BoundedIntersection){
             continue;
         }
+
         complex<double> epsilon_tilde = complexPermittivity(w->getRelPermitivity(), w->getConductivity(), omega );
         complex<double> Z1 = Z_AIR;
         complex<double> Z2 = characteristicImpedance(epsilon_tilde);
@@ -232,6 +243,8 @@ complex<double> SimulationHandler::computeTransmissons(Emitter *e, QLineF ray, W
 
         complex<double> gamma_m = propagationConstant(omega, epsilon_tilde);
 
+        qDebug() << "Tr" << Z1 << Z2;
+
         complex<double> transmission = (1.0-pow(gamma_orth,2.0))*exp(-gamma_m*s)/(1.0-pow(gamma_orth,2.0)*exp(-2.0*gamma_m*s + gamma_0*2.0*s*sin(theta_t)*sin(theta_i)));
         coeff *= transmission;
     }
@@ -241,19 +254,23 @@ complex<double> SimulationHandler::computeTransmissons(Emitter *e, QLineF ray, W
 
 }
 
+// Formula 8.83
 double SimulationHandler::computePower(Emitter *e, QList<RayPath *> rp_list){
     double Ra = e->getResistance();
     double theta = M_PI_2;
     double Prx = 0;
 
     foreach(RayPath* rp, rp_list){
-        double phi = 0;
         //TODO phi = incidence angle emiter
+        double phi = 0;
         complex<double> he = e->getEffectiveHeight(theta,phi);
-        //norm = square of modulus
+
+        // norm() = square of modulus
         Prx += norm(he * rp->getElecField());
 
+        qDebug() << "Pxr" << Prx << he << rp->getElecField();
     }
-    Prx *= 1.0/(8.0*Ra);
+    Prx /= 8.0 * Ra;
+
     return Prx;
 }
