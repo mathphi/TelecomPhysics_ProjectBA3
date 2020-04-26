@@ -99,7 +99,7 @@ QPainterPath Wall::shape() const {
         path.addRect(getLengthTextRect());
     }
 
-    // Take care or the width of the pen
+    // Take care of the width of the pen
     QPainterPathStroker ps;
     ps.setWidth(m_pen.widthF());
     ps.setJoinStyle(m_pen.joinStyle());
