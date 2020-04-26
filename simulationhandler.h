@@ -33,6 +33,8 @@ public:
             QList<QPointF> images = QList<QPointF>(),
             QList<Wall*> walls = QList<Wall*>());
 
+    double computePowerToReceiver(Receiver *r, QList<RayPath*> *raypaths_list);
+
     void computeAllRays();
 
     complex<double> computeReflection(Emitter *e, Wall *w, QLineF ray_in);

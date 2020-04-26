@@ -1,4 +1,5 @@
 #include "walls.h"
+#include "constants.h"
 #include "simulationscene.h"
 
 #include <QPen>
@@ -53,6 +54,25 @@ void Wall::setLine(QLineF line) {
 QLineF Wall::getRealLine() {
     qreal scale = simulationScene()->simulationScale();
     return QLineF(m_line.p1() / scale, m_line.p2() / scale);
+}
+
+/**
+ * @brief Wall::getNormalAngleTo
+ * @param line
+ * @return
+ *
+ * This function returns the angle made by the 'line' to the normal of the wall.
+ * This angle is defined as 0 <= theta <= PI/2 (in radians)
+ */
+double Wall::getNormalAngleTo(QLineF line) {
+    double theta = M_PI_2 - m_line.angleTo(line)/180.0*M_PI;
+
+    // If the angle is > PI/2 -> use the normal of the wall in the other direction
+    if(theta > M_PI_2){
+       theta = abs(theta - M_PI);
+    }
+
+    return theta;
 }
 
 double Wall::getThickness(){

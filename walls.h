@@ -25,6 +25,7 @@ public:
     void setLine(QLineF line);
 
     QLineF getRealLine();
+    double getNormalAngleTo(QLineF line);
 
     double getThickness();
 

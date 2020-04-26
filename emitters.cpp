@@ -62,17 +62,15 @@ double Emitter::convertPowerToWatts(double power_dbm) {
  * This function returns a polygon that represent the gain of the emitter around the phi angle
  */
 QPolygonF Emitter::getPolyGain() const {
-    QPolygonF poly_gain1;
-    QPolygonF poly_gain2;
+    QPolygonF poly_gain;
     QPointF pt;
 
-    for (double phi = 0 ; phi < 2*M_PI ; phi += 0.2) {
+    for (double phi = -M_PI ; phi < M_PI + 0.2 ; phi += 0.2) {
         pt = QPointF(cos(phi), sin(phi));
-        poly_gain1.append(pt * getGain(M_PI_2, phi) * EMITTER_POLYGAIN_SIZE);
-        poly_gain2.append(pt * getGain(-M_PI_2, phi) * EMITTER_POLYGAIN_SIZE);
+        poly_gain.append(pt * getGain(M_PI_2, phi) * EMITTER_POLYGAIN_SIZE);
     }
 
-    return poly_gain1.united(poly_gain2);
+    return poly_gain;
 }
 
 /**
@@ -168,7 +166,7 @@ QString HalfWaveDipole::getEmitterLabel() const {
 double HalfWaveDipole::getGain(double theta, double phi) const {
     Q_UNUSED(phi);
     double eta = getEfficiency();
-    return eta*16.0/(3*M_PI)*pow(sin(theta),3);
+    return fabs(eta*16.0/(3*M_PI)*pow(sin(theta),3));
 }
 
 complex<double> HalfWaveDipole::getEffectiveHeight(double theta, double phi) const {

@@ -1,6 +1,7 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include <math.h>
 #include <complex>
 
 // Needed to avoid a confusion with 1i implementations
