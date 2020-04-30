@@ -24,7 +24,7 @@ const QRectF TEXT_RECT(
 Emitter::Emitter (double frequency, double power, double efficiency) : SimulationItem()
 {
     // The default angle for the emitter is PI/2 (incidence to top)
-    m_rotation_angle = M_PI_2;
+    m_rotation_angle = M_PI_2/2;
 
     m_frequency  = frequency;
     m_power      = power;
@@ -104,9 +104,9 @@ QPolygonF Emitter::getPolyGain() const {
     QPolygonF poly_gain;
     QPointF pt;
 
-    for (double phi = -M_PI ; phi < M_PI + 0.2 ; phi += 0.2) {
+    for (double phi = -M_PI ; phi < M_PI + 0.1 ; phi += 0.1) {
         pt = QPointF(cos(phi), sin(phi));
-        poly_gain.append(pt * getGain(phi) * EMITTER_POLYGAIN_SIZE);
+        poly_gain.append(pt * getGain(phi + m_rotation_angle) * EMITTER_POLYGAIN_SIZE);
     }
 
     return poly_gain;
@@ -228,21 +228,31 @@ double HalfWaveDipole::getResistance() const {
 double HalfWaveDipole::getGain(double theta, double phi) const {
     Q_UNUSED(phi);
 
+    // This function equals 0 for theta == 0, but avoid the 0/0 situation
+    if (theta == 0) {
+        return 0;
+    }
+
     // Get the efficiency
     double eta = getEfficiency();
 
-    // Compute the gain (equations 5.44, 5.46, 5.24)
-    return fabs(eta * 16.0/(3*M_PI) * pow(sin(theta), 3));
+    // Compute the gain (equations 5.44, 5.24, 5.22)
+    return eta * 16.0/(3*M_PI) * pow(cos(M_PI_2 * cos(theta)) / sin(theta), 2);
 }
 
 complex<double> HalfWaveDipole::getEffectiveHeight(double theta, double phi) const {
     Q_UNUSED(phi);
 
+    // This function equals 0 for theta == 0, but avoid the 0/0 situation
+    if (theta == 0) {
+        return 0;
+    }
+
     // Compute the wave length
     double lambda = LIGHT_SPEED / getFrequency();
 
     // Compute the effective height (equation 5.42)
-    return -lambda/M_PI * cos(M_PI/2 * cos(theta))/pow(sin(theta),2);
+    return -lambda/M_PI * cos(M_PI_2 * cos(theta))/pow(sin(theta),2);
 }
 
 
