@@ -419,9 +419,11 @@ complex<double> SimulationHandler::computeTransmissons(Emitter *em, QLineF ray, 
  * @return    : The "Nominal" electric field
  */
 complex<double> SimulationHandler::computeNominalElecField(Emitter *em, QLineF ray, double dn) {
+    // Incidence angle of the ray from the emitter
+    double phi = em->getIncidentRayAngle(ray);
 
     // Get properties from the emitter
-    double GTX = em->getGain(M_PI_2, 0); //TODO coompute thetaTX, phi
+    double GTX = em->getGain(phi);
     double PTX = em->getPower();
     double omega = em->getFrequency()*2*M_PI;
 
@@ -443,18 +445,15 @@ complex<double> SimulationHandler::computeNominalElecField(Emitter *em, QLineF r
  * @return        : The average power of the RayPaths to the receiver
  */
 double SimulationHandler::computeAvgPower(Emitter *em, QList<RayPath *> rp_list) {
-
-    // The 2D simulation is in the plane θ = π/2
-    double theta = M_PI_2;
-
     double Prx = 0;
     double Ra = em->getResistance();
 
     // Sum the square of modulus of each RayPath's contribution
     foreach(RayPath* rp, rp_list) {
-        //TODO phi = incidence angle emiter
-        double phi = 0;
-        complex<double> he = em->getEffectiveHeight(theta,phi);
+        // Incidence angle of the ray from the emitter
+        double phi = em->getIncidentRayAngle(rp->getRays().first());
+
+        complex<double> he = em->getEffectiveHeight(phi);
         complex<double> En = rp->getElecField();
 
         // norm() = square of modulus

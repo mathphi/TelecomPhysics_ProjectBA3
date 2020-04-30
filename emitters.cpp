@@ -23,6 +23,9 @@ const QRectF TEXT_RECT(
 
 Emitter::Emitter (double frequency, double power, double efficiency, double resistance) : SimulationItem()
 {
+    // The default angle for the emitter is PI/2 (incidence to top)
+    m_rotation_angle = M_PI_2;
+
     m_frequency  = frequency;
     m_power      = power;
     m_efficiency = efficiency;
@@ -56,24 +59,6 @@ double Emitter::convertPowerToWatts(double power_dbm) {
 }
 
 /**
- * @brief Emitter::getPolyGain
- * @return
- *
- * This function returns a polygon that represent the gain of the emitter around the phi angle
- */
-QPolygonF Emitter::getPolyGain() const {
-    QPolygonF poly_gain;
-    QPointF pt;
-
-    for (double phi = -M_PI ; phi < M_PI + 0.2 ; phi += 0.2) {
-        pt = QPointF(cos(phi), sin(phi));
-        poly_gain.append(pt * getGain(M_PI_2, phi) * EMITTER_POLYGAIN_SIZE);
-    }
-
-    return poly_gain;
-}
-
-/**
  * @brief Emitter::convertPowerToWatts
  * @param power_dbm
  * @return
@@ -85,6 +70,50 @@ double Emitter::convertPowerTodBm(double power_watts) {
     return 10 * log10(power_watts / 0.001);
 }
 
+/**
+ * @brief Emitter::getEffectiveHeight
+ * @param phi
+ * @return
+ *
+ * Returns the same as getEffectiveHeight(theta, phi), but with the default angle
+ * theta to π/2, since the 2D simulation is in the plane θ = π/2
+ */
+complex<double> Emitter::getEffectiveHeight(double phi) const {
+    // The 2D simulation is in the plane θ = π/2
+    return getEffectiveHeight(M_PI_2, phi);
+}
+
+/**
+ * @brief Emitter::getGain
+ * @param phi
+ * @return
+ *
+ * Returns the same as getGain(theta, phi), but with the default angle
+ * theta to π/2, since the 2D simulation is in the plane θ = π/2
+ */
+double Emitter::getGain(double phi) const {
+    // The 2D simulation is in the plane θ = π/2
+    return getGain(M_PI_2, phi);
+}
+
+
+/**
+ * @brief Emitter::getPolyGain
+ * @return
+ *
+ * This function returns a polygon that represent the gain of the emitter around the phi angle
+ */
+QPolygonF Emitter::getPolyGain() const {
+    QPolygonF poly_gain;
+    QPointF pt;
+
+    for (double phi = -M_PI ; phi < M_PI + 0.2 ; phi += 0.2) {
+        pt = QPointF(cos(phi), sin(phi));
+        poly_gain.append(pt * getGain(phi) * EMITTER_POLYGAIN_SIZE);
+    }
+
+    return poly_gain;
+}
 
 QRectF Emitter::boundingRect() const {
     QRectF emitter_rect(-EMITTER_WIDTH/2 - 2, -EMITTER_HEIGHT - 2,
@@ -119,6 +148,38 @@ void Emitter::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget
 
     // Draw the label of the emitter
     painter->drawText(TEXT_RECT, Qt::AlignHCenter | Qt::AlignTop, getEmitterLabel());
+}
+
+/**
+ * @brief Emitter::setRotation
+ * @param angle
+ *
+ * Sets the rotation angle of the emitter (in radians)
+ */
+void Emitter::setRotation(double angle) {
+    m_rotation_angle = angle;
+}
+
+/**
+ * @brief Emitter::getRotation
+ * @return
+ *
+ * Get the rotation angle of the antenna (in radians)
+ */
+double Emitter::getRotation() {
+    return m_rotation_angle;
+}
+
+/**
+ * @brief Emitter::getIncidentRayAngle
+ * @param ray
+ * @return
+ *
+ * Returns the incidence angle of the ray to the emitter (in radians)
+ */
+double Emitter::getIncidentRayAngle(QLineF ray) {
+    double ray_angle = ray.angle() / 180.0 * M_PI;
+    return ray_angle - m_rotation_angle;
 }
 
 double Emitter::getEfficiency() const {
@@ -182,6 +243,7 @@ QDataStream &operator>>(QDataStream &in, Emitter *&e) {
     double frequency;
     double efficiency;
     double resistivity;
+    double rotation;
     QPoint pos;
 
     in >> type;
@@ -189,6 +251,7 @@ QDataStream &operator>>(QDataStream &in, Emitter *&e) {
     in >> frequency;
     in >> efficiency;
     in >> resistivity;
+    in >> rotation;
     in >> pos;
 
     switch (type) {
@@ -197,6 +260,7 @@ QDataStream &operator>>(QDataStream &in, Emitter *&e) {
         break;
     }
 
+    e->setRotation(rotation);
     e->setPos(pos);
 
     return in;
@@ -208,6 +272,7 @@ QDataStream &operator<<(QDataStream &out, Emitter *e) {
     out << e->getFrequency();
     out << e->getEfficiency();
     out << e->getResistance();
+    out << e->getRotation();
     out << e->pos().toPoint();
 
     return out;

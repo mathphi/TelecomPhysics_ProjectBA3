@@ -24,13 +24,20 @@ public:
     virtual QString getEmitterLabel() const = 0;
 
     virtual complex<double> getEffectiveHeight(double theta, double phi) const = 0;
-    virtual double getGain (double theta, double phi) const = 0;
+    virtual double getGain(double theta, double phi) const = 0;
 
+    complex<double> getEffectiveHeight(double phi) const;
+    double getGain(double phi) const;
+
+    QPolygonF getPolyGain() const;
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override;
 
-    QPolygonF getPolyGain() const;
+    void setRotation(double angle);
+    double getRotation();
+
+    double getIncidentRayAngle(QLineF ray);
 
     double getPower() const;
     double getFrequency() const;
@@ -41,6 +48,8 @@ public:
     static double convertPowerTodBm(double power_watts);
 
 private:
+    double m_rotation_angle;
+
     double m_frequency;
     double m_power;
     double m_efficiency;
