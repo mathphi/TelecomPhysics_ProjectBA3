@@ -50,6 +50,9 @@ MainWindow::MainWindow(QWidget *parent)
     // The simulation handler manages the simulation's data
     m_simulation_handler = new SimulationHandler(m_scene);
 
+    // Hide the simulation group by default
+    ui->group_simulation->hide();
+
     // Window File menu actions
     connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
     connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(actionOpen()));
@@ -71,6 +74,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionZoomBest,     SIGNAL(triggered()), this, SLOT(actionZoomBest()));
 
     // Right-panel buttons
+    // Scene edition buttons group
     connect(ui->button_addBrickWall,    SIGNAL(clicked()),      this, SLOT(addBrickWall()));
     connect(ui->button_addConcreteWall, SIGNAL(clicked()),      this, SLOT(addConcreteWall()));
     connect(ui->button_addPartition,    SIGNAL(clicked()),      this, SLOT(addPartitionWall()));
@@ -78,6 +82,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->button_addReceiver,     SIGNAL(clicked()),      this, SLOT(addReceiver()));
     connect(ui->button_eraseObject,     SIGNAL(clicked(bool)),  this, SLOT(toggleEraseMode(bool)));
     connect(ui->button_eraseAll,        SIGNAL(clicked()),      this, SLOT(eraseAll()));
+    connect(ui->button_simulation,      SIGNAL(clicked()),      this, SLOT(switchSimulationMode()));
+
+    // Simulation buttons group
+    connect(ui->button_editScene, SIGNAL(clicked()), this, SLOT(switchEditSceneMode()));
 
     // Scene events handling
     connect(m_scene, SIGNAL(mouseRightReleased(QGraphicsSceneMouseEvent*)),
@@ -783,7 +791,7 @@ QPoint MainWindow::attractivePoint(QPoint actual) {
     return attractive_point;
 }
 
-////////////////////////////////// MOUSE TRACKER SECTION /////////////////////////////////////
+///////////////////////////////////// MOUSE TRACKER SECTION ////////////////////////////////////////
 
 void MainWindow::initMouseTracker() {
     // Add two lines to the scene that will track the mouse cursor when visible
@@ -831,9 +839,9 @@ void MainWindow::setMouseTrackerPosition(QPoint pos) {
     m_mouse_tracker_y->setLine(y_line);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////// FILE SAVE/RESTORE HANDLING SECTION ///////////////////////////////////
+/////////////////////////////// FILE SAVE/RESTORE HANDLING SECTION /////////////////////////////////
 
 void MainWindow::actionOpen() {
     int answer = QMessageBox::question(
@@ -910,9 +918,9 @@ void MainWindow::actionSave() {
     file.close();
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-////////////////////////////////////// ZOOM ACTIONS FUNCTIONS /////////////////////////////////////////
+///////////////////////////////////// ZOOM ACTIONS FUNCTIONS ///////////////////////////////////////
 
 void MainWindow::actionZoomIn() {
     scaleView(1.1);
@@ -930,4 +938,27 @@ void MainWindow::actionZoomBest() {
     bestView();
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////// SIMULATION ACTIONS FUNCTIONS ////////////////////////////////////
+
+void MainWindow::switchSimulationMode() {
+    // Hide the scene edition buttons group
+    ui->group_scene_edition->hide();
+
+    // Show the simulation buttons group
+    ui->group_simulation->show();
+
+    // Cancel the current drawing (if one)
+    cancelCurrentDrawing();
+}
+
+void MainWindow::switchEditSceneMode() {
+    // Hide the simulation buttons group
+    ui->group_simulation->hide();
+
+    // Show the scene edition buttons group
+    ui->group_scene_edition->show();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
