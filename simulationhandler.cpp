@@ -26,14 +26,15 @@ SimulationData *SimulationHandler::simulationData() {
 
 /**
  * @brief SimulationHandler::mirror
- * @param source : The position of the source whose image is calculated
- * @param wall   : The wall over which compute the image
  *
- * @return
- * This function returns the coordinates of the "source" point
+ * This function returns the coordinates of the image of the 'source' point
  * after an axial symmetry through the wall.
  *
  * WARNING: the y axis is upside down in the graphics scene !
+ *
+ * @param source : The position of the source whose image is calculated
+ * @param wall   : The wall over which compute the image
+ * @return       : The coordinates of the image
  */
 QPointF SimulationHandler::mirror(QPointF source, Wall *wall) {
     // Get the angle of the wall to the horizontal axis
@@ -51,21 +52,26 @@ QPointF SimulationHandler::mirror(QPointF source, Wall *wall) {
     double x_p =  x*cos(theta) - y*sin(theta);
     double y_p = -x*sin(theta) - y*cos(theta);
 
-    // Rotate and translate back to the original coordinates system
-    return QPointF(-x_p*cos(theta) - y_p*sin(theta), x_p*sin(theta) - y_p*cos(theta)) + wall->getRealLine().p1();
+    // Rotate back to the original coordinates system
+    QPointF rel_pos = QPointF(-x_p*cos(theta) - y_p*sin(theta), x_p*sin(theta) - y_p*cos(theta));
+
+    // Translate back to the original coordinates system
+    return rel_pos + wall->getRealLine().p1();
 }
 
 /**
  * @brief SimulationHandler::recursiveReflection
+ *
+ * This function gets the image of the source (emitter of previous image) over the 'reflect_wall'
+ * and compute the ray path recursively.
+ *
  * @param emitter      : The emitter for this ray path
  * @param receiver     : The receiver for this ray path
  * @param reflect_wall : The wall on which we will compute the reflection
  * @param images       : The list of images for the previous reflections
  * @param walls        : The list of walls for the previous reflections
  * @param level        : The recursion level
- *
- * This function gets the image of the source (emitter of previous image) over the 'reflect_wall'
- * and compute the ray path recursively.
+ * @return             : A list of RayPath objects computed recursively
  */
 QList<RayPath *> SimulationHandler::recursiveReflection(
         Emitter *emitter,
@@ -127,12 +133,14 @@ QList<RayPath *> SimulationHandler::recursiveReflection(
 
 /**
  * @brief SimulationHandler::computeRayPath
+ *
+ * This function computes the ray path for a combination reflections.
+ *
  * @param emitter  : The emitter for this ray path
  * @param receiver : The receiver for this ray path
  * @param images   : The list of reflection images computed for this ray path
  * @param walls    : The list of walls that form a combination of reflections
- *
- * This function computes the ray path for a combination reflections.
+ * @return         : A pointer to the new RayPath object computed (or nullptr if invalid)
  */
 RayPath *SimulationHandler::computeRayPath(
         Emitter *emitter,
@@ -211,7 +219,7 @@ RayPath *SimulationHandler::computeRayPath(
         dn = ray.length();
     }
 
-    // Compute the electric field for this ray path
+    // Compute the electric field for this ray path (equation 8.78)
     complex<double> En = coeff * computeNominalElecField(emitter, ray, dn);
 
     qDebug() << "En" << dn << coeff << En;
@@ -278,100 +286,183 @@ void SimulationHandler::computeAllRays() {
     qDebug() << tm.nsecsElapsed();
 }
 
-complex<double> SimulationHandler::complexPermittivity(double e_r, double sigma, double omega) {
-    return e_r*EPSILON_0 - 1i*sigma/omega;
-}
+/**
+ * @brief SimulationHandler::computeReflection
+ *
+ * This function computes the reflection coefficient for the reflection of
+ * an incident ray on a wall
+ *
+ * @param em     : The emitter (source of this ray)
+ * @param w      : The reflection wall
+ * @param ray_in : The incident ray
+ * @return       : The reflection coefficient for this reflection
+ */
+complex<double> SimulationHandler::computeReflection(Emitter *em, Wall *w, QLineF in_ray) {
+    // Get the pulsation of the emitter
+    double omega = em->getFrequency()*2*M_PI;
 
-complex<double> SimulationHandler::characteristicImpedance(complex<double> e) {
-    return sqrt(MU_0/e);
-}
+    // Get the properties of the reflection wall
+    double e_r = w->getRelPermitivity();
+    double sigma = w->getConductivity();
 
-complex<double> SimulationHandler::propagationConstant(double omega, complex<double> e) {
-    return 1i*omega*sqrt(MU_0*e);
-}
-
-complex<double> SimulationHandler::computeReflection(Emitter *e, Wall *w, QLineF ray_in){
-    double theta_i = w->getNormalAngleTo(ray_in);
-    double omega = e->getFrequency()*2*M_PI;
-    complex<double> epsilon_tilde = complexPermittivity(w->getRelPermitivity(), w->getConductivity(), omega );//rel grave ?
+    // Compute the properties of the mediums (air and wall)
+    complex<double> epsilon_tilde = e_r*EPSILON_0 - 1i*sigma/omega;
     complex<double> Z1 = Z_AIR;
-    complex<double> Z2 = characteristicImpedance(epsilon_tilde);
+    complex<double> Z2 = sqrt(MU_0/epsilon_tilde);
 
-    double theta_t = asin(real(Z2/Z1)*sin(theta_i));
+    // Compute the incident and transmission angles
+    double theta_i = w->getNormalAngleTo(in_ray);
+    double theta_t = asin(real(Z2/Z1) * sin(theta_i));
 
-    complex<double>gamma_orth = (Z2*cos(theta_i) - Z1*cos(theta_t)) / (Z2*cos(theta_i)+ Z1 * cos(theta_t));
-    double s = w->getThickness()/cos(theta_t);
+    // Length of the travel of the ray in the wall
+    double s = w->getThickness() / cos(theta_t);
 
-    complex<double> gamma_m = propagationConstant(omega, epsilon_tilde);
-    complex<double> gamma_0 = propagationConstant(omega, EPSILON_0);
-    complex<double> reflection = gamma_orth + (1.0 - pow(gamma_orth,2.0)) * gamma_orth*exp(-2.0* gamma_m*s  + gamma_0*2.0*s*sin(theta_t)*sin(theta_i))/(1.0 - pow(gamma_orth,2.0)*exp(-2.0* gamma_m*s  + gamma_0*2.0*s*sin(theta_t)*sin(theta_i)));
+    // Compute the reflection coefficient for an orthogonal
+    // polarisation (equation 8.39)
+    complex<double> Gamma_orth = (Z2*cos(theta_i) - Z1*cos(theta_t)) / (Z2*cos(theta_i) + Z1*cos(theta_t));
+
+    // Propagation constants (m -> in wall, 0 -> in air)
+    complex<double> gamma_m = 1i*omega*sqrt(MU_0*epsilon_tilde);
+    complex<double> gamma_0 = 1i*omega*sqrt(MU_0*EPSILON_0);
+
+    // Compute the reflection coefficient (equation 8.43)
+    complex<double> reflection = Gamma_orth + (1.0 - pow(Gamma_orth,2.0)) * Gamma_orth*exp(-2.0* gamma_m*s  + gamma_0*2.0*s*sin(theta_t)*sin(theta_i))/(1.0 - pow(Gamma_orth,2.0)*exp(-2.0* gamma_m*s  + gamma_0*2.0*s*sin(theta_t)*sin(theta_i)));
+
     return reflection;
 }
 
-complex<double> SimulationHandler::computeNominalElecField(Emitter *e, QLineF ray, double dn){
-    double GTX = e->getGain(M_PI_2, 0);
-            //TODO coompute thetaTX, phi
-    double PTX = e->getPower();
-    double omega = e->getFrequency()*2*M_PI;
-    complex<double> gamma_0 = propagationConstant(omega, EPSILON_0);
-    return sqrt(60*GTX*PTX)*exp(-gamma_0*dn)/dn;
+/**
+ * @brief SimulationHandler::computeTransmissons
+ *
+ * This function computes all the transmissions undergone by the 'ray', and returns
+ * the total transmission coefficient.
+ *
+ * @param em          : The emitter (source of this ray)
+ * @param ray         : The ray for which to compute the transmissions
+ * @param origin_wall : The wall from which this ray come from (reflection), or nullptr
+ * @param target_wall : The wall to which this ray go to (reflection), or nullptr
+ * @return            : The total transmission coefficient for all undergone transmissions
+ */
+complex<double> SimulationHandler::computeTransmissons(Emitter *em, QLineF ray, Wall *origin_wall, Wall *target_wall) {
+    // Get pulsation from the emitter
+    double omega = em->getFrequency()*2*M_PI;
 
-}
+    // Propagation constant (air)
+    complex<double> gamma_0 = 1i*omega*sqrt(MU_0*EPSILON_0);
 
-complex<double> SimulationHandler::computeTransmissons(Emitter *e, QLineF ray, Wall *origin_wall, Wall *target_wall){
-    double omega = e->getFrequency()*2*M_PI;
-    complex<double> gamma_0 = propagationConstant(omega, EPSILON_0);
-
+    // Total transmission coefficient (for this ray)
     complex<double> coeff = 1;
-    foreach(Wall *w,simulationData()->getWallsList()){
-        if(w == origin_wall || w == target_wall){
+
+    // Loop over all walls of the scene and look for transmissions (intersection with ray)
+    foreach(Wall *w, simulationData()->getWallsList()) {
+        // No transmission through the origin or target wall (where this ray is reflected)
+        if(w == origin_wall || w == target_wall) {
             continue;
         }
 
+        // Get the transmission point
         QPointF pt;
-        QLineF::IntersectionType i_t = ray.intersects(w->getRealLine(),&pt);
+        QLineF::IntersectionType i_t = ray.intersects(w->getRealLine(), &pt);
 
-        if(i_t != QLineF::BoundedIntersection){
+        // There is transmission if the intersection with the ray is
+        // on the wall (not on its extension)
+        if(i_t != QLineF::BoundedIntersection) {
             continue;
         }
 
-        complex<double> epsilon_tilde = complexPermittivity(w->getRelPermitivity(), w->getConductivity(), omega );
-        complex<double> Z1 = Z_AIR;
-        complex<double> Z2 = characteristicImpedance(epsilon_tilde);
+        // Get properties from the transmission wall
+        double e_r = w->getRelPermitivity();
+        double sigma = w->getConductivity();
 
+        // Compute the properties of the mediums (air and wall)
+        complex<double> epsilon_tilde = e_r*EPSILON_0 - 1i*sigma/omega;
+        complex<double> Z1 = Z_AIR;
+        complex<double> Z2 = sqrt(MU_0/epsilon_tilde);
+
+        // Propagation constant (in this wall)
+        complex<double> gamma_m = 1i*omega*sqrt(MU_0*epsilon_tilde);
+
+        // Compute the incident and transmission angles
         double theta_i = w->getNormalAngleTo(ray);
         double theta_t = asin(real(Z2/Z1)*sin(theta_i));
 
-        complex<double>gamma_orth = (Z2*cos(theta_i) - Z1*cos(theta_t)) / (Z2*cos(theta_i)+ Z1 * cos(theta_t));
-        double s = w->getThickness()/cos(theta_t);
+        // Length of the travel of the ray in the wall
+        double s = w->getThickness() / cos(theta_t);
 
-        complex<double> gamma_m = propagationConstant(omega, epsilon_tilde);
+        // Compute the reflection coefficient for an orthogonal
+        // polarisation (equation 8.39).
+        // The transmission coefficient is deduced from the reflection
+        // coefficient (equation 8.37).
+        complex<double> Gamma_orth = (Z2*cos(theta_i) - Z1*cos(theta_t)) / (Z2*cos(theta_i) + Z1*cos(theta_t));
 
         qDebug() << "Tr" << Z1 << Z2;
 
-        complex<double> transmission = (1.0-pow(gamma_orth,2.0))*exp(-gamma_m*s)/(1.0-pow(gamma_orth,2.0)*exp(-2.0*gamma_m*s + gamma_0*2.0*s*sin(theta_t)*sin(theta_i)));
+        // Compute the reflection coefficient (equation 8.44)
+        complex<double> transmission = (1.0-pow(Gamma_orth,2.0))*exp(-gamma_m*s)/(1.0-pow(Gamma_orth,2.0)*exp(-2.0*gamma_m*s + gamma_0*2.0*s*sin(theta_t)*sin(theta_i)));
+
+        // Multiply the total transmission coefficient with this one
         coeff *= transmission;
     }
 
     return coeff;
 }
 
-// Formula 8.83
-double SimulationHandler::computeAvgPower(Emitter *e, QList<RayPath *> rp_list){
-    double Ra = e->getResistance();
-    double theta = M_PI_2;
-    double Prx = 0;
+/**
+ * @brief SimulationHandler::computeNominalElecField
+ *
+ * This function computes the "Nominal" electric field (equation 8.77).
+ * So this is the electric field as if there were no reflection or transmission.
+ *
+ * @param em  : The emitter (source of this ray)
+ * @param ray : The ray coming out from the emitter
+ * @param dn  : The total length of the ray path
+ * @return    : The "Nominal" electric field
+ */
+complex<double> SimulationHandler::computeNominalElecField(Emitter *em, QLineF ray, double dn) {
 
-    foreach(RayPath* rp, rp_list){
+    // Get properties from the emitter
+    double GTX = em->getGain(M_PI_2, 0); //TODO coompute thetaTX, phi
+    double PTX = em->getPower();
+    double omega = em->getFrequency()*2*M_PI;
+
+    // Propagation constant (air)
+    complex<double> gamma_0 = 1i*omega*sqrt(MU_0*EPSILON_0);
+
+    // Direct (nominal) electric field (equation 8.77)
+    return sqrt(60*GTX*PTX)*exp(-gamma_0*dn)/dn;
+}
+
+/**
+ * @brief SimulationHandler::computeAvgPower
+ *
+ * This function computes the average power of a list of RayPaths to
+ * a receiver (equation 8.83).
+ *
+ * @param e       : The emitter (source of these RayPaths)
+ * @param rp_list : The list of RayPaths to the receiver
+ * @return        : The average power of the RayPaths to the receiver
+ */
+double SimulationHandler::computeAvgPower(Emitter *em, QList<RayPath *> rp_list) {
+
+    // The 2D simulation is in the plane θ = π/2
+    double theta = M_PI_2;
+
+    double Prx = 0;
+    double Ra = em->getResistance();
+
+    // Sum the square of modulus of each RayPath's contribution
+    foreach(RayPath* rp, rp_list) {
         //TODO phi = incidence angle emiter
         double phi = 0;
-        complex<double> he = e->getEffectiveHeight(theta,phi);
+        complex<double> he = em->getEffectiveHeight(theta,phi);
+        complex<double> En = rp->getElecField();
 
         // norm() = square of modulus
-        Prx += norm(he * rp->getElecField());
+        Prx += norm(he * En);
 
-        qDebug() << "Pxr" << Prx << he << rp->getElecField();
+        qDebug() << "Pxr" << Prx << he << En;
     }
+
     Prx /= 8.0 * Ra;
 
     return Prx;

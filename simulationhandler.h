@@ -37,15 +37,11 @@ public:
 
     void computeAllRays();
 
-    complex<double> computeReflection(Emitter *e, Wall *w, QLineF ray_in);
-    complex<double> computeTransmissons(Emitter *e, QLineF ray, Wall *origin_wall=nullptr, Wall *target_wall=nullptr);
+    complex<double> computeReflection(Emitter *em, Wall *w, QLineF in_ray);
+    complex<double> computeTransmissons(Emitter *em, QLineF ray, Wall *origin_wall = nullptr, Wall *target_wall = nullptr);
+    complex<double> computeNominalElecField(Emitter *em, QLineF ray, double dn);
 
-    complex<double> computeNominalElecField(Emitter *e, QLineF ray, double dn);
-    complex<double> complexPermittivity(double e_r, double sigma, double omega);
-    complex<double> characteristicImpedance(complex<double> e);
-    complex<double> propagationConstant(double omega, complex<double> e);
-
-    double computeAvgPower(Emitter *e, QList<RayPath*> rp_list);
+    double computeAvgPower(Emitter *em, QList<RayPath*> rp_list);
 
 
 private:
