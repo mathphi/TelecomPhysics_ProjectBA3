@@ -35,10 +35,13 @@
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
         <property name="sizeHint" stdset="0">
          <size>
           <width>20</width>
-          <height>40</height>
+          <height>20</height>
          </size>
         </property>
        </spacer>
@@ -144,16 +147,15 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="button_settings">
-        <property name="text">
-         <string>Paramètres de calcul</string>
+       <widget class="QPushButton" name="button_simulation">
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+	image: url(:/images/go-next.svg);
+    image-position: right;
+}</string>
         </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="button_compute">
         <property name="text">
-         <string>Démarrer le calcul</string>
+         <string>Simulation</string>
         </property>
        </widget>
       </item>
@@ -162,10 +164,13 @@
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::MinimumExpanding</enum>
+        </property>
         <property name="sizeHint" stdset="0">
          <size>
           <width>20</width>
-          <height>40</height>
+          <height>20</height>
          </size>
         </property>
        </spacer>
