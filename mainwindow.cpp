@@ -321,13 +321,12 @@ void MainWindow::addEmitter() {
     EmitterType::EmitterType type = emitter_dialog->getEmitterType();
     double power      = emitter_dialog->getPower();
     double frequency  = emitter_dialog->getFrequency();
-    double resistance = emitter_dialog->getResistance();
     double efficiency = emitter_dialog->getEfficiency();
 
     // Create an emitter of the selected type to place on the scene
     switch (type) {
     case EmitterType::HalfWaveDipoleVert:
-        m_drawing_item = new HalfWaveDipole(frequency, power, efficiency, resistance);
+        m_drawing_item = new HalfWaveDipole(frequency, power, efficiency);
         break;
     }
 
@@ -888,6 +887,9 @@ void MainWindow::actionOpen() {
 
    // Close the file
    file.close();
+
+   // Reset the view after opening the file
+   resetView();
 }
 
 void MainWindow::actionSave() {

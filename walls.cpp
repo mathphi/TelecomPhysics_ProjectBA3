@@ -68,7 +68,7 @@ double Wall::getNormalAngleTo(QLineF line) {
     double theta = M_PI_2 - m_line.angleTo(line) / 180.0 * M_PI;
 
     // If the angle is > PI/2 -> use the normal of the wall in the other direction
-    if(theta > M_PI_2){
+    if(theta > M_PI_2) {
        theta = abs(theta - M_PI);
     }
 
@@ -235,7 +235,7 @@ WallType::WallType PartitionWall::getWallType(){
 
 QDataStream &operator>>(QDataStream &in, Wall *&w) {
     int type;
-    int thickness;
+    double thickness;
     QLine line;
 
     in >> type;

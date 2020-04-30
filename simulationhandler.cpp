@@ -307,7 +307,7 @@ complex<double> SimulationHandler::computeReflection(Emitter *em, Wall *w, QLine
 
     // Compute the properties of the mediums (air and wall)
     complex<double> epsilon_tilde = e_r*EPSILON_0 - 1i*sigma/omega;
-    complex<double> Z1 = Z_AIR;
+    complex<double> Z1 = Z_0;
     complex<double> Z2 = sqrt(MU_0/epsilon_tilde);
 
     // Compute the incident and transmission angles
@@ -376,7 +376,7 @@ complex<double> SimulationHandler::computeTransmissons(Emitter *em, QLineF ray, 
 
         // Compute the properties of the mediums (air and wall)
         complex<double> epsilon_tilde = e_r*EPSILON_0 - 1i*sigma/omega;
-        complex<double> Z1 = Z_AIR;
+        complex<double> Z1 = Z_0;
         complex<double> Z2 = sqrt(MU_0/epsilon_tilde);
 
         // Propagation constant (in this wall)

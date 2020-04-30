@@ -332,12 +332,12 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOpen">
    <property name="text">
-    <string>Ouvrir...</string>
+    <string>Ouvrir un plan...</string>
    </property>
   </action>
   <action name="actionSave">
    <property name="text">
-    <string>Enregistrer...</string>
+    <string>Enregistrer le plan...</string>
    </property>
   </action>
   <action name="actionExit">

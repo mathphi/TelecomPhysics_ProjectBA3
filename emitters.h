@@ -16,13 +16,14 @@ enum EmitterType {
 class Emitter : public SimulationItem
 {
 public:
-    Emitter (double frequency, double power, double efficiency, double resistance);
+    Emitter (double frequency, double power, double efficiency);
 
     virtual Emitter* clone() = 0;
 
     virtual EmitterType::EmitterType getEmitterType() const = 0;
     virtual QString getEmitterLabel() const = 0;
 
+    virtual double getResistance() const = 0;
     virtual complex<double> getEffectiveHeight(double theta, double phi) const = 0;
     virtual double getGain(double theta, double phi) const = 0;
 
@@ -42,7 +43,6 @@ public:
     double getPower() const;
     double getFrequency() const;
     double getEfficiency() const;
-    double getResistance() const;
 
     static double convertPowerToWatts(double power_dbm);
     static double convertPowerTodBm(double power_watts);
@@ -53,20 +53,20 @@ private:
     double m_frequency;
     double m_power;
     double m_efficiency;
-    double m_resistance;
 };
 
 
 class HalfWaveDipole : public Emitter
 {
 public:
-    HalfWaveDipole(double frequency, double power, double efficiency, double resistance);
+    HalfWaveDipole(double frequency, double power, double efficiency);
 
     Emitter* clone() override;
 
     EmitterType::EmitterType getEmitterType() const override;
     QString getEmitterLabel() const override;
 
+    double getResistance() const override;
     complex<double> getEffectiveHeight(double theta, double phi) const override;
     double getGain(double theta, double phi) const override;
 };

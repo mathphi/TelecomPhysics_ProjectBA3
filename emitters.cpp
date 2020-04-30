@@ -21,7 +21,7 @@ const QRectF TEXT_RECT(
         EMITTER_TEXT_WIDTH,
         EMITTER_TEXT_HEIGHT);
 
-Emitter::Emitter (double frequency, double power, double efficiency, double resistance) : SimulationItem()
+Emitter::Emitter (double frequency, double power, double efficiency) : SimulationItem()
 {
     // The default angle for the emitter is PI/2 (incidence to top)
     m_rotation_angle = M_PI_2;
@@ -29,17 +29,14 @@ Emitter::Emitter (double frequency, double power, double efficiency, double resi
     m_frequency  = frequency;
     m_power      = power;
     m_efficiency = efficiency;
-    m_resistance = resistance;
 
     // Setup the tooltip with all emitter's info
     QString tip("<b>Fréquence:</b> %1 GHz<br/>"
                 "<b>Puissance:</b> %2 dBm<br/>"
-                "<b>Résistance:</b> %3 Ω<br/>"
                 "<b>Rendement:</b> %4 %");
 
-    tip = tip.arg(frequency, 0, 'f', 2)
+    tip = tip.arg(frequency * 1e-9, 0, 'f', 2)
             .arg(convertPowerTodBm(power), 0, 'f', 2)
-            .arg(resistance, 0, 'f', 2)
             .arg(efficiency * 100.0, 0, 'f', 1);
 
     setToolTip(tip);
@@ -194,14 +191,9 @@ double Emitter::getPower() const {
     return m_power;
 }
 
-double Emitter::getResistance() const {
-    return  m_resistance;
-}
 
-
-
-HalfWaveDipole::HalfWaveDipole(double frequency, double power, double efficiency, double resistance)
-    : Emitter(frequency, power, efficiency, resistance)
+HalfWaveDipole::HalfWaveDipole(double frequency, double power, double efficiency)
+    : Emitter(frequency, power, efficiency)
 {
 
 }
@@ -213,7 +205,7 @@ HalfWaveDipole::HalfWaveDipole(double frequency, double power, double efficiency
  * This function returns a new HalfWaveDipole with the same properties
  */
 Emitter* HalfWaveDipole::clone() {
-    return new HalfWaveDipole(getFrequency(), getPower(), getEfficiency(), getResistance());
+    return new HalfWaveDipole(getFrequency(), getPower(), getEfficiency());
 }
 
 EmitterType::EmitterType HalfWaveDipole::getEmitterType() const {
@@ -224,15 +216,32 @@ QString HalfWaveDipole::getEmitterLabel() const {
     return HALF_WAVE_LABEL;
 }
 
+double HalfWaveDipole::getResistance() const {
+    // Compute the radiation resistance of the HalfWave dipole (equations 5.48, 5.47, 5.10)
+    double Rar = 6.0 * Z_0 / 32.0;
+
+    // The total resistance is the radiation resistance divided by the
+    // efficiency (equations 5.13, 5.11)
+    return Rar / getEfficiency();
+}
+
 double HalfWaveDipole::getGain(double theta, double phi) const {
     Q_UNUSED(phi);
+
+    // Get the efficiency
     double eta = getEfficiency();
-    return fabs(eta*16.0/(3*M_PI)*pow(sin(theta),3));
+
+    // Compute the gain (equations 5.44, 5.46, 5.24)
+    return fabs(eta * 16.0/(3*M_PI) * pow(sin(theta), 3));
 }
 
 complex<double> HalfWaveDipole::getEffectiveHeight(double theta, double phi) const {
     Q_UNUSED(phi);
-    double lambda = LIGHT_SPEED/getFrequency();
+
+    // Compute the wave length
+    double lambda = LIGHT_SPEED / getFrequency();
+
+    // Compute the effective height (equation 5.42)
     return -lambda/M_PI * cos(M_PI/2 * cos(theta))/pow(sin(theta),2);
 }
 
@@ -242,7 +251,6 @@ QDataStream &operator>>(QDataStream &in, Emitter *&e) {
     double power;
     double frequency;
     double efficiency;
-    double resistivity;
     double rotation;
     QPoint pos;
 
@@ -250,13 +258,12 @@ QDataStream &operator>>(QDataStream &in, Emitter *&e) {
     in >> power;
     in >> frequency;
     in >> efficiency;
-    in >> resistivity;
     in >> rotation;
     in >> pos;
 
     switch (type) {
     case EmitterType::HalfWaveDipoleVert:
-        e = new HalfWaveDipole(frequency, power, efficiency, resistivity);
+        e = new HalfWaveDipole(frequency, power, efficiency);
         break;
     }
 
@@ -271,7 +278,6 @@ QDataStream &operator<<(QDataStream &out, Emitter *e) {
     out << e->getPower();
     out << e->getFrequency();
     out << e->getEfficiency();
-    out << e->getResistance();
     out << e->getRotation();
     out << e->pos().toPoint();
 

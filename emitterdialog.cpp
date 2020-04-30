@@ -45,11 +45,6 @@ double EmitterDialog::getFrequency() {
     return ui->spinbox_frequency->value() * 1e9;
 }
 
-double EmitterDialog::getResistance() {
-    // Resistance is in Ω
-    return ui->spinbox_resistance->value();
-}
-
 double EmitterDialog::getEfficiency() {
     // Efficiency is in %
     return ui->spinbox_efficiency->value() / 100.0;

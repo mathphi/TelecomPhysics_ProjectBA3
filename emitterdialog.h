@@ -20,7 +20,6 @@ public:
     EmitterType::EmitterType getEmitterType();
     double getPower();
     double getFrequency();
-    double getResistance();
     double getEfficiency();
 
 protected:

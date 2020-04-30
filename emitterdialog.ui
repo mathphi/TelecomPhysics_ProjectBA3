@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>294</width>
-    <height>260</height>
+    <width>267</width>
+    <height>219</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,32 +25,6 @@
      </item>
      <item row="0" column="1">
       <widget class="QComboBox" name="combobox_antenna_type"/>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_power">
-       <property name="text">
-        <string>Puissance</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QDoubleSpinBox" name="spinbox_power">
-       <property name="suffix">
-        <string> dBm</string>
-       </property>
-       <property name="decimals">
-        <number>2</number>
-       </property>
-       <property name="minimum">
-        <double>-100.000000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>100.000000000000000</double>
-       </property>
-       <property name="value">
-        <double>20.000000000000000</double>
-       </property>
-      </widget>
      </item>
      <item row="1" column="0">
       <widget class="QLabel" name="label_frequency">
@@ -78,52 +52,29 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="label_resistance">
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_power">
        <property name="text">
-        <string>Résistance</string>
+        <string>Puissance</string>
        </property>
       </widget>
      </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="label_efficiency">
-       <property name="text">
-        <string>Rendement</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QDoubleSpinBox" name="spinbox_resistance">
+     <item row="2" column="1">
+      <widget class="QDoubleSpinBox" name="spinbox_power">
        <property name="suffix">
-        <string> Ω</string>
-       </property>
-       <property name="minimum">
-        <double>0.010000000000000</double>
-       </property>
-       <property name="maximum">
-        <double>1000.000000000000000</double>
-       </property>
-       <property name="value">
-        <double>50.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="1">
-      <widget class="QDoubleSpinBox" name="spinbox_efficiency">
-       <property name="suffix">
-        <string> %</string>
+        <string> dBm</string>
        </property>
        <property name="decimals">
-        <number>1</number>
+        <number>2</number>
+       </property>
+       <property name="minimum">
+        <double>-100.000000000000000</double>
        </property>
        <property name="maximum">
         <double>100.000000000000000</double>
        </property>
-       <property name="singleStep">
-        <double>1.000000000000000</double>
-       </property>
        <property name="value">
-        <double>100.000000000000000</double>
+        <double>20.000000000000000</double>
        </property>
       </widget>
      </item>
@@ -143,7 +94,46 @@
        </property>
       </widget>
      </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_efficiency">
+       <property name="text">
+        <string>Rendement</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QDoubleSpinBox" name="spinbox_efficiency">
+       <property name="suffix">
+        <string> %</string>
+       </property>
+       <property name="decimals">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <double>100.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>1.000000000000000</double>
+       </property>
+       <property name="value">
+        <double>100.000000000000000</double>
+       </property>
+      </widget>
+     </item>
     </layout>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
@@ -166,8 +156,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>257</x>
+     <y>250</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -182,8 +172,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>284</x>
+     <y>250</y>
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
