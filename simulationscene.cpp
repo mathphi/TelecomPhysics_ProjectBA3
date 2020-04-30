@@ -1,11 +1,18 @@
 #include "simulationscene.h"
 #include "simulationitem.h"
+#include "scaleruleritem.h"
 
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
 
 
 #define SIMULATION_SCALE 50.0
+
+SimulationScene::SimulationScene(QObject *parent) : QGraphicsScene (parent)
+{
+    m_scale_legend = new ScaleRulerItem();
+    addItem(m_scale_legend);
+}
 
 /**
  * @brief SimulationScene::simulationScale
@@ -72,4 +79,16 @@ void SimulationScene::keyPressEvent(QKeyEvent *event) {
 
 void SimulationScene::keyReleaseEvent(QKeyEvent *event) {
     emit keyReleased(event);
+}
+
+void SimulationScene::viewRectChanged(const QRectF rect, const qreal scale) {
+    QPointF legend_offset(
+                m_scale_legend->boundingRect().width(),
+                m_scale_legend->boundingRect().height());
+
+    // Keep the legend at constant position
+    m_scale_legend->setPos(rect.bottomRight() - legend_offset / scale);
+
+    // Send the new view scale to the legend
+    m_scale_legend->viewScaleChanged(scale);
 }

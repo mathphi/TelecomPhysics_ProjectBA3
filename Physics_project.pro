@@ -22,6 +22,7 @@ SOURCES += \
     mainwindow.cpp \
     raypath.cpp \
     receivers.cpp \
+    scaleruleritem.cpp \
     simulationdata.cpp \
     simulationhandler.cpp \
     simulationitem.cpp \
@@ -35,6 +36,7 @@ HEADERS += \
     mainwindow.h \
     raypath.h \
     receivers.h \
+    scaleruleritem.h \
     simulationdata.h \
     simulationhandler.h \
     simulationitem.h \

@@ -11,6 +11,7 @@
 #include <QGraphicsLineItem>
 #include <QFileDialog>
 #include <QLabel>
+#include <QScrollBar>
 
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsSceneWheelEvent>
@@ -144,17 +145,25 @@ void MainWindow::updateSceneRect() {
     // The scale factor is the diagonal components of the transformation matrix
     qreal scale_factor = ui->graphicsView->transform().m11();
 
+    // Offset to avoid the scrollbars
+    int offset = ceil(2/scale_factor);
+
     // Get the previous scene rect defined and extract his position from the center of the graphics view
     QRectF prev_rect = ui->graphicsView->sceneRect();
-    QPointF prev_pos = prev_rect.topLeft() + QPointF(prev_rect.width() + 4, prev_rect.height() + 4) / 2.0;
+    QPointF prev_pos =
+            prev_rect.topLeft() + QPointF(
+                prev_rect.width() + offset, prev_rect.height() + offset) / 2.0;
 
     // Apply the previous position to the new graphics view size
-    // Remove 4px to the new size to avoid the scrolls bars
+    // Remove 10px to the new size to avoid the scrolls bars
     QPointF new_pos = prev_pos - QPointF(ui->graphicsView->width(), ui->graphicsView->height()) / scale_factor / 2.0;
-    QRectF new_rect(new_pos, ui->graphicsView->size() / scale_factor - QSize(4, 4));
+    QRectF new_rect(new_pos, ui->graphicsView->size() / scale_factor - QSize(offset, offset));
 
     // Apply the new computed scene rect
     ui->graphicsView->setSceneRect(new_rect);
+
+    // Send the changed of the scene rect to the scene
+    m_scene->viewRectChanged(ui->graphicsView->sceneRect(), ui->graphicsView->transform().m11());
 }
 
 void MainWindow::moveSceneView(QPointF delta) {
@@ -163,9 +172,18 @@ void MainWindow::moveSceneView(QPointF delta) {
                 ui->graphicsView->sceneRect().y() + delta.y(),
                 ui->graphicsView->sceneRect().width(),
                 ui->graphicsView->sceneRect().height());
+
+    // Send the changed of the scene rect to the scene
+    m_scene->viewRectChanged(ui->graphicsView->sceneRect(), ui->graphicsView->transform().m11());
 }
 
 void MainWindow::scaleView(double scale, QPointF pos) {
+    // Don't scale too high or too low
+    if (ui->graphicsView->transform().m11() * scale > 10.0 ||
+            ui->graphicsView->transform().m11() * scale < 0.1) {
+        return;
+    }
+
     QRectF scene_rect = ui->graphicsView->sceneRect();
 
     // Compute the position of the mouse from the center of the scene
@@ -218,12 +236,15 @@ void MainWindow::bestView() {
 
     scale_factor /= view_scale;
 
+    // Offset to avoid the scrollbars
+    int offset = ceil(2/view_scale);
+
     // Get the new rect
     QRectF view_rect(
                 bounding_rect.x() + bounding_rect.width() / 2.0 - ui->graphicsView->width() / view_scale / 2.0,
                 bounding_rect.y() + bounding_rect.height() / 2.0 - ui->graphicsView->height() / view_scale / 2.0,
-                ui->graphicsView->width() / view_scale - 4,
-                ui->graphicsView->height() / view_scale - 4);
+                ui->graphicsView->width() / view_scale - offset,
+                ui->graphicsView->height() / view_scale - offset);
 
     // Scale the view to fit the bounding rect in the view
     scaleView(scale_factor);
@@ -951,6 +972,9 @@ void MainWindow::switchSimulationMode() {
     // Show the simulation buttons group
     ui->group_simulation->show();
 
+    // Disable the Edit menu (from menu bar)
+    ui->menuEdit->setDisabled(true);
+
     // Cancel the current drawing (if one)
     cancelCurrentDrawing();
 }
@@ -961,6 +985,9 @@ void MainWindow::switchEditSceneMode() {
 
     // Show the scene edition buttons group
     ui->group_scene_edition->show();
+
+    // Enable the Edit menu (from menu bar)
+    ui->menuEdit->setDisabled(false);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

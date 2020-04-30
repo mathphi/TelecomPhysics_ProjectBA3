@@ -7,17 +7,21 @@
 
 #include "simulationitem.h"
 
+class ScaleRulerItem;
 
 class SimulationScene : public QGraphicsScene
 {
     Q_OBJECT
 
 public:
-    SimulationScene(QObject* parent = nullptr) : QGraphicsScene (parent) {}
+    SimulationScene(QObject* parent = nullptr);
 
     qreal simulationScale() const;
 
     QRectF simulationBoundingRect();
+
+public slots:
+    void viewRectChanged(const QRectF rect, const qreal scale);
 
 protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
@@ -40,6 +44,9 @@ signals:
 
     void keyPressed(QKeyEvent *e);
     void keyReleased(QKeyEvent *e);
+
+private:
+    ScaleRulerItem *m_scale_legend;
 };
 
 #endif // SIMULATIONSCENE_H

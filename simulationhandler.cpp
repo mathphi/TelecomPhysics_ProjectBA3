@@ -87,11 +87,11 @@ QList<RayPath *> SimulationHandler::recursiveReflection(
     // Position of the image of the source
     QPointF src_image;
 
-    if(images.size() == 0) {
+    if (images.size() == 0) {
         // If there is no previous reflection, the source is the emitter
         src_image = mirror(emitter->getRealPos(), reflect_wall);
     }
-    else{
+    else {
         // If there are previous reflections, the source is the last image
         src_image = mirror(images.last(), reflect_wall);
     }
@@ -107,13 +107,13 @@ QList<RayPath *> SimulationHandler::recursiveReflection(
     raypath_list.append(rp);
 
     // If the level of recursion is under the max number of reflections
-    if(level < MAX_REFLECTIONS_COUNT)
+    if (level < MAX_REFLECTIONS_COUNT)
     {
         // Compute the reflection from the 'reflect_wall' to all other walls of the scene
         foreach (Wall *w, simulationData()->getWallsList())
         {
             // We don't have to compute any reflection from the 'reflect_wall' to itself
-            if(w == reflect_wall){
+            if (w == reflect_wall){
                 continue;
             }
 
@@ -167,7 +167,7 @@ RayPath *SimulationHandler::computeRayPath(
     Wall *target_wall = nullptr;
 
     // Loop over the images (backward)
-    for(int i = images.size()-1; i >= 0 ; i--) {
+    for (int i = images.size()-1; i >= 0 ; i--) {
         Wall *reflect_wall = walls[i];
         QPointF src_image = images[i];
 
@@ -186,7 +186,7 @@ RayPath *SimulationHandler::computeRayPath(
                 virtual_ray.intersects(reflect_wall->getRealLine(), &reflection_pt);
 
         // The ray path is valid if the reflection is on the wall (not on its extension)
-        if(i_t != QLineF::BoundedIntersection) {
+        if (i_t != QLineF::BoundedIntersection) {
             return nullptr; // Return an invalid ray path
         }
 
@@ -215,7 +215,7 @@ RayPath *SimulationHandler::computeRayPath(
 
     // If there were no images in the list, we are computing the direct ray, so the length
     // of the ray path (dn) is the length of the ray line from emitter to receiver.
-    if(images.size() == 0){
+    if (images.size() == 0) {
         dn = ray.length();
     }
 
@@ -356,7 +356,7 @@ complex<double> SimulationHandler::computeTransmissons(Emitter *em, QLineF ray, 
     // Loop over all walls of the scene and look for transmissions (intersection with ray)
     foreach(Wall *w, simulationData()->getWallsList()) {
         // No transmission through the origin or target wall (where this ray is reflected)
-        if(w == origin_wall || w == target_wall) {
+        if (w == origin_wall || w == target_wall) {
             continue;
         }
 
@@ -366,7 +366,7 @@ complex<double> SimulationHandler::computeTransmissons(Emitter *em, QLineF ray, 
 
         // There is transmission if the intersection with the ray is
         // on the wall (not on its extension)
-        if(i_t != QLineF::BoundedIntersection) {
+        if (i_t != QLineF::BoundedIntersection) {
             continue;
         }
 

@@ -3,8 +3,6 @@
 
 #include <QPainter>
 
-
-
 #define EMITTER_WIDTH 8
 #define EMITTER_HEIGHT 18
 #define EMITTER_TEXT_WIDTH 24
@@ -13,6 +11,7 @@
 #define EMITTER_POLYGAIN_SIZE 7.0
 
 #define HALF_WAVE_LABEL "λ/2"
+
 
 // Defines the rectangle where to place the emitter's label
 const QRectF TEXT_RECT(
