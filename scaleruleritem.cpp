@@ -10,7 +10,10 @@ const QRectF TEXT_RECT(15, LEGEND_HEIGHT/3.0, LEGEND_WIDTH-30, LEGEND_HEIGHT/2.0
 
 ScaleRulerItem::ScaleRulerItem() : QGraphicsItem()
 {
+    // This item must not scale with the view scale
     setFlag(QGraphicsItem::ItemIgnoresTransformations);
+
+    // This item is above all others
     setZValue(9999999);
 }
 
@@ -33,7 +36,7 @@ void ScaleRulerItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, 
     // Set pen and brush for the background
     painter->setPen(QPen(QBrush(Qt::transparent), 1));
     painter->setBrush(QBrush(Qt::white));
-    painter->setOpacity(0.7);
+    painter->setOpacity(0.8);
 
     // Draw the background rectangle
     painter->drawRoundedRect(0, 0, LEGEND_WIDTH, LEGEND_HEIGHT, 10, 10);
