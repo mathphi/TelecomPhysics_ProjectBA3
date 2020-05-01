@@ -431,7 +431,7 @@ complex<double> SimulationHandler::computeNominalElecField(Emitter *em, QLineF r
     complex<double> gamma_0 = 1i*omega*sqrt(MU_0*EPSILON_0);
 
     // Direct (nominal) electric field (equation 8.77)
-    return sqrt(60*GTX*PTX)*exp(-gamma_0*dn)/dn;
+    return sqrt(60.0*GTX*PTX)*exp(-gamma_0*dn)/dn;
 }
 
 /**
