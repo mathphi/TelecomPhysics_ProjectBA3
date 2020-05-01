@@ -16,9 +16,9 @@
 #define PARTITION_CONDUCTIVITY  0.04
 
 // Wall's default thickness (meter)
-#define BRICK_THICKNESS_DEFAULT      0.15
-#define CONCRETE_THICKNESS_DEFAULT   0.30
-#define PARTITION_THICKNESS_DEFAULT  0.10
+#define BRICK_THICKNESS_DEFAULT      0.35
+#define CONCRETE_THICKNESS_DEFAULT   0.25
+#define PARTITION_THICKNESS_DEFAULT  0.15
 
 // Wall's visual thickness (px)
 #define VISUAL_THICKNESS 4

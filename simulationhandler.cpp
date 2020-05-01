@@ -257,9 +257,6 @@ double SimulationHandler::computePowerToReceiver(Receiver *r, QList<RayPath*> *r
 
         // Add these raypaths to the list given in parameters
         raypaths_list->append(rp_list);
-
-        qDebug() << power;
-        qDebug() << rp_list.size();
     }
 
     return total_power;
@@ -275,15 +272,15 @@ void SimulationHandler::computeAllRays() {
 
         double power = computePowerToReceiver(r, &raypath_list);
 
-        qDebug() << power;
-        qDebug() << raypath_list.size();
+        qDebug() << "TotalPrx" << power << Emitter::convertPowerTodBm(power);
+        qDebug() << "#Rays" << raypath_list.size();
 
         foreach (RayPath *rp, raypath_list) {
             m_simulation_scene->addItem(rp);
         }
     }
 
-    qDebug() << tm.nsecsElapsed();
+    qDebug() << "Time (ns):" << tm.nsecsElapsed();
 }
 
 /**
@@ -459,7 +456,7 @@ double SimulationHandler::computeAvgPower(Emitter *em, QList<RayPath *> rp_list)
         // norm() = square of modulus
         Prx += norm(he * En);
 
-        qDebug() << "Pxr" << Prx << he << En;
+        qDebug() << "((Pxr))" << Prx << he << En;
     }
 
     Prx /= 8.0 * Ra;
