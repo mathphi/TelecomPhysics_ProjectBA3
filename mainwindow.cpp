@@ -48,6 +48,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     ui->graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
+    // Enable antialiasing for the graphics view
+    ui->graphicsView->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+
     // The simulation handler manages the simulation's data
     m_simulation_handler = new SimulationHandler(m_scene);
 
