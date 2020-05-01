@@ -1,14 +1,21 @@
 #include "simulationdata.h"
 
-SimulationData::SimulationData()
+SimulationData::SimulationData(int refl_cnt) : QObject()
 {
-
+    m_reflections_count = refl_cnt;
 }
 
-void SimulationData::setInitData(QList<Wall*> w_l, QList<Emitter*> e_l, QList<Receiver*> r_l) {
+SimulationData::SimulationData(QList<Wall*> w_l, QList<Emitter*> e_l, QList<Receiver*> r_l, int refl_count) : QObject()
+{
+    setInitData(w_l, e_l, r_l, refl_count);
+}
+
+void SimulationData::setInitData(QList<Wall*> w_l, QList<Emitter*> e_l, QList<Receiver*> r_l, int refl_count) {
     m_wall_list = w_l;
     m_emitter_list = e_l;
     m_receiver_list = r_l;
+
+    m_reflections_count = refl_count;
 }
 
 // ++++++++++++++++++++++++ WALLS / EMITTERS / RECEIVER LISTS MANAGEMENT FUNCTIONS +++++++++++++++++++++++++ //
@@ -55,6 +62,18 @@ QList<Receiver*> SimulationData::getReceiverList() {
     return m_receiver_list;
 }
 
+int SimulationData::maxReflectionsCount() {
+    return m_reflections_count;
+}
+
+void SimulationData::setReflectionsCount(int cnt) {
+    if (cnt < 1 || cnt > 99) {
+        cnt = 3;
+    }
+
+    m_reflections_count = cnt;
+}
+
 // ------------------------------------------------------------------------------------------------- //
 
 // ++++++++++++++++++++++++++++ SIMULATION DATA FILE WRITING FUNCTIONS +++++++++++++++++++++++++++++ //
@@ -65,12 +84,14 @@ QDataStream &operator>>(QDataStream &in, SimulationData *sd) {
     QList<Wall*> walls_list;
     QList<Emitter*> emitters_list;
     QList<Receiver*> receiver_list;
+    int max_refl_count;
 
     in >> walls_list;
     in >> emitters_list;
     in >> receiver_list;
+    in >> max_refl_count;
 
-    sd->setInitData(walls_list, emitters_list, receiver_list);
+    sd->setInitData(walls_list, emitters_list, receiver_list, max_refl_count);
 
     return in;
 }
@@ -79,6 +100,7 @@ QDataStream &operator<<(QDataStream &out, SimulationData *sd) {
     out << sd->getWallsList();
     out << sd->getEmittersList();
     out << sd->getReceiverList();
+    out << sd->maxReflectionsCount();
 
     return out;
 }

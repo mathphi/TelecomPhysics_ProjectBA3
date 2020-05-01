@@ -91,6 +91,8 @@ MainWindow::MainWindow(QWidget *parent)
     // Simulation buttons group
     connect(ui->button_simControl, SIGNAL(clicked()), this, SLOT(simulationControlAction()));
     connect(ui->button_editScene, SIGNAL(clicked()), this, SLOT(switchEditSceneMode()));
+    connect(ui->spinbox_reflections, SIGNAL(valueChanged(int)),
+            m_simulation_handler->simulationData(), SLOT(setReflectionsCount(int)));
 
     // Scene events handling
     connect(m_scene, SIGNAL(mouseRightReleased(QGraphicsSceneMouseEvent*)),
@@ -130,14 +132,14 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 }
 
 void MainWindow::showEvent(QShowEvent *event) {
+    event->accept();
     resetView();
     updateSceneRect();
-    event->accept();
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
-    updateSceneRect();
     event->accept();
+    updateSceneRect();
 }
 
 /**
@@ -907,6 +909,8 @@ void MainWindow::actionOpen() {
        m_scene->addItem(r);
    }
 
+   ui->spinbox_reflections->setValue(m_simulation_handler->simulationData()->maxReflectionsCount());
+
    // Close the file
    file.close();
 
@@ -978,6 +982,9 @@ void MainWindow::switchSimulationMode() {
 
     // Cancel the current drawing (if one)
     cancelCurrentDrawing();
+
+    // Update the scene rect (since the view size can have changed)
+    updateSceneRect();
 }
 
 void MainWindow::switchEditSceneMode() {
@@ -989,6 +996,9 @@ void MainWindow::switchEditSceneMode() {
 
     // Enable the Edit menu (from menu bar)
     ui->menuEdit->setDisabled(false);
+
+    // Update the scene rect (since the view size can have changed)
+    updateSceneRect();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -9,7 +9,8 @@
 
 Receiver::Receiver() : SimulationItem()
 {
-
+    // Over walls
+    setZValue(2000);
 }
 
 QRectF Receiver::boundingRect() const {

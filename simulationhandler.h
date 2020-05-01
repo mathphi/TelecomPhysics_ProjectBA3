@@ -25,7 +25,7 @@ public:
             Wall *reflect_wall,
             QList<QPointF> images = QList<QPointF>(),
             QList<Wall*> walls = QList<Wall*>(),
-            int level = 0);
+            int level = 1);
 
     RayPath *computeRayPath(
             Emitter *emitter,

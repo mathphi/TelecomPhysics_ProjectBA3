@@ -3,7 +3,7 @@
 #include <QDebug>
 #include <QElapsedTimer>
 
-#define MAX_REFLECTIONS_COUNT 3
+#define MAX_REFLECTIONS_COUNT_DEFAULT 3
 
 //TODO: remove this (used to print complex with qDebug())
 QDebug operator<<(QDebug debug, const complex<double> &c)
@@ -16,7 +16,7 @@ QDebug operator<<(QDebug debug, const complex<double> &c)
 
 SimulationHandler::SimulationHandler(SimulationScene *scene)
 {
-    m_simulation_data = new SimulationData();
+    m_simulation_data = new SimulationData(MAX_REFLECTIONS_COUNT_DEFAULT);
     m_simulation_scene = scene;
 }
 
@@ -107,7 +107,7 @@ QList<RayPath *> SimulationHandler::recursiveReflection(
     raypath_list.append(rp);
 
     // If the level of recursion is under the max number of reflections
-    if (level < MAX_REFLECTIONS_COUNT)
+    if (level < simulationData()->maxReflectionsCount())
     {
         // Compute the reflection from the 'reflect_wall' to all other walls of the scene
         foreach (Wall *w, simulationData()->getWallsList())

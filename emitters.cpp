@@ -22,6 +22,9 @@ const QRectF TEXT_RECT(
 
 Emitter::Emitter (double frequency, double power, double efficiency) : SimulationItem()
 {
+    // Over receivers and walls
+    setZValue(5000);
+
     // The default angle for the emitter is PI/2 (incidence to top)
     m_rotation_angle = M_PI_2;
 
