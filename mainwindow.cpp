@@ -89,8 +89,11 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->button_simulation,      SIGNAL(clicked()),      this, SLOT(switchSimulationMode()));
 
     // Simulation buttons group
-    connect(ui->button_simControl, SIGNAL(clicked()), this, SLOT(simulationControlAction()));
-    connect(ui->button_editScene, SIGNAL(clicked()), this, SLOT(switchEditSceneMode()));
+    connect(ui->button_simControl, SIGNAL(clicked()),         this, SLOT(simulationControlAction()));
+    connect(ui->button_editScene,  SIGNAL(clicked()),         this, SLOT(switchEditSceneMode()));
+    connect(ui->button_simExport,  SIGNAL(clicked()),         this, SLOT(exportSimulationAction()));
+    connect(ui->checkbox_rays,     SIGNAL(toggled(bool)),     this, SLOT(raysCheckboxToggled(bool)));
+    connect(ui->slider_threshold,  SIGNAL(valueChanged(int)), this, SLOT(raysThresholdChanged(int)));
     connect(ui->spinbox_reflections, SIGNAL(valueChanged(int)),
             m_simulation_handler->simulationData(), SLOT(setReflectionsCount(int)));
 
@@ -109,6 +112,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Initialize the mouse tracker on the scene
     initMouseTracker();
+
+    // Set the initial value of the label according to his slider
+    raysThresholdChanged(ui->slider_threshold->value());
 }
 
 MainWindow::~MainWindow() {
@@ -887,7 +893,7 @@ void MainWindow::actionOpen() {
    // Open the file (reading)
    QFile file(file_path);
    if (!file.open(QIODevice::ReadOnly)) {
-       QMessageBox::critical(this, "Erreur", "Impossible d'ouvrir le fichier ");
+       QMessageBox::critical(this, "Erreur", "Impossible d'ouvrir le fichier en lecture");
        return;
    }
 
@@ -934,7 +940,7 @@ void MainWindow::actionSave() {
     QFile file(file_path);
     // Open the file (writing)
     if (!file.open(QIODevice::WriteOnly)) {
-        QMessageBox::critical(this, "Erreur", "Impossible d'ouvrir le fichier ");
+        QMessageBox::critical(this, "Erreur", "Impossible d'ouvrir le fichier en écriture");
         return;
     }
 
@@ -1007,6 +1013,63 @@ void MainWindow::switchEditSceneMode() {
 
 void MainWindow::simulationControlAction() {
     m_simulation_handler->computeAllRays();
+}
+
+void MainWindow::exportSimulationAction() {
+    // Cancel the (potential) current drawing
+    cancelCurrentDrawing();
+
+    QString file_path = QFileDialog::getSaveFileName(this, "Exporter la simulation", QString(), "*.png");
+
+    // If the used cancelled the dialog
+    if (file_path.isEmpty()) {
+        return;
+    }
+
+    // If the file hasn't the .png extention -> add it
+    if (file_path.split('.').last() != "png") {
+        file_path.append(".png");
+    }
+
+    QFile file(file_path);
+    // Open the file (writing)
+    if (!file.open(QIODevice::WriteOnly)) {
+        QMessageBox::critical(this, "Erreur", "Impossible d'ouvrir le fichier en écriture");
+        return;
+    }
+
+    // Prepare an image with the double resolution of the scene
+    QImage image(ui->graphicsView->sceneRect().size().toSize()*2, QImage::Format_ARGB32);
+    image.fill(Qt::transparent);
+
+    // Paint the scene into the image
+    QPainter painter(&image);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
+    m_scene->render(&painter, QRectF(), ui->graphicsView->sceneRect());
+
+    // Write the exported image into the file
+    image.save(&file, "png");
+
+    // Close the file
+    file.close();
+}
+
+void MainWindow::raysCheckboxToggled(bool state) {
+    // Update the UI
+    ui->label_threshold_msg->setEnabled(state);
+    ui->label_threshold_val->setEnabled(state);
+    ui->slider_threshold->setEnabled(state);
+}
+
+void MainWindow::raysThresholdChanged(int val) {
+    // Set the width of the label to the size of the larger text (100%)
+    if (ui->label_threshold_val->minimumWidth() == 0) {
+        ui->label_threshold_val->setText("100%");
+        ui->label_threshold_val->setFixedWidth(ui->label_threshold_val->sizeHint().width());
+    }
+
+    // Set the text of the label according to slider
+    ui->label_threshold_val->setText(QString("%1%").arg(val));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

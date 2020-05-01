@@ -82,6 +82,10 @@ private slots:
     void switchSimulationMode();
 
     void simulationControlAction();
+    void exportSimulationAction();
+
+    void raysCheckboxToggled(bool state);
+    void raysThresholdChanged(int val);
 
 private:
     QPoint moveAligned(QPoint start, QPoint actual);

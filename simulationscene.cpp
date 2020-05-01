@@ -82,12 +82,8 @@ void SimulationScene::keyReleaseEvent(QKeyEvent *event) {
 }
 
 void SimulationScene::viewRectChanged(const QRectF rect, const qreal scale) {
-    QPointF legend_offset(
-                m_scale_legend->boundingRect().width(),
-                m_scale_legend->boundingRect().height());
-
     // Keep the legend at constant position
-    m_scale_legend->setPos(rect.bottomRight() - legend_offset / scale);
+    m_scale_legend->setPos(rect.bottomRight());
 
     // Send the new view scale to the legend
     m_scale_legend->viewScaleChanged(scale);

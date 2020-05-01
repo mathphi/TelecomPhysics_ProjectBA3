@@ -28,11 +28,20 @@ QRectF ScaleRulerItem::boundingRect() const {
 
 QPainterPath ScaleRulerItem::shape() const {
     QPainterPath path;
-    path.addRect(-10, -10, LEGEND_WIDTH+10, LEGEND_HEIGHT+10);
+    path.addRect(-LEGEND_WIDTH-10, -LEGEND_HEIGHT-10, 10, 10);
     return path;
 }
 
 void ScaleRulerItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) {
+    // Scale the painter if we are printing in an image (exportation)
+    if (dynamic_cast<QImage*>(painter->device())) {
+        // Scale by 2 (resolution scale)
+        painter->scale(2, 2);
+    }
+
+    // Translate the painter (origin on the bottom right)
+    painter->translate(-LEGEND_WIDTH-10, -LEGEND_HEIGHT-10);
+
     // Set pen and brush for the background
     painter->setPen(QPen(QBrush(Qt::transparent), 1));
     painter->setBrush(QBrush(Qt::white));

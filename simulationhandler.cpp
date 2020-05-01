@@ -5,15 +5,6 @@
 
 #define MAX_REFLECTIONS_COUNT_DEFAULT 3
 
-//TODO: remove this (used to print complex with qDebug())
-QDebug operator<<(QDebug debug, const complex<double> &c)
-{
-    QDebugStateSaver saver(debug);
-    debug.nospace() << '(' << real(c) << " + " << imag(c) << "i)";
-
-    return debug;
-}
-
 SimulationHandler::SimulationHandler(SimulationScene *scene)
 {
     m_simulation_data = new SimulationData(MAX_REFLECTIONS_COUNT_DEFAULT);
@@ -222,8 +213,6 @@ RayPath *SimulationHandler::computeRayPath(
     // Compute the electric field for this ray path (equation 8.78)
     complex<double> En = coeff * computeNominalElecField(emitter, ray, dn);
 
-    qDebug() << "En" << dn << coeff << En;
-
     // Return a new RayPath object
     RayPath *rp = new RayPath(rays, En);
     return rp;
@@ -392,8 +381,6 @@ complex<double> SimulationHandler::computeTransmissons(Emitter *em, QLineF ray, 
         // coefficient (equation 8.37).
         complex<double> Gamma_orth = (Z2*cos(theta_i) - Z1*cos(theta_t)) / (Z2*cos(theta_i) + Z1*cos(theta_t));
 
-        qDebug() << "Tr" << Z1 << Z2;
-
         // Compute the reflection coefficient (equation 8.44)
         complex<double> transmission = (1.0-pow(Gamma_orth,2.0))*exp(-gamma_m*s)/(1.0-pow(Gamma_orth,2.0)*exp(-2.0*gamma_m*s + gamma_0*2.0*s*sin(theta_t)*sin(theta_i)));
 
@@ -455,8 +442,6 @@ double SimulationHandler::computeAvgPower(Emitter *em, QList<RayPath *> rp_list)
 
         // norm() = square of modulus
         Prx += norm(he * En);
-
-        qDebug() << "((Pxr))" << Prx << he << En;
     }
 
     Prx /= 8.0 * Ra;
