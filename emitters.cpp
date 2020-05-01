@@ -23,7 +23,7 @@ const QRectF TEXT_RECT(
 Emitter::Emitter (double frequency, double power, double efficiency) : SimulationItem()
 {
     // The default angle for the emitter is PI/2 (incidence to top)
-    m_rotation_angle = M_PI_2/2;
+    m_rotation_angle = M_PI_2;
 
     m_frequency  = frequency;
     m_power      = power;
