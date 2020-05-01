@@ -32,6 +32,9 @@ public:
     QPen getPen();
     void setPen(QPen pen);
 
+    QBrush getBrush();
+    void setBrush(QBrush b);
+
     // The 'virtual' keyword makes these functions abstracts
     virtual double getRelPermitivity() = 0;
     virtual double getConductivity() = 0;
@@ -48,6 +51,7 @@ private:
     double  m_thickness;
 
     QPen m_pen;
+    QBrush m_brush;
 
     qreal m_text_scale;
 };

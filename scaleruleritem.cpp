@@ -6,7 +6,7 @@
 #define LEGEND_WIDTH 140
 #define LEGEND_HEIGHT 30
 
-const QRectF TEXT_RECT(15, LEGEND_HEIGHT/3.0, LEGEND_WIDTH-30, LEGEND_HEIGHT/2.0);
+const QRectF TEXT_RECT(15, LEGEND_HEIGHT/4.0, LEGEND_WIDTH-30, LEGEND_HEIGHT/2.0);
 
 ScaleRulerItem::ScaleRulerItem() : QGraphicsItem()
 {
@@ -42,7 +42,7 @@ void ScaleRulerItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, 
     painter->drawRoundedRect(0, 0, LEGEND_WIDTH, LEGEND_HEIGHT, 10, 10);
 
     // Set pen and brush for the ruler's lines
-    painter->setPen(QPen(QBrush(Qt::black), 3));
+    painter->setPen(QPen(QBrush(Qt::black), 2, Qt::DashDotLine));
     painter->setBrush(QBrush(Qt::transparent));
     painter->setOpacity(1);
 

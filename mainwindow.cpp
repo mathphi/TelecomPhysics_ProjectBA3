@@ -86,6 +86,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->button_simulation,      SIGNAL(clicked()),      this, SLOT(switchSimulationMode()));
 
     // Simulation buttons group
+    connect(ui->button_simControl, SIGNAL(clicked()), this, SLOT(simulationControlAction()));
     connect(ui->button_editScene, SIGNAL(clicked()), this, SLOT(switchEditSceneMode()));
 
     // Scene events handling
@@ -287,9 +288,6 @@ void MainWindow::addPartitionWall() {
 
     m_draw_action = DrawActions::PartitionWall;
     m_drawing_item = nullptr;
-
-    //TODO getrid ofthis
-    m_simulation_handler->computeAllRays();
 }
 
 void MainWindow::toggleEraseMode(bool state) {
@@ -963,7 +961,7 @@ void MainWindow::actionZoomBest() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-////////////////////////////////// SIMULATION ACTIONS FUNCTIONS ////////////////////////////////////
+//////////////////////////////////// MODE SWITCHING FUNCTIONS //////////////////////////////////////
 
 void MainWindow::switchSimulationMode() {
     // Hide the scene edition buttons group
@@ -988,6 +986,14 @@ void MainWindow::switchEditSceneMode() {
 
     // Enable the Edit menu (from menu bar)
     ui->menuEdit->setDisabled(false);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////// SIMULATION ACTIONS FUNCTIONS ////////////////////////////////////
+
+void MainWindow::simulationControlAction() {
+    m_simulation_handler->computeAllRays();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

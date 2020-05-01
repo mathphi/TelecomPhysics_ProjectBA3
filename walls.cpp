@@ -21,7 +21,7 @@
 #define PARTITION_THICKNESS_DEFAULT  0.15
 
 // Wall's visual thickness (px)
-#define VISUAL_THICKNESS 4
+#define VISUAL_THICKNESS 6
 
 // Text showing the length of the wall while placing
 #define WALL_TEXT_WIDTH 50
@@ -89,6 +89,16 @@ void Wall::setPen(QPen pen) {
     update();
 }
 
+QBrush Wall::getBrush() {
+    return m_brush;
+}
+
+void Wall::setBrush(QBrush b) {
+    prepareGeometryChange();
+    m_brush = b;
+    update();
+}
+
 QRectF Wall::getLengthTextRect() const {
     // Length of the line (in pixels)
     const qreal line_length = m_line.length();
@@ -121,7 +131,7 @@ QPainterPath Wall::shape() const {
 
     // Take care of the width of the pen
     QPainterPathStroker ps;
-    ps.setWidth(m_pen.widthF());
+    ps.setWidth(VISUAL_THICKNESS + m_pen.widthF());
     ps.setJoinStyle(m_pen.joinStyle());
     ps.setMiterLimit(m_pen.miterLimit());
 
@@ -140,9 +150,35 @@ void Wall::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
     if (m_line.p1() == m_line.p2())
         return;
 
-    // Draw a line using the pen specific for each wall
+    // Virtually trace the wall path
+    QPainterPath path;
+    path.moveTo(m_line.p1());
+    path.lineTo(m_line.p2());
+
+    // Get the bounding path of the line representing the wall
+    QPainterPathStroker ps;
+    ps.setWidth(VISUAL_THICKNESS);
+    QPainterPath p = ps.createStroke(path);
+
+    // The brush pattern must follow the wall's scale and rotation
+    QTransform tr;
+    tr.rotate(-m_line.angle());
+    tr.scale(1.0/painter->transform().m11(),1.0/painter->transform().m22());
+    m_brush.setTransform(tr);
+
+    // Set the wall's specific brush and pen
+    painter->setBrush(m_brush);
     painter->setPen(m_pen);
-    painter->drawLine(m_line);
+
+    // Set an opaque white background
+    painter->setBackgroundMode(Qt::OpaqueMode);
+    painter->setBackground(QColor(Qt::white));
+
+    // Draw the path representing the wall
+    painter->drawPath(p);
+
+    // Reset the transparent background
+    painter->setBackgroundMode(Qt::TransparentMode);
 
     if (placingMode()) {
         // Draw the text at full opacity level
@@ -150,6 +186,7 @@ void Wall::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 
         // Reset the pen to black for the text
         painter->setPen(Qt::black);
+        painter->setBrush(QBrush());
 
         // Store the new text scale (inverse of the current view scale)
         m_text_scale = 1.0 / painter->transform().m11();
@@ -175,8 +212,9 @@ void Wall::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 
 
 BrickWall::BrickWall(QLineF line, double thickness) : Wall(line, thickness) {
-    QPen pen(QBrush(QColor(201, 63, 24)), VISUAL_THICKNESS, Qt::SolidLine);
-    setPen(pen);
+    setPen(QPen(Qt::black, 1));
+    setBrush(QBrush(Qt::black, Qt::SolidPattern));
+    setZValue(1002);
 }
 
 // This constructor is equivalent to the main constructor but using a default thickness
@@ -195,8 +233,9 @@ WallType::WallType BrickWall::getWallType(){
 
 
 ConcreteWall::ConcreteWall(QLineF line, double thickness) : Wall(line, thickness) {
-    QPen pen(QBrush(QColor(156, 155, 154)), VISUAL_THICKNESS, Qt::DashLine);
-    setPen(pen);
+    setPen(QPen(Qt::black, 1));
+    setBrush(QBrush(Qt::black, Qt::BDiagPattern));
+    setZValue(1001);
 }
 
 // This constructor is equivalent to the main constructor but using a default thickness
@@ -215,8 +254,9 @@ WallType::WallType ConcreteWall::getWallType(){
 
 
 PartitionWall::PartitionWall(QLineF line, double thickness) : Wall(line, thickness) {
-    QPen pen(QBrush(QColor(168, 125, 67)), VISUAL_THICKNESS, Qt::DotLine);
-    setPen(pen);
+    setPen(QPen(Qt::black, 1));
+    setBrush(QBrush(Qt::white, Qt::SolidPattern));
+    setZValue(1000);
 }
 
 // This constructor is equivalent to the main constructor but using a default thickness

@@ -81,6 +81,8 @@ private slots:
     void switchEditSceneMode();
     void switchSimulationMode();
 
+    void simulationControlAction();
+
 private:
     QPoint moveAligned(QPoint start, QPoint actual);
     QPoint attractivePoint(QPoint actual);
