@@ -8,7 +8,7 @@
 #include "simulationhandler.h"
 
 namespace DrawActions {
-enum DrawActions{
+enum DrawActions {
     None,
     BrickWall,
     ConcreteWall,
@@ -16,6 +16,13 @@ enum DrawActions{
     Erase,
     Emitter,
     Receiver,
+};
+}
+
+namespace UIMode {
+enum UIMode {
+    EditorMode,
+    SimulationMode
 };
 }
 
@@ -60,6 +67,9 @@ public slots:
 
     void setMouseTrackerVisible(bool visible);
 
+    void switchPointReceiverMode();
+    void switchAreaReceiverMode();
+
 protected:
     void closeEvent(QCloseEvent *event);
     void showEvent(QShowEvent *event);
@@ -67,6 +77,9 @@ protected:
 
 private slots:
     void initMouseTracker();
+    void updateSimulationUI();
+    void updateSimulationScene();
+
     void setMouseTrackerPosition(QPoint pos);
 
     void graphicsSceneRightReleased(QGraphicsSceneMouseEvent *event);
@@ -81,11 +94,15 @@ private slots:
     void switchEditSceneMode();
     void switchSimulationMode();
 
+    void simulationTypeChanged();
     void simulationControlAction();
     void exportSimulationAction();
 
     void raysCheckboxToggled(bool state);
     void raysThresholdChanged(int val);
+
+    void setReceiversVisible(bool visible);
+    void setSimAreaVisible(bool visible);
 
 private:
     QPoint moveAligned(QPoint start, QPoint actual);
@@ -104,5 +121,8 @@ private:
     QGraphicsLineItem *m_mouse_tracker_y;
 
     bool m_dragging_view;
+
+    UIMode::UIMode m_ui_mode;
+    QGraphicsRectItem *m_sim_area_item;
 };
 #endif // MAINWINDOW_H

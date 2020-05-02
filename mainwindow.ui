@@ -7,13 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>600</height>
+    <height>606</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>600</width>
-    <height>400</height>
+    <width>800</width>
+    <height>600</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -239,6 +239,61 @@
         </spacer>
        </item>
        <item>
+        <widget class="QLabel" name="label_2">
+         <property name="toolTip">
+          <string>&lt;html&gt;
+&lt;head/&gt;
+&lt;body&gt;
+&lt;p&gt;&lt;b&gt;Récepteurs ponctuels&amp;nbsp;:&lt;/b&gt; Calculer la puissance moyenne aux récepteurs placés sur le plan.&lt;/p&gt;
+&lt;p&gt;&lt;b&gt;Couverture totale&amp;nbsp;:&lt;/b&gt; Calculer la puissance moyenne sur chaque m² de la zone de simulation.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Type de simulation* :</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="combobox_simType">
+         <property name="toolTip">
+          <string>&lt;html&gt;
+&lt;head/&gt;
+&lt;body&gt;
+&lt;p&gt;&lt;b&gt;Récepteurs ponctuels&amp;nbsp;:&lt;/b&gt; Calculer la puissance moyenne aux récepteurs placés sur le plan.&lt;/p&gt;
+&lt;p&gt;&lt;b&gt;Couverture totale&amp;nbsp;:&lt;/b&gt; Calculer la puissance moyenne sur chaque m² de la zone de simulation.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</string>
+         </property>
+         <item>
+          <property name="text">
+           <string>Récepteurs ponctuels</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Couverture totale</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_12">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>10</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
         <widget class="QLabel" name="label">
          <property name="text">
           <string>Nombre max de réflexions :</string>
@@ -340,6 +395,10 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="toolTip">
+            <string>N'afficher que les rayons dont le module du champ 
+électrique au récepteur est le plus élevé</string>
            </property>
            <property name="maximum">
             <number>100</number>
@@ -468,7 +527,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

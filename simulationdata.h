@@ -7,15 +7,23 @@
 #include "emitters.h"
 #include "receivers.h"
 
+
+namespace SimType {
+enum SimType {
+    PointReceiver = 0,
+    AreaReceiver  = 1
+};
+}
+
 class SimulationData : public QObject
 {
     Q_OBJECT
 
 public:
-    SimulationData(int refl_cnt);
-    SimulationData(QList<Wall*> w_l, QList<Emitter*> e_l, QList<Receiver*> r_l, int refl_count);
+    SimulationData();
+    SimulationData(QList<Wall*> w_l, QList<Emitter*> e_l, QList<Receiver*> r_l);
 
-    void setInitData(QList<Wall*> w_l, QList<Emitter*> e_l, QList<Receiver*> r_l, int refl_count);
+    void setInitData(QList<Wall*> w_l, QList<Emitter*> e_l, QList<Receiver*> r_l);
 
     void attachWall(Wall *w);
     void attachEmitter(Emitter *e);
@@ -32,9 +40,11 @@ public:
     QList<Receiver*> getReceiverList();
 
     int maxReflectionsCount();
+    SimType::SimType simulationType();
 
 public slots:
     void setReflectionsCount(int cnt);
+    void setSimulationType(SimType::SimType t);
 
 private:
     // Lists of all walls/emitters/recivers on the map
@@ -43,6 +53,7 @@ private:
     QList<Receiver*> m_receiver_list;
 
     int m_reflections_count;
+    SimType::SimType m_simulation_type;
 };
 
 // Operator overload to write the simulation data into a file

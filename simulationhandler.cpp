@@ -3,11 +3,9 @@
 #include <QDebug>
 #include <QElapsedTimer>
 
-#define MAX_REFLECTIONS_COUNT_DEFAULT 3
-
 SimulationHandler::SimulationHandler(SimulationScene *scene)
 {
-    m_simulation_data = new SimulationData(MAX_REFLECTIONS_COUNT_DEFAULT);
+    m_simulation_data = new SimulationData();
     m_simulation_scene = scene;
 }
 

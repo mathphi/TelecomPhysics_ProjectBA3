@@ -11,7 +11,7 @@
 #include <QGraphicsLineItem>
 #include <QFileDialog>
 #include <QLabel>
-#include <QScrollBar>
+
 
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsSceneWheelEvent>
@@ -36,6 +36,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     // This attribute is true when we are dragging the scene view with the mouse
     m_dragging_view = false;
+
+    // This item will store the area of simulation (if type == area)
+    m_sim_area_item = nullptr;
+
+    // The default mode for UI is the EditorMode
+    m_ui_mode = UIMode::EditorMode;
 
     // Create the graphics scene
     m_scene = new SimulationScene();
@@ -94,6 +100,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->button_simExport,  SIGNAL(clicked()),         this, SLOT(exportSimulationAction()));
     connect(ui->checkbox_rays,     SIGNAL(toggled(bool)),     this, SLOT(raysCheckboxToggled(bool)));
     connect(ui->slider_threshold,  SIGNAL(valueChanged(int)), this, SLOT(raysThresholdChanged(int)));
+
+    connect(ui->combobox_simType,  SIGNAL(currentIndexChanged(int)),
+            this, SLOT(simulationTypeChanged()));
     connect(ui->spinbox_reflections, SIGNAL(valueChanged(int)),
             m_simulation_handler->simulationData(), SLOT(setReflectionsCount(int)));
 
@@ -113,8 +122,8 @@ MainWindow::MainWindow(QWidget *parent)
     // Initialize the mouse tracker on the scene
     initMouseTracker();
 
-    // Set the initial value of the label according to his slider
-    raysThresholdChanged(ui->slider_threshold->value());
+    // Update the simulation UI to match the simulation data
+    updateSimulationUI();
 }
 
 MainWindow::~MainWindow() {
@@ -915,7 +924,8 @@ void MainWindow::actionOpen() {
        m_scene->addItem(r);
    }
 
-   ui->spinbox_reflections->setValue(m_simulation_handler->simulationData()->maxReflectionsCount());
+   updateSimulationUI();
+   updateSimulationScene();
 
    // Close the file
    file.close();
@@ -977,6 +987,9 @@ void MainWindow::actionZoomBest() {
 //////////////////////////////////// MODE SWITCHING FUNCTIONS //////////////////////////////////////
 
 void MainWindow::switchSimulationMode() {
+    // Set the current mode to SimulationMode
+    m_ui_mode = UIMode::SimulationMode;
+
     // Hide the scene edition buttons group
     ui->group_scene_edition->hide();
 
@@ -989,11 +1002,18 @@ void MainWindow::switchSimulationMode() {
     // Cancel the current drawing (if one)
     cancelCurrentDrawing();
 
+    // Update the simulation scene and UI according to new mode
+    updateSimulationScene();
+    updateSimulationUI();
+
     // Update the scene rect (since the view size can have changed)
     updateSceneRect();
 }
 
 void MainWindow::switchEditSceneMode() {
+    // Set the current mode to EditorMode
+    m_ui_mode = UIMode::EditorMode;
+
     // Hide the simulation buttons group
     ui->group_simulation->hide();
 
@@ -1003,6 +1023,10 @@ void MainWindow::switchEditSceneMode() {
     // Enable the Edit menu (from menu bar)
     ui->menuEdit->setDisabled(false);
 
+    // Update the simulation scene and UI according to new mode
+    updateSimulationScene();
+    updateSimulationUI();
+
     // Update the scene rect (since the view size can have changed)
     updateSceneRect();
 }
@@ -1010,6 +1034,69 @@ void MainWindow::switchEditSceneMode() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////// SIMULATION ACTIONS FUNCTIONS ////////////////////////////////////
+
+void MainWindow::updateSimulationUI() {
+    // Set the initial value of the label according to his slider
+    raysThresholdChanged(ui->slider_threshold->value());
+
+    // Set the current simulation type
+    ui->combobox_simType->setCurrentIndex(m_simulation_handler->simulationData()->simulationType());
+
+    // Set the current reflections count
+    ui->spinbox_reflections->setValue(m_simulation_handler->simulationData()->maxReflectionsCount());
+
+    // Update the simulation type
+    simulationTypeChanged();
+}
+
+void MainWindow::updateSimulationScene() {
+    // Hide receivers only if simulation mode and AreaReceiver simulation type
+    if (m_ui_mode == UIMode::EditorMode) {
+        setReceiversVisible(true);
+        setSimAreaVisible(false);
+    }
+    else if (m_simulation_handler->simulationData()->simulationType() == SimType::PointReceiver) {
+        setReceiversVisible(true);
+        setSimAreaVisible(false);
+    }
+    else {
+        setReceiversVisible(false);
+        setSimAreaVisible(true);
+    }
+}
+
+void MainWindow::simulationTypeChanged() {
+    // Retreive the selected simulation type
+    SimType::SimType sim_type = (SimType::SimType) ui->combobox_simType->currentIndex();
+
+    // Set the current simulation type into simulation data
+    m_simulation_handler->simulationData()->setSimulationType(sim_type);
+
+    switch (sim_type) {
+    case SimType::PointReceiver: {
+        switchPointReceiverMode();
+        break;
+    }
+    case SimType::AreaReceiver: {
+        switchAreaReceiverMode();
+        break;
+    }
+    }
+
+    updateSimulationScene();
+}
+
+void MainWindow::switchPointReceiverMode() {
+    // We can show the rays in point receiver mode
+    ui->checkbox_rays->setEnabled(true);
+    raysCheckboxToggled(ui->checkbox_rays->isChecked());
+}
+
+void MainWindow::switchAreaReceiverMode() {
+    // Don't show the rays in area mode
+    ui->checkbox_rays->setEnabled(false);
+    raysCheckboxToggled(false);
+}
 
 void MainWindow::simulationControlAction() {
     m_simulation_handler->computeAllRays();
@@ -1070,6 +1157,47 @@ void MainWindow::raysThresholdChanged(int val) {
 
     // Set the text of the label according to slider
     ui->label_threshold_val->setText(QString("%1%").arg(val));
+}
+
+void MainWindow::setReceiversVisible(bool visible) {
+    foreach(Receiver *r, m_simulation_handler->simulationData()->getReceiverList()) {
+        r->setVisible(visible);
+    }
+}
+
+void MainWindow::setSimAreaVisible(bool visible) {
+    if (visible)
+    {
+        // Re-draw the simulation area
+        if (m_sim_area_item != nullptr) {
+            delete m_sim_area_item;
+        }
+
+        // Compute the area as a rect of size multiple of 1m²
+        qreal sim_scale = m_scene->simulationScale();
+
+        // Get the real rect and the 1m² fitted rect
+        QRectF area = m_scene->simulationBoundingRect();
+        QSizeF fit_size(ceil(area.width() / sim_scale) * sim_scale,
+                        ceil(area.height() / sim_scale) * sim_scale);
+
+        // Center the content in the area
+        QSizeF diff_sz = fit_size - area.size();
+        QRectF fit_area = area.adjusted(-diff_sz.width()/2, -diff_sz.height()/2,
+                                         diff_sz.width()/2,  diff_sz.height()/2);
+
+        // Create the area rectangle
+        m_sim_area_item = m_scene->addRect(fit_area);
+        m_sim_area_item->setZValue(-1);
+        m_sim_area_item->setPen(QPen(Qt::darkGray, 1, Qt::DashDotDotLine));
+        m_sim_area_item->setBrush(QBrush(qRgba(225, 225, 255, 255), Qt::DiagCrossPattern));
+    }
+    else if (!visible && m_sim_area_item != nullptr)
+    {
+        // Remove the simulation area
+        delete m_sim_area_item;
+        m_sim_area_item = nullptr;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

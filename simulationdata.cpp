@@ -1,21 +1,23 @@
 #include "simulationdata.h"
 
-SimulationData::SimulationData(int refl_cnt) : QObject()
+#define MAX_REFLECTIONS_COUNT_DEFAULT 3
+
+
+SimulationData::SimulationData() : QObject()
 {
-    m_reflections_count = refl_cnt;
+    m_reflections_count = MAX_REFLECTIONS_COUNT_DEFAULT;
+    m_simulation_type = SimType::PointReceiver;
 }
 
-SimulationData::SimulationData(QList<Wall*> w_l, QList<Emitter*> e_l, QList<Receiver*> r_l, int refl_count) : QObject()
+SimulationData::SimulationData(QList<Wall*> w_l, QList<Emitter*> e_l, QList<Receiver*> r_l) : SimulationData()
 {
-    setInitData(w_l, e_l, r_l, refl_count);
+    setInitData(w_l, e_l, r_l);
 }
 
-void SimulationData::setInitData(QList<Wall*> w_l, QList<Emitter*> e_l, QList<Receiver*> r_l, int refl_count) {
+void SimulationData::setInitData(QList<Wall*> w_l, QList<Emitter*> e_l, QList<Receiver*> r_l) {
     m_wall_list = w_l;
     m_emitter_list = e_l;
     m_receiver_list = r_l;
-
-    m_reflections_count = refl_count;
 }
 
 // ++++++++++++++++++++++++ WALLS / EMITTERS / RECEIVER LISTS MANAGEMENT FUNCTIONS +++++++++++++++++++++++++ //
@@ -74,6 +76,14 @@ void SimulationData::setReflectionsCount(int cnt) {
     m_reflections_count = cnt;
 }
 
+SimType::SimType SimulationData::simulationType() {
+    return m_simulation_type;
+}
+
+void SimulationData::setSimulationType(SimType::SimType t) {
+    m_simulation_type = t;
+}
+
 // ------------------------------------------------------------------------------------------------- //
 
 // ++++++++++++++++++++++++++++ SIMULATION DATA FILE WRITING FUNCTIONS +++++++++++++++++++++++++++++ //
@@ -85,13 +95,17 @@ QDataStream &operator>>(QDataStream &in, SimulationData *sd) {
     QList<Emitter*> emitters_list;
     QList<Receiver*> receiver_list;
     int max_refl_count;
+    int sim_type;
 
     in >> walls_list;
     in >> emitters_list;
     in >> receiver_list;
     in >> max_refl_count;
+    in >> sim_type;
 
-    sd->setInitData(walls_list, emitters_list, receiver_list, max_refl_count);
+    sd->setInitData(walls_list, emitters_list, receiver_list);
+    sd->setReflectionsCount(max_refl_count);
+    sd->setSimulationType((SimType::SimType) sim_type);
 
     return in;
 }
@@ -101,6 +115,7 @@ QDataStream &operator<<(QDataStream &out, SimulationData *sd) {
     out << sd->getEmittersList();
     out << sd->getReceiverList();
     out << sd->maxReflectionsCount();
+    out << (int) sd->simulationType();
 
     return out;
 }

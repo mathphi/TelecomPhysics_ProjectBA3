@@ -20,6 +20,6 @@ const double EPSILON_0   = 8.85418782e-12;  // [F/m]
 const double MU_0        = 12.566370614e-7; // [T m/A]
 
 // Vacuum impedance
-const double Z_0 = 120 * M_PI;  // [Ohm]
+const double Z_0 = sqrt(MU_0/EPSILON_0);  // [Ohm]
 
 #endif // CONSTANTS_H
