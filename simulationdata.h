@@ -25,6 +25,9 @@ public:
 
     void setInitData(QList<Wall*> w_l, QList<Emitter*> e_l, QList<Receiver*> r_l);
 
+    static double convertPowerToWatts(double power_dbm);
+    static double convertPowerTodBm(double power_watts);
+
     void attachWall(Wall *w);
     void attachEmitter(Emitter *e);
     void attachReceiver(Receiver *r);

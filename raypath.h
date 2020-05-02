@@ -4,13 +4,16 @@
 #include "simulationitem.h"
 #include "constants.h"
 
+class Emitter;
+
 class RayPath : public SimulationItem
 {
 public:
-    RayPath(QList<QLineF> rays, complex<double> elec_field);
+    RayPath(Emitter *em, QList<QLineF> rays, double power);
 
-    complex<double> getElecField();
+    Emitter *getEmitter();
     QList<QLineF> getRays();
+    double getPower();
 
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
@@ -19,10 +22,9 @@ public:
 private:
     QLineF getScaledLine(QLineF r) const;
 
+    Emitter *m_emitter;
     QList<QLineF> m_rays;
-    complex<double> m_elec_field;
-
-    qreal m_sim_scale;
+    double m_power;
 };
 
 #endif // RAYPATH_H

@@ -44,9 +44,6 @@ public:
     double getFrequency() const;
     double getEfficiency() const;
 
-    static double convertPowerToWatts(double power_dbm);
-    static double convertPowerTodBm(double power_watts);
-
 private:
     double m_rotation_angle;
 

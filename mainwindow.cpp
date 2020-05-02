@@ -58,7 +58,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->graphicsView->setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
 
     // The simulation handler manages the simulation's data
-    m_simulation_handler = new SimulationHandler(m_scene);
+    m_simulation_handler = new SimulationHandler();
 
     // Hide the simulation group by default
     ui->group_simulation->hide();
@@ -96,6 +96,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Simulation buttons group
     connect(ui->button_simControl, SIGNAL(clicked()),         this, SLOT(simulationControlAction()));
+    connect(ui->button_simReset,   SIGNAL(clicked()),         this, SLOT(simulationResetAction()));
     connect(ui->button_editScene,  SIGNAL(clicked()),         this, SLOT(switchEditSceneMode()));
     connect(ui->button_simExport,  SIGNAL(clicked()),         this, SLOT(exportSimulationAction()));
     connect(ui->checkbox_rays,     SIGNAL(toggled(bool)),     this, SLOT(raysCheckboxToggled(bool)));
@@ -927,6 +928,11 @@ void MainWindow::actionOpen() {
    updateSimulationUI();
    updateSimulationScene();
 
+   // Go to the edit mode if there is no emitter in the scene
+   if (m_simulation_handler->simulationData()->getEmittersList().size() < 1) {
+       switchEditSceneMode();
+   }
+
    // Close the file
    file.close();
 
@@ -987,6 +993,13 @@ void MainWindow::actionZoomBest() {
 //////////////////////////////////// MODE SWITCHING FUNCTIONS //////////////////////////////////////
 
 void MainWindow::switchSimulationMode() {
+    // If there is no emitter in the simulation
+    if (m_simulation_handler->simulationData()->getEmittersList().size() < 1) {
+        QMessageBox::information(this, "Simulation", "Vous devez inclure au moins un émetteur pour effectuer une simulation");
+        switchEditSceneMode();
+        return;
+    }
+
     // Set the current mode to SimulationMode
     m_ui_mode = UIMode::SimulationMode;
 
@@ -1052,15 +1065,15 @@ void MainWindow::updateSimulationUI() {
 void MainWindow::updateSimulationScene() {
     // Hide receivers only if simulation mode and AreaReceiver simulation type
     if (m_ui_mode == UIMode::EditorMode) {
-        setReceiversVisible(true);
+        setPointReceiversVisible(true);
         setSimAreaVisible(false);
     }
     else if (m_simulation_handler->simulationData()->simulationType() == SimType::PointReceiver) {
-        setReceiversVisible(true);
+        setPointReceiversVisible(true);
         setSimAreaVisible(false);
     }
     else {
-        setReceiversVisible(false);
+        setPointReceiversVisible(false);
         setSimAreaVisible(true);
     }
 }
@@ -1099,7 +1112,129 @@ void MainWindow::switchAreaReceiverMode() {
 }
 
 void MainWindow::simulationControlAction() {
-    m_simulation_handler->computeAllRays();
+    switch (m_simulation_handler->simulationData()->simulationType())
+    {
+    case SimType::PointReceiver: {
+        m_simulation_handler->computePointReceivers();
+        break;
+    }
+    case SimType::AreaReceiver: {
+        // If there is no simulation area
+        if (m_sim_area_item == nullptr) {
+            // This wouldn't happen
+            return;
+        }
+
+        QRectF area = m_sim_area_item->rect();
+        m_simulation_handler->computeAreaReceivers(area);
+        break;
+    }
+    }
+
+    // Add all computed rays to the scene
+    foreach (RayPath *rp, m_simulation_handler->getRayPathsList()) {
+        m_scene->addItem(rp);
+    }
+
+    // Filter the rays to show
+    filterRaysThreshold();
+}
+
+void MainWindow::simulationResetAction() {
+    int ans = QMessageBox::question(
+                this,
+                "Réinitialiser la simulation",
+                "Voulez-vous vraiment effacer les données de la simulation ?\n"
+                "Le plan ne sera pas affecté.");
+
+    // If the user cancelled the action -> abort
+    if (ans == QMessageBox::No)
+        return;
+
+    // Reset the computation data
+    m_simulation_handler->resetComputedData();
+}
+
+void MainWindow::raysCheckboxToggled(bool state) {
+    // Update the UI
+    ui->label_threshold_msg->setEnabled(state);
+    ui->label_threshold_val->setEnabled(state);
+    ui->slider_threshold->setEnabled(state);
+
+    // Apply the filter to hide/show the rays
+    filterRaysThreshold();
+}
+
+void MainWindow::raysThresholdChanged(int val) {
+    // Set the width of the label to the size of the larger text (-200 dBm)
+    if (ui->label_threshold_val->minimumWidth() == 0) {
+        ui->label_threshold_val->setText("-200 dBm");
+        ui->label_threshold_val->setFixedWidth(ui->label_threshold_val->sizeHint().width());
+    }
+
+    // Set the text of the label according to slider
+    ui->label_threshold_val->setText(QString("%1 dBm").arg(val));
+
+    // Filter the rays to show
+    filterRaysThreshold();
+}
+
+void MainWindow::filterRaysThreshold() {
+    // Convert the threshold in Watts
+    const double threshold = SimulationData::convertPowerToWatts(ui->slider_threshold->value());
+
+    // Loop over the RayPaths
+    foreach (RayPath *rp, m_simulation_handler->getRayPathsList())
+    {
+        // Hide the RayPaths with a power lower than the threshold
+        if (rp->getPower() > threshold && ui->checkbox_rays->isChecked()) {
+            rp->show();
+        }
+        else {
+            rp->hide();
+        }
+    }
+}
+
+void MainWindow::setPointReceiversVisible(bool visible) {
+    foreach(Receiver *r, m_simulation_handler->simulationData()->getReceiverList()) {
+        r->setVisible(visible);
+    }
+}
+
+void MainWindow::setSimAreaVisible(bool visible) {
+    if (visible)
+    {
+        // Re-draw the simulation area
+        if (m_sim_area_item != nullptr) {
+            delete m_sim_area_item;
+        }
+
+        // Compute the area as a rect of size multiple of 1m²
+        qreal sim_scale = m_scene->simulationScale();
+
+        // Get the real rect and the 1m² fitted rect
+        QRectF area = m_scene->simulationBoundingRect();
+        QSizeF fit_size(ceil(area.width() / sim_scale) * sim_scale,
+                        ceil(area.height() / sim_scale) * sim_scale);
+
+        // Center the content in the area
+        QSizeF diff_sz = fit_size - area.size();
+        QRectF fit_area = area.adjusted(-diff_sz.width()/2, -diff_sz.height()/2,
+                                         diff_sz.width()/2,  diff_sz.height()/2);
+
+        // Create the area rectangle
+        m_sim_area_item = m_scene->addRect(fit_area);
+        m_sim_area_item->setZValue(-1);
+        m_sim_area_item->setPen(QPen(Qt::darkGray, 1, Qt::DashDotDotLine));
+        m_sim_area_item->setBrush(QBrush(qRgba(225, 225, 255, 255), Qt::DiagCrossPattern));
+    }
+    else if (!visible && m_sim_area_item != nullptr)
+    {
+        // Remove the simulation area
+        delete m_sim_area_item;
+        m_sim_area_item = nullptr;
+    }
 }
 
 void MainWindow::exportSimulationAction() {
@@ -1139,65 +1274,6 @@ void MainWindow::exportSimulationAction() {
 
     // Close the file
     file.close();
-}
-
-void MainWindow::raysCheckboxToggled(bool state) {
-    // Update the UI
-    ui->label_threshold_msg->setEnabled(state);
-    ui->label_threshold_val->setEnabled(state);
-    ui->slider_threshold->setEnabled(state);
-}
-
-void MainWindow::raysThresholdChanged(int val) {
-    // Set the width of the label to the size of the larger text (100%)
-    if (ui->label_threshold_val->minimumWidth() == 0) {
-        ui->label_threshold_val->setText("100%");
-        ui->label_threshold_val->setFixedWidth(ui->label_threshold_val->sizeHint().width());
-    }
-
-    // Set the text of the label according to slider
-    ui->label_threshold_val->setText(QString("%1%").arg(val));
-}
-
-void MainWindow::setReceiversVisible(bool visible) {
-    foreach(Receiver *r, m_simulation_handler->simulationData()->getReceiverList()) {
-        r->setVisible(visible);
-    }
-}
-
-void MainWindow::setSimAreaVisible(bool visible) {
-    if (visible)
-    {
-        // Re-draw the simulation area
-        if (m_sim_area_item != nullptr) {
-            delete m_sim_area_item;
-        }
-
-        // Compute the area as a rect of size multiple of 1m²
-        qreal sim_scale = m_scene->simulationScale();
-
-        // Get the real rect and the 1m² fitted rect
-        QRectF area = m_scene->simulationBoundingRect();
-        QSizeF fit_size(ceil(area.width() / sim_scale) * sim_scale,
-                        ceil(area.height() / sim_scale) * sim_scale);
-
-        // Center the content in the area
-        QSizeF diff_sz = fit_size - area.size();
-        QRectF fit_area = area.adjusted(-diff_sz.width()/2, -diff_sz.height()/2,
-                                         diff_sz.width()/2,  diff_sz.height()/2);
-
-        // Create the area rectangle
-        m_sim_area_item = m_scene->addRect(fit_area);
-        m_sim_area_item->setZValue(-1);
-        m_sim_area_item->setPen(QPen(Qt::darkGray, 1, Qt::DashDotDotLine));
-        m_sim_area_item->setBrush(QBrush(qRgba(225, 225, 255, 255), Qt::DiagCrossPattern));
-    }
-    else if (!visible && m_sim_area_item != nullptr)
-    {
-        // Remove the simulation area
-        delete m_sim_area_item;
-        m_sim_area_item = nullptr;
-    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

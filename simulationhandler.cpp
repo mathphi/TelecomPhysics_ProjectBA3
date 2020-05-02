@@ -1,16 +1,25 @@
 #include "simulationhandler.h"
 
 #include <QDebug>
-#include <QElapsedTimer>
 
-SimulationHandler::SimulationHandler(SimulationScene *scene)
+SimulationHandler::SimulationHandler()
 {
     m_simulation_data = new SimulationData();
-    m_simulation_scene = scene;
 }
 
 SimulationData *SimulationHandler::simulationData() {
     return m_simulation_data;
+}
+
+QList<RayPath*> SimulationHandler::getRayPathsList() {
+    QList<RayPath*> ray_paths;
+
+    // Append the ray paths of each receivers to the ray paths list to return
+    foreach(Receiver *re, m_receivers_list) {
+        ray_paths.append(re->getRayPaths());
+    }
+
+    return ray_paths;
 }
 
 /**
@@ -48,227 +57,6 @@ QPointF SimulationHandler::mirror(QPointF source, Wall *wall) {
     return rel_pos + wall->getRealLine().p1();
 }
 
-/**
- * @brief SimulationHandler::recursiveReflection
- *
- * This function gets the image of the source (emitter of previous image) over the 'reflect_wall'
- * and compute the ray path recursively.
- *
- * @param emitter      : The emitter for this ray path
- * @param receiver     : The receiver for this ray path
- * @param reflect_wall : The wall on which we will compute the reflection
- * @param images       : The list of images for the previous reflections
- * @param walls        : The list of walls for the previous reflections
- * @param level        : The recursion level
- * @return             : A list of RayPath objects computed recursively
- */
-QList<RayPath *> SimulationHandler::recursiveReflection(
-        Emitter *emitter,
-        Receiver *receiver,
-        Wall *reflect_wall,
-        QList<QPointF> images,
-        QList<Wall *> walls,
-        int level)
-{
-    // This list will contains all the ray paths computed recursively
-    QList<RayPath*> raypath_list;
-
-    // Position of the image of the source
-    QPointF src_image;
-
-    if (images.size() == 0) {
-        // If there is no previous reflection, the source is the emitter
-        src_image = mirror(emitter->getRealPos(), reflect_wall);
-    }
-    else {
-        // If there are previous reflections, the source is the last image
-        src_image = mirror(images.last(), reflect_wall);
-    }
-
-    // Keep the list of walls and images for the next recursions
-    images.append(src_image);
-    walls.append(reflect_wall);
-
-    // Compute the complete ray path for this set of reflections
-    RayPath *rp = computeRayPath(emitter, receiver, images, walls);
-
-    // Add this ray path to the list
-    raypath_list.append(rp);
-
-    // If the level of recursion is under the max number of reflections
-    if (level < simulationData()->maxReflectionsCount())
-    {
-        // Compute the reflection from the 'reflect_wall' to all other walls of the scene
-        foreach (Wall *w, simulationData()->getWallsList())
-        {
-            // We don't have to compute any reflection from the 'reflect_wall' to itself
-            if (w == reflect_wall){
-                continue;
-            }
-
-            // Recursive call for each wall of the scene (and increase the recusion level)
-            QList<RayPath*> rp_rec = recursiveReflection(emitter, receiver, w, images, walls, level+1);
-
-            // Add the ray paths computed recursively to the list of ray paths to return
-            raypath_list.append(rp_rec);
-        }
-    }
-
-    // Remove all invalid ray paths from the list
-    raypath_list.removeAll(nullptr);
-
-    return raypath_list;
-}
-
-/**
- * @brief SimulationHandler::computeRayPath
- *
- * This function computes the ray path for a combination reflections.
- *
- * @param emitter  : The emitter for this ray path
- * @param receiver : The receiver for this ray path
- * @param images   : The list of reflection images computed for this ray path
- * @param walls    : The list of walls that form a combination of reflections
- * @return         : A pointer to the new RayPath object computed (or nullptr if invalid)
- */
-RayPath *SimulationHandler::computeRayPath(
-        Emitter *emitter,
-        Receiver *receiver,
-        QList<QPointF> images,
-        QList<Wall*> walls)
-{
-    // We run backward in this function (from receiver to emitter)
-
-    // The first target point is the receiver
-    QPointF target_point = receiver->getRealPos();
-
-    // This list will contain the lines forming the ray path
-    QList<QLineF> rays;
-
-    // This coefficient will contain the product of all reflection and
-    // transmission coefficients for this ray path
-    complex<double> coeff = 1;
-
-    // Total length of the ray path
-    double dn;
-
-    // Wall of the next reflection (towards the receiver)
-    Wall *target_wall = nullptr;
-
-    // Loop over the images (backward)
-    for (int i = images.size()-1; i >= 0 ; i--) {
-        Wall *reflect_wall = walls[i];
-        QPointF src_image = images[i];
-
-        // Compute the virtual ray (line from the image to te target point)
-        QLineF virtual_ray (src_image, target_point);
-
-        // If this is the virtual ray from the last image to the receiver,
-        // it length is the total ray path length dn.
-        if (src_image == images.last()) {
-            dn = virtual_ray.length();
-        }
-
-        // Get the reflection point (intersection of the virtual ray and the wall)
-        QPointF reflection_pt;
-        QLineF::IntersectionType i_t =
-                virtual_ray.intersects(reflect_wall->getRealLine(), &reflection_pt);
-
-        // The ray path is valid if the reflection is on the wall (not on its extension)
-        if (i_t != QLineF::BoundedIntersection) {
-            return nullptr; // Return an invalid ray path
-        }
-
-        // Add this ray line to the list of lines forming the ray path
-        QLineF ray(reflection_pt, target_point);
-        rays.append(ray);
-
-        // Compute the reflection coefficient for this reflection
-        coeff *= computeReflection(emitter, reflect_wall, ray);
-
-        // Compute the transmission coefficient for all transmissions
-        // undergone by the ray line.
-        coeff *= computeTransmissons(emitter, ray, reflect_wall, target_wall);
-
-        // The next target point is the current reflection point
-        target_point = reflection_pt;
-        target_wall = reflect_wall;
-    }
-
-    // The last ray line is from the emitter to the target point
-    QLineF ray(emitter->getRealPos(), target_point);
-    rays.append(ray);
-
-    // Compute all the transmissions undergone by the ray line.
-    coeff *= computeTransmissons(emitter, ray, nullptr, target_wall);
-
-    // If there were no images in the list, we are computing the direct ray, so the length
-    // of the ray path (dn) is the length of the ray line from emitter to receiver.
-    if (images.size() == 0) {
-        dn = ray.length();
-    }
-
-    // Compute the electric field for this ray path (equation 8.78)
-    complex<double> En = coeff * computeNominalElecField(emitter, ray, dn);
-
-    // Return a new RayPath object
-    RayPath *rp = new RayPath(rays, En);
-    return rp;
-}
-
-double SimulationHandler::computePowerToReceiver(Receiver *r, QList<RayPath*> *raypaths_list) {
-    // The sum of the power received from each emitter
-    double total_power = 0;
-
-    // Loop ever the emitters
-    foreach(Emitter *e, simulationData()->getEmittersList()) {
-        // List of raypaths from this emitter
-        QList<RayPath*> rp_list;
-
-        // Compute the direct ray path and add it to the list
-        RayPath *rp = computeRayPath(e, r);
-        rp_list.append(rp);
-
-        // For each wall in the scene, compute the reflections recursively
-        foreach(Wall *w, simulationData()->getWallsList()) {
-            // Append the list of ray paths computed recursively to the main list
-            QList<RayPath*> lst = recursiveReflection(e, r, w);
-            rp_list.append(lst);
-        }
-
-        // Compute the average power of all rays from this emitter to the receiver
-        double power = computeAvgPower(e, rp_list);
-
-        // Sum this power with the power from other emitters
-        total_power += power;
-
-        // Add these raypaths to the list given in parameters
-        raypaths_list->append(rp_list);
-    }
-
-    return total_power;
-}
-
-void SimulationHandler::computeAllRays() {
-    QElapsedTimer tm;
-    tm.start();
-
-    // Loop over the receivers
-    foreach(Receiver *r , simulationData()->getReceiverList()) {
-        QList<RayPath*> raypath_list;
-
-        double power = computePowerToReceiver(r, &raypath_list);
-
-        qDebug() << "TotalPrx" << power << Emitter::convertPowerTodBm(power);
-        qDebug() << "#Rays" << raypath_list.size();
-
-        foreach (RayPath *rp, raypath_list) {
-            m_simulation_scene->addItem(rp);
-        }
-    }
-
-    qDebug() << "Time (ns):" << tm.nsecsElapsed();
-}
 
 /**
  * @brief SimulationHandler::computeReflection
@@ -417,32 +205,278 @@ complex<double> SimulationHandler::computeNominalElecField(Emitter *em, QLineF r
 }
 
 /**
- * @brief SimulationHandler::computeAvgPower
+ * @brief SimulationHandler::computeRayPower
  *
- * This function computes the average power of a list of RayPaths to
- * a receiver (equation 8.83).
+ * This function computes the power of a ray path from an emitter
+ * (equation 8.83, applyed to one ray)
  *
- * @param e       : The emitter (source of these RayPaths)
- * @param rp_list : The list of RayPaths to the receiver
- * @return        : The average power of the RayPaths to the receiver
+ * @param em  : The emitter (source of the ray path)
+ * @param ray : The ray coming out from the emitter
+ * @param En  : The electric field of the ray
+ * @return    : The power of the ray path to the receiver
  */
-double SimulationHandler::computeAvgPower(Emitter *em, QList<RayPath *> rp_list) {
-    double Prx = 0;
+double SimulationHandler::computeRayPower(Emitter *em, QLineF ray, complex<double> En) {
+    // Incidence angle of the ray from the emitter
+    double phi = em->getIncidentRayAngle(ray);
+
+    // Get the antenna's resistance and effective height
     double Ra = em->getResistance();
+    complex<double> he = em->getEffectiveHeight(phi);
 
-    // Sum the square of modulus of each RayPath's contribution
-    foreach(RayPath* rp, rp_list) {
-        // Incidence angle of the ray from the emitter
-        double phi = em->getIncidentRayAngle(rp->getRays().first());
+    // norm() = square of modulus
+    return norm(he * En) / (8.0 * Ra);
+}
 
-        complex<double> he = em->getEffectiveHeight(phi);
-        complex<double> En = rp->getElecField();
+/**
+ * @brief SimulationHandler::computeRayPath
+ *
+ * This function computes the ray path for a combination reflections.
+ *
+ * @param emitter  : The emitter for this ray path
+ * @param receiver : The receiver for this ray path
+ * @param images   : The list of reflection images computed for this ray path
+ * @param walls    : The list of walls that form a combination of reflections
+ * @return         : A pointer to the new RayPath object computed (or nullptr if invalid)
+ */
+RayPath *SimulationHandler::computeRayPath(
+        Emitter *emitter,
+        Receiver *receiver,
+        QList<QPointF> images,
+        QList<Wall*> walls)
+{
+    // We run backward in this function (from receiver to emitter)
 
-        // norm() = square of modulus
-        Prx += norm(he * En);
+    // The first target point is the receiver
+    QPointF target_point = receiver->getRealPos();
+
+    // This list will contain the lines forming the ray path
+    QList<QLineF> rays;
+
+    // This coefficient will contain the product of all reflection and
+    // transmission coefficients for this ray path
+    complex<double> coeff = 1;
+
+    // Total length of the ray path
+    double dn;
+
+    // Wall of the next reflection (towards the receiver)
+    Wall *target_wall = nullptr;
+
+    // Loop over the images (backward)
+    for (int i = images.size()-1; i >= 0 ; i--) {
+        Wall *reflect_wall = walls[i];
+        QPointF src_image = images[i];
+
+        // Compute the virtual ray (line from the image to te target point)
+        QLineF virtual_ray (src_image, target_point);
+
+        // If this is the virtual ray from the last image to the receiver,
+        // it length is the total ray path length dn.
+        if (src_image == images.last()) {
+            dn = virtual_ray.length();
+        }
+
+        // Get the reflection point (intersection of the virtual ray and the wall)
+        QPointF reflection_pt;
+        QLineF::IntersectionType i_t =
+                virtual_ray.intersects(reflect_wall->getRealLine(), &reflection_pt);
+
+        // The ray path is valid if the reflection is on the wall (not on its extension)
+        if (i_t != QLineF::BoundedIntersection) {
+            return nullptr; // Return an invalid ray path
+        }
+
+        // Add this ray line to the list of lines forming the ray path
+        QLineF ray(reflection_pt, target_point);
+        rays.append(ray);
+
+        // Compute the reflection coefficient for this reflection
+        coeff *= computeReflection(emitter, reflect_wall, ray);
+
+        // Compute the transmission coefficient for all transmissions
+        // undergone by the ray line.
+        coeff *= computeTransmissons(emitter, ray, reflect_wall, target_wall);
+
+        // The next target point is the current reflection point
+        target_point = reflection_pt;
+        target_wall = reflect_wall;
     }
 
-    Prx /= 8.0 * Ra;
+    // The last ray line is from the emitter to the target point
+    QLineF ray(emitter->getRealPos(), target_point);
+    rays.append(ray);
 
-    return Prx;
+    // Compute all the transmissions undergone by the ray line.
+    coeff *= computeTransmissons(emitter, ray, nullptr, target_wall);
+
+    // If there were no images in the list, we are computing the direct ray, so the length
+    // of the ray path (dn) is the length of the ray line from emitter to receiver.
+    if (images.size() == 0) {
+        dn = ray.length();
+    }
+
+    // Compute the electric field for this ray path (equation 8.78)
+    complex<double> En = coeff * computeNominalElecField(emitter, ray, dn);
+
+    // Compute the power of the ray
+    double power = computeRayPower(emitter, ray, En);
+
+    // Return a new RayPath object
+    RayPath *rp = new RayPath(emitter, rays, power);
+    return rp;
+}
+
+/**
+ * @brief SimulationHandler::recursiveReflection
+ *
+ * This function gets the image of the source (emitter of previous image) over the 'reflect_wall'
+ * and compute the ray path recursively.
+ * The computed ray paths are added to the RayPaths list of the receiver
+ *
+ * @param emitter      : The emitter for this ray path
+ * @param receiver     : The receiver for this ray path
+ * @param reflect_wall : The wall on which we will compute the reflection
+ * @param images       : The list of images for the previous reflections
+ * @param walls        : The list of walls for the previous reflections
+ * @param level        : The recursion level
+ */
+void SimulationHandler::recursiveReflection(
+        Emitter *emitter,
+        Receiver *receiver,
+        Wall *reflect_wall,
+        QList<QPointF> images,
+        QList<Wall *> walls,
+        int level)
+{
+    // Position of the image of the source
+    QPointF src_image;
+
+    if (images.size() == 0) {
+        // If there is no previous reflection, the source is the emitter
+        src_image = mirror(emitter->getRealPos(), reflect_wall);
+    }
+    else {
+        // If there are previous reflections, the source is the last image
+        src_image = mirror(images.last(), reflect_wall);
+    }
+
+    // Keep the list of walls and images for the next recursions
+    images.append(src_image);
+    walls.append(reflect_wall);
+
+    // Compute the complete ray path for this set of reflections
+    RayPath *rp = computeRayPath(emitter, receiver, images, walls);
+
+    // Add this ray path to his receiver
+    receiver->addRayPath(rp);
+
+    // If the level of recursion is under the max number of reflections
+    if (level < simulationData()->maxReflectionsCount())
+    {
+        // Compute the reflection from the 'reflect_wall' to all other walls of the scene
+        foreach (Wall *w, simulationData()->getWallsList())
+        {
+            // We don't have to compute any reflection from the 'reflect_wall' to itself
+            if (w == reflect_wall){
+                continue;
+            }
+
+            // Recursive call for each wall of the scene (and increase the recusion level)
+            recursiveReflection(emitter, receiver, w, images, walls, level+1);
+        }
+    }
+}
+
+/**
+ * @brief SimulationHandler::computeAllRays
+ *
+ * This function computes the rays from every emitters to every receivers
+ */
+void SimulationHandler::computeAllRays() {
+    m_computation_timer.start();
+
+    // Loop over the receivers
+    foreach(Receiver *r, m_receivers_list)
+    {
+        // Loop over the emitters
+        foreach(Emitter *e, simulationData()->getEmittersList())
+        {
+            // Compute the direct ray path and add it to his receiver
+            r->addRayPath(computeRayPath(e, r));
+
+            // For each wall in the scene, compute the reflections recursively
+            foreach(Wall *w, simulationData()->getWallsList())
+            {
+                // Don't compute any reflection if not needed
+                if (simulationData()->maxReflectionsCount() > 0) {
+                    // Compute the ray paths recursively
+                    recursiveReflection(e, r, w);
+                }
+            }
+        }
+    }
+
+    qDebug() << "Time (ms):" << m_computation_timer.nsecsElapsed() / 1e6;
+}
+
+/**
+ * @brief SimulationHandler::computeReceiversPower
+ *
+ * This function computes the total power received to each receiver
+ */
+void SimulationHandler::computeReceiversPower() {
+    // Loop over every receiver and compute the total received power
+    foreach(Receiver *re , m_receivers_list)
+    {
+        // Compute the average power of all rays to the receiver
+        double total_power = 0;
+
+        // Sum the power of each ray
+        foreach(RayPath *rp, re->getRayPaths()) {
+            total_power += rp->getPower();
+        }
+
+        // Set the computed power to his receiver
+        re->setReceivedPower(total_power);
+
+        qDebug() << "TotalPrx" << total_power << SimulationData::convertPowerTodBm(total_power);
+        qDebug() << "#Rays" << re->getRayPaths().size();
+    }
+}
+
+void SimulationHandler::computePointReceivers() {
+    // Emit the simulation started signal
+    emit simulationStarted();
+
+    // Reset the previously computed data (if one)
+    resetComputedData();
+
+    // Setup the receivers list (list of point receivers)
+    m_receivers_list = m_simulation_data->getReceiverList();
+
+    // Compute all rays
+    computeAllRays();
+
+    // Compute the power for each receiver
+    computeReceiversPower();
+
+    // Emit the simulation finished signal
+    emit simulationFinished();
+}
+
+void SimulationHandler::computeAreaReceivers(QRectF area) {
+    //TODO
+}
+
+/**
+ * @brief SimulationHandler::resetComputedData
+ *
+ * This function erases the computation results and computed RayPaths
+ */
+void SimulationHandler::resetComputedData() {
+    foreach(Receiver *r, m_receivers_list) {
+        r->reset();
+    }
+
+    m_receivers_list.clear();
 }

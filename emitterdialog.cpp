@@ -1,5 +1,6 @@
-#include "emitterdialog.h"
 #include "ui_emitterdialog.h"
+#include "emitterdialog.h"
+#include "simulationdata.h"
 
 #include <QKeyEvent>
 
@@ -37,7 +38,7 @@ EmitterType::EmitterType EmitterDialog::getEmitterType() {
 
 double EmitterDialog::getPower() {
     // Power is in dBm
-    return Emitter::convertPowerToWatts(ui->spinbox_power->value());
+    return SimulationData::convertPowerToWatts(ui->spinbox_power->value());
 }
 
 double EmitterDialog::getFrequency() {
@@ -60,7 +61,7 @@ double EmitterDialog::getEfficiency() {
 void EmitterDialog::powerSpinboxChanged(double value) {
     QString suffix = "W";
 
-    double power_watts = Emitter::convertPowerToWatts(value);
+    double power_watts = SimulationData::convertPowerToWatts(value);
 
     // Convert to readable units and values
     if (power_watts < 1e-3) {

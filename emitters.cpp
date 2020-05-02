@@ -1,5 +1,6 @@
 #include "emitters.h"
 #include "constants.h"
+#include "simulationdata.h"
 
 #include <QPainter>
 
@@ -38,35 +39,10 @@ Emitter::Emitter (double frequency, double power, double efficiency) : Simulatio
                 "<b>Rendement:</b> %4 %");
 
     tip = tip.arg(frequency * 1e-9, 0, 'f', 2)
-            .arg(convertPowerTodBm(power), 0, 'f', 2)
+            .arg(SimulationData::convertPowerTodBm(power), 0, 'f', 2)
             .arg(efficiency * 100.0, 0, 'f', 1);
 
     setToolTip(tip);
-}
-
-/**
- * @brief Emitter::convertPowerToWatts
- * @param power_dbm
- * @return
- *
- * This function returns the converted power in watts from a dBm value
- * (formula from the specifications document of the project)
- */
-double Emitter::convertPowerToWatts(double power_dbm) {
-    // Compute the power in Watts from the dBm
-    return pow(10.0, power_dbm/10.0) / 1000.0;
-}
-
-/**
- * @brief Emitter::convertPowerToWatts
- * @param power_dbm
- * @return
- *
- * This function returns the converted power in dBm from a Watts value
- */
-double Emitter::convertPowerTodBm(double power_watts) {
-    // Compute the power in dBm from the Watts
-    return 10 * log10(power_watts / 0.001);
 }
 
 /**

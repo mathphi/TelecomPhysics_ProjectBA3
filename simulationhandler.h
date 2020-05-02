@@ -2,6 +2,7 @@
 #define SIMULATIONHANDLER_H
 
 #include <QObject>
+#include <QElapsedTimer>
 
 #include "simulationdata.h"
 #include "simulationitem.h"
@@ -13,19 +14,18 @@ class SimulationHandler : QObject
 {
     Q_OBJECT
 public:
-    SimulationHandler(SimulationScene *scene);
+    SimulationHandler();
 
     SimulationData *simulationData();
+    QList<RayPath*> getRayPathsList();
 
     static QPointF mirror(QPointF source, Wall *wall);
 
-    QList<RayPath*> recursiveReflection(
-            Emitter *emitter,
-            Receiver *receiver,
-            Wall *reflect_wall,
-            QList<QPointF> images = QList<QPointF>(),
-            QList<Wall*> walls = QList<Wall*>(),
-            int level = 1);
+    complex<double> computeReflection(Emitter *em, Wall *w, QLineF in_ray);
+    complex<double> computeTransmissons(Emitter *em, QLineF ray, Wall *origin_wall = nullptr, Wall *target_wall = nullptr);
+    complex<double> computeNominalElecField(Emitter *em, QLineF ray, double dn);
+
+    double computeRayPower(Emitter *em, QLineF ray, complex<double> En);
 
     RayPath *computeRayPath(
             Emitter *emitter,
@@ -33,20 +33,31 @@ public:
             QList<QPointF> images = QList<QPointF>(),
             QList<Wall*> walls = QList<Wall*>());
 
-    double computePowerToReceiver(Receiver *r, QList<RayPath*> *raypaths_list);
+    void recursiveReflection(
+            Emitter *emitter,
+            Receiver *receiver,
+            Wall *reflect_wall,
+            QList<QPointF> images = QList<QPointF>(),
+            QList<Wall*> walls = QList<Wall*>(),
+            int level = 1);
 
     void computeAllRays();
+    void computeReceiversPower();
 
-    complex<double> computeReflection(Emitter *em, Wall *w, QLineF in_ray);
-    complex<double> computeTransmissons(Emitter *em, QLineF ray, Wall *origin_wall = nullptr, Wall *target_wall = nullptr);
-    complex<double> computeNominalElecField(Emitter *em, QLineF ray, double dn);
+    void computePointReceivers();
+    void computeAreaReceivers(QRectF area);
 
-    double computeAvgPower(Emitter *em, QList<RayPath*> rp_list);
+    void resetComputedData();
 
+signals:
+    void simulationStarted();
+    void simulationFinished();
 
 private:
     SimulationData *m_simulation_data;
-    SimulationScene *m_simulation_scene;
+    QList<Receiver*> m_receivers_list;
+
+    QElapsedTimer m_computation_timer;
 };
 
 #endif // SIMULATIONHANDLER_H

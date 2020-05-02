@@ -5,16 +5,19 @@
 
 #define PEN_WIDTH 1
 
-RayPath::RayPath(QList<QLineF> rays, complex<double> elec_field) : SimulationItem()
+RayPath::RayPath(Emitter *em, QList<QLineF> rays, double power) : SimulationItem()
 {
+    m_emitter = em;
     m_rays = rays;
-    m_elec_field = elec_field;
-
-    m_sim_scale = simulationScene()->simulationScale();
+    m_power = power;
 }
 
-complex<double> RayPath::getElecField() {
-    return m_elec_field;
+Emitter *RayPath::getEmitter() {
+    return m_emitter;
+}
+
+double RayPath::getPower() {
+    return m_power;
 }
 
 QList<QLineF> RayPath::getRays() {
@@ -22,7 +25,8 @@ QList<QLineF> RayPath::getRays() {
 }
 
 QLineF RayPath::getScaledLine(QLineF r) const {
-    return QLineF(r.p1() * m_sim_scale, r.p2() * m_sim_scale);
+    const qreal sim_scale = simulationScene()->simulationScale();
+    return QLineF(r.p1() * sim_scale, r.p2() * sim_scale);
 }
 
 QRectF RayPath::boundingRect() const {

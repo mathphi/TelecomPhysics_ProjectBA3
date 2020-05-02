@@ -96,13 +96,16 @@ private slots:
 
     void simulationTypeChanged();
     void simulationControlAction();
-    void exportSimulationAction();
+    void simulationResetAction();
 
     void raysCheckboxToggled(bool state);
     void raysThresholdChanged(int val);
+    void filterRaysThreshold();
 
-    void setReceiversVisible(bool visible);
+    void setPointReceiversVisible(bool visible);
     void setSimAreaVisible(bool visible);
+
+    void exportSimulationAction();
 
 private:
     QPoint moveAligned(QPoint start, QPoint actual);

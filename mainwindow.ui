@@ -198,7 +198,7 @@
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>160</width>
+           <width>170</width>
            <height>20</height>
           </size>
          </property>
@@ -306,7 +306,7 @@
        <item>
         <widget class="QSpinBox" name="spinbox_reflections">
          <property name="minimum">
-          <number>1</number>
+          <number>0</number>
          </property>
          <property name="value">
           <number>3</number>
@@ -372,8 +372,7 @@
        <item>
         <widget class="QLabel" name="label_threshold_msg">
          <property name="toolTip">
-          <string>N'afficher que les rayons dont le module du champ 
-électrique au récepteur est le plus élevé</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;N'afficher que les rayons dont la puissance au récepteur est plus élevée que le seuil&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>Seuil d'affichage* :</string>
@@ -397,14 +396,16 @@
             </sizepolicy>
            </property>
            <property name="toolTip">
-            <string>N'afficher que les rayons dont le module du champ 
-électrique au récepteur est le plus élevé</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;N'afficher que les rayons dont la puissance au récepteur est plus élevée que le seuil&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="minimum">
+            <number>-200</number>
            </property>
            <property name="maximum">
-            <number>100</number>
+            <number>-20</number>
            </property>
            <property name="value">
-            <number>50</number>
+            <number>-100</number>
            </property>
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -413,7 +414,7 @@
             <enum>QSlider::TicksBelow</enum>
            </property>
            <property name="tickInterval">
-            <number>10</number>
+            <number>20</number>
            </property>
           </widget>
          </item>
@@ -426,7 +427,7 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>50%</string>
+            <string>-100 dBm</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
@@ -510,7 +511,7 @@
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>160</width>
+           <width>170</width>
            <height>20</height>
           </size>
          </property>
