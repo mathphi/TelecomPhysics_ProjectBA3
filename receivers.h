@@ -24,6 +24,8 @@ public:
     void setReceivedPower(double pwr);
     double receivedPower();
 
+    double getBitRate();
+
 private:
     QList<RayPath*> m_received_rays;
     double m_received_power;

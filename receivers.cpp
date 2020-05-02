@@ -1,3 +1,4 @@
+#include "constants.h"
 #include "receivers.h"
 #include "simulationscene.h"
 #include "simulationdata.h"
@@ -83,13 +84,34 @@ void Receiver::setReceivedPower(double pwr) {
     m_received_power = pwr;
 
     // Set the tooltip of the receiver with the computed power
-    setToolTip(QString("<b>Puissance reçue&nbsp;:</b> %1 dBm")
-               .arg(SimulationData::convertPowerTodBm(pwr), 0, 'f', 2));
+    setToolTip(QString("<b>Puissance&nbsp;:</b> %1&nbsp;dBm<br>"
+                       "<b>Débit&nbsp;:</b> %2&nbsp;Mb/s")
+               .arg(SimulationData::convertPowerTodBm(pwr), 0, 'f', 2)
+               .arg(getBitRate(), 0, 'f', 2));
 }
 
 double Receiver::receivedPower() {
     return m_received_power;
 }
+
+double Receiver::getBitRate() {
+    double bit_rate = 0;
+    double dbm_power = SimulationData::convertPowerTodBm(m_received_power);
+
+    // Under -82 dBm, the bitrate is 0 Mb/s
+    if (dbm_power >= -82) {
+        // Limit the power to -51 dBm (the bit rate cannot be greater)
+        dbm_power = min(dbm_power, -51.0);
+
+        // Linearisation between the two boundary values :
+        //   -82 dBm        54 Mb/s
+        //   -51 dBm        433 Mb/s
+        bit_rate = (433.0 - 54.0) / (-51.0 + 82.0) * (dbm_power + 51.0) + 433.0;
+    }
+
+    return bit_rate;
+}
+
 
 //TODO: also write the received power ?
 QDataStream &operator>>(QDataStream &in, Receiver *&r) {

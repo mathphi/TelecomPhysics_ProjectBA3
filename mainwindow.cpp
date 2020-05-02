@@ -1024,6 +1024,8 @@ void MainWindow::switchSimulationMode() {
 }
 
 void MainWindow::switchEditSceneMode() {
+    //TODO: reset the simulation ?
+
     // Set the current mode to EditorMode
     m_ui_mode = UIMode::EditorMode;
 
@@ -1076,6 +1078,8 @@ void MainWindow::updateSimulationScene() {
         setPointReceiversVisible(false);
         setSimAreaVisible(true);
     }
+
+    filterRaysThreshold();
 }
 
 void MainWindow::simulationTypeChanged() {
@@ -1186,8 +1190,12 @@ void MainWindow::filterRaysThreshold() {
     // Loop over the RayPaths
     foreach (RayPath *rp, m_simulation_handler->getRayPathsList())
     {
-        // Hide the RayPaths with a power lower than the threshold
-        if (rp->getPower() > threshold && ui->checkbox_rays->isChecked()) {
+        // Hide the RayPaths with a power lower than the threshold, or checkbox not checked, or
+        // UI is not in simulation mode
+        if (rp->getPower() > threshold &&
+                ui->checkbox_rays->isChecked() &&
+                m_ui_mode == UIMode::SimulationMode)
+        {
             rp->show();
         }
         else {
