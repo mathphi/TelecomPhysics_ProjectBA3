@@ -21,10 +21,10 @@ public:
     void addRayPath(RayPath *rp);
     QList<RayPath*> getRayPaths();
 
-    void setReceivedPower(double pwr);
     double receivedPower();
-
     double getBitRate();
+
+    void generateTooltip();
 
 private:
     QList<RayPath*> m_received_rays;
@@ -36,5 +36,26 @@ private:
 // Operator overload to write objects from the Receiver class into a files
 QDataStream &operator>>(QDataStream &in, Receiver *&r);
 QDataStream &operator<<(QDataStream &out, Receiver *r);
+
+
+class ReceiversArea : public QGraphicsRectItem, public SimulationItem
+{
+public:
+    ReceiversArea();
+    ~ReceiversArea();
+
+    QList<Receiver*> getReceiversList();
+    void setArea(QRectF area);
+
+    QRectF boundingRect() const override;
+    QPainterPath shape() const override;
+    void paint(QPainter *p, const QStyleOptionGraphicsItem *s, QWidget *w) override;
+
+private:
+    void createReceivers(QRectF area);
+    void deleteReceivers();
+
+    QList<Receiver*> m_receivers_list;
+};
 
 #endif // RECEIVER_H

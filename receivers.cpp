@@ -14,7 +14,8 @@ Receiver::Receiver() : SimulationItem()
     // Over walls
     setZValue(2000);
 
-    m_received_power = 0;
+    // Initially resetted
+    reset();
 }
 
 QRectF Receiver::boundingRect() const {
@@ -72,22 +73,15 @@ void Receiver::addRayPath(RayPath *rp) {
     // Append the new ray path to the list
     m_received_rays.append(rp);
 
+    // Add the power of this ray to the received power
+    m_received_power += rp->getPower();
+
     // Unlock the mutex to allow others threads to write
     m_mutex.unlock();
 }
 
 QList<RayPath*> Receiver::getRayPaths() {
     return m_received_rays;
-}
-
-void Receiver::setReceivedPower(double pwr) {
-    m_received_power = pwr;
-
-    // Set the tooltip of the receiver with the computed power
-    setToolTip(QString("<b>Puissance&nbsp;:</b> %1&nbsp;dBm<br>"
-                       "<b>Débit&nbsp;:</b> %2&nbsp;Mb/s")
-               .arg(SimulationData::convertPowerTodBm(pwr), 0, 'f', 2)
-               .arg(getBitRate(), 0, 'f', 2));
 }
 
 double Receiver::receivedPower() {
@@ -112,6 +106,19 @@ double Receiver::getBitRate() {
     return bit_rate;
 }
 
+void Receiver::generateTooltip() {
+    // Set the tooltip of the receiver with
+    //  - the number of incident rays
+    //  - the received power
+    //  - the bitrate
+    setToolTip(QString("<b>Rayons incidents&nbsp;:</b> %1<br>"
+                       "<b>Puissance&nbsp;:</b> %2&nbsp;dBm<br>"
+                       "<b>Débit&nbsp;:</b> %3&nbsp;Mb/s")
+               .arg(getRayPaths().size())
+               .arg(SimulationData::convertPowerTodBm(receivedPower()), 0, 'f', 2)
+               .arg(getBitRate(), 0, 'f', 2));
+}
+
 
 //TODO: also write the received power ?
 QDataStream &operator>>(QDataStream &in, Receiver *&r) {
@@ -128,4 +135,88 @@ QDataStream &operator<<(QDataStream &out, Receiver *r) {
     out << r->pos().toPoint();
 
     return out;
+}
+
+
+
+ReceiversArea::ReceiversArea() : QGraphicsRectItem(), SimulationItem()
+{
+    QGraphicsRectItem::setZValue(-1);
+}
+
+ReceiversArea::~ReceiversArea() {
+    deleteReceivers();
+}
+
+QList<Receiver*> ReceiversArea::getReceiversList() {
+    return m_receivers_list;
+}
+
+void ReceiversArea::setArea(QRectF area) {
+    // Compute the area as a rect of size multiple of 1m²
+    qreal sim_scale = simulationScene()->simulationScale();
+
+    // Compute the 1m² fitted rect
+    QSizeF fit_size(ceil(area.width() / sim_scale) * sim_scale,
+                    ceil(area.height() / sim_scale) * sim_scale);
+
+    // Center the content in the area
+    QSizeF diff_sz = fit_size - area.size();
+    QRectF fit_area = area.adjusted(-diff_sz.width()/2, -diff_sz.height()/2,
+                                     diff_sz.width()/2,  diff_sz.height()/2);
+
+    // Draw the area rectangle
+    setPen(QPen(Qt::darkGray, 1, Qt::DashDotDotLine));
+    setBrush(QBrush(qRgba(225, 225, 255, 255), Qt::DiagCrossPattern));
+    QGraphicsRectItem::setRect(fit_area);
+
+    // Delete and recreate the receivers list
+    deleteReceivers();
+    createReceivers(fit_area);
+}
+
+void ReceiversArea::createReceivers(QRectF area) {
+    if (!simulationScene())
+        return;
+
+    // Get the count of receivers in each dimension
+    QSize num_rcv = (area.size() / simulationScene()->simulationScale()).toSize();
+
+    // Get the initial position of the receivers
+    QPointF init_pos = area.topLeft() + QPointF(RECEIVER_SIZE/2, RECEIVER_SIZE/2);
+
+    // Add a receiver to each m² on the area
+    for (int x = 0 ; x < num_rcv.width() ; x++) {
+        for (int y = 0 ; y < num_rcv.height() ; y++) {
+            QPointF delta_pos(x * RECEIVER_SIZE, y * RECEIVER_SIZE);
+            QPointF rcv_pos = init_pos + delta_pos;
+
+            Receiver *rcv = new Receiver();
+            simulationScene()->addItem(rcv);
+            rcv->setPos(rcv_pos);
+
+            m_receivers_list.append(rcv);
+        }
+    }
+}
+
+void ReceiversArea::deleteReceivers() {
+    foreach(Receiver *r, m_receivers_list) {
+        delete r;
+    }
+
+    m_receivers_list.clear();
+}
+
+
+QRectF ReceiversArea::boundingRect() const {
+    return QGraphicsRectItem::boundingRect();
+}
+
+QPainterPath ReceiversArea::shape() const {
+    return QGraphicsRectItem::shape();
+}
+
+void ReceiversArea::paint(QPainter *p, const QStyleOptionGraphicsItem *s, QWidget *w) {
+    QGraphicsRectItem::paint(p, s, w);
 }

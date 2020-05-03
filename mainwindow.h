@@ -111,6 +111,8 @@ private:
     QPoint moveAligned(QPoint start, QPoint actual);
     QPoint attractivePoint(QPoint actual);
 
+    bool askSimulationReset();
+
     Ui::MainWindow *ui;
 
     SimulationScene *m_scene;
@@ -126,6 +128,6 @@ private:
     bool m_dragging_view;
 
     UIMode::UIMode m_ui_mode;
-    QGraphicsRectItem *m_sim_area_item;
+    ReceiversArea *m_sim_area_item;
 };
 #endif // MAINWINDOW_H

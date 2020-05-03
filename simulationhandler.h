@@ -42,11 +42,10 @@ public:
             int level = 1);
 
     void computeAllRays();
-    void computeReceiversPower();
 
-    void computePointReceivers();
-    void computeAreaReceivers(QRectF area);
+    void generateReceiversTooltip();
 
+    void computeRaysToReceivers(QList<Receiver *> rcv_list);
     void resetComputedData();
 
 signals:

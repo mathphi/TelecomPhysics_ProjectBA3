@@ -420,52 +420,40 @@ void SimulationHandler::computeAllRays() {
 }
 
 /**
- * @brief SimulationHandler::computeReceiversPower
+ * @brief SimulationHandler::generateReceiversTooltip
  *
- * This function computes the total power received to each receiver
+ * This function generates the tooltip for each receiver
  */
-void SimulationHandler::computeReceiversPower() {
-    // Loop over every receiver and compute the total received power
+void SimulationHandler::generateReceiversTooltip() {
+    // Loop over every receiver and generate its tooltip
     foreach(Receiver *re , m_receivers_list)
     {
-        // Compute the average power of all rays to the receiver
-        double total_power = 0;
+        // Generate the tooltip for this receiver
+        re->generateTooltip();
 
-        // Sum the power of each ray
-        foreach(RayPath *rp, re->getRayPaths()) {
-            total_power += rp->getPower();
-        }
-
-        // Set the computed power to his receiver
-        re->setReceivedPower(total_power);
-
-        qDebug() << "TotalPrx" << total_power << SimulationData::convertPowerTodBm(total_power);
+        qDebug() << "TotalPrx" << re->receivedPower() << SimulationData::convertPowerTodBm(re->receivedPower());
         qDebug() << "#Rays" << re->getRayPaths().size();
     }
 }
 
-void SimulationHandler::computePointReceivers() {
+void SimulationHandler::computeRaysToReceivers(QList<Receiver*> rcv_list) {
     // Emit the simulation started signal
     emit simulationStarted();
 
     // Reset the previously computed data (if one)
     resetComputedData();
 
-    // Setup the receivers list (list of point receivers)
-    m_receivers_list = m_simulation_data->getReceiverList();
+    // Setup the receivers list
+    m_receivers_list = rcv_list;
 
     // Compute all rays
     computeAllRays();
 
-    // Compute the power for each receiver
-    computeReceiversPower();
+    // Generate the tooltip for all receivers
+    generateReceiversTooltip();
 
     // Emit the simulation finished signal
     emit simulationFinished();
-}
-
-void SimulationHandler::computeAreaReceivers(QRectF area) {
-    //TODO
 }
 
 /**

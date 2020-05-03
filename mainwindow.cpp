@@ -1024,7 +1024,12 @@ void MainWindow::switchSimulationMode() {
 }
 
 void MainWindow::switchEditSceneMode() {
-    //TODO: reset the simulation ?
+    // This will reset the simulation data
+    bool ans = askSimulationReset();
+
+    // Don't continue if user refused
+    if (!ans)
+        return;
 
     // Set the current mode to EditorMode
     m_ui_mode = UIMode::EditorMode;
@@ -1086,6 +1091,20 @@ void MainWindow::simulationTypeChanged() {
     // Retreive the selected simulation type
     SimType::SimType sim_type = (SimType::SimType) ui->combobox_simType->currentIndex();
 
+    // Nothing to do if no difference with current type
+    if (sim_type == m_simulation_handler->simulationData()->simulationType()) {
+        return;
+    }
+
+    // This will reset the data -> prevent user
+    bool ans = askSimulationReset();
+
+    if (!ans) {
+        // Go back to the current type if user refused
+        ui->combobox_simType->setCurrentIndex(m_simulation_handler->simulationData()->simulationType());
+        return;
+    }
+
     // Set the current simulation type into simulation data
     m_simulation_handler->simulationData()->setSimulationType(sim_type);
 
@@ -1119,7 +1138,8 @@ void MainWindow::simulationControlAction() {
     switch (m_simulation_handler->simulationData()->simulationType())
     {
     case SimType::PointReceiver: {
-        m_simulation_handler->computePointReceivers();
+        QList<Receiver*> rcv_list = m_simulation_handler->simulationData()->getReceiverList();
+        m_simulation_handler->computeRaysToReceivers(rcv_list);
         break;
     }
     case SimType::AreaReceiver: {
@@ -1129,8 +1149,7 @@ void MainWindow::simulationControlAction() {
             return;
         }
 
-        QRectF area = m_sim_area_item->rect();
-        m_simulation_handler->computeAreaReceivers(area);
+        m_simulation_handler->computeRaysToReceivers(m_sim_area_item->getReceiversList());
         break;
     }
     }
@@ -1145,6 +1164,10 @@ void MainWindow::simulationControlAction() {
 }
 
 void MainWindow::simulationResetAction() {
+    askSimulationReset();
+}
+
+bool MainWindow::askSimulationReset() {
     int ans = QMessageBox::question(
                 this,
                 "Réinitialiser la simulation",
@@ -1153,10 +1176,12 @@ void MainWindow::simulationResetAction() {
 
     // If the user cancelled the action -> abort
     if (ans == QMessageBox::No)
-        return;
+        return false;
 
     // Reset the computation data
     m_simulation_handler->resetComputedData();
+
+    return true;
 }
 
 void MainWindow::raysCheckboxToggled(bool state) {
@@ -1191,10 +1216,11 @@ void MainWindow::filterRaysThreshold() {
     foreach (RayPath *rp, m_simulation_handler->getRayPathsList())
     {
         // Hide the RayPaths with a power lower than the threshold, or checkbox not checked, or
-        // UI is not in simulation mode
+        // UI is not in simulation mode, or simulation type is area
         if (rp->getPower() > threshold &&
                 ui->checkbox_rays->isChecked() &&
-                m_ui_mode == UIMode::SimulationMode)
+                m_ui_mode == UIMode::SimulationMode &&
+                m_simulation_handler->simulationData()->simulationType() == SimType::PointReceiver)
         {
             rp->show();
         }
@@ -1213,32 +1239,23 @@ void MainWindow::setPointReceiversVisible(bool visible) {
 void MainWindow::setSimAreaVisible(bool visible) {
     if (visible)
     {
-        // Re-draw the simulation area
-        if (m_sim_area_item != nullptr) {
-            delete m_sim_area_item;
+        // Get the simulation bounding rect
+        QRectF area = m_scene->simulationBoundingRect();
+
+        if (m_sim_area_item == nullptr) {
+            // Create the area rectangle
+            m_sim_area_item = new ReceiversArea();
+            m_scene->addItem((SimulationItem*) m_sim_area_item);
         }
 
-        // Compute the area as a rect of size multiple of 1m²
-        qreal sim_scale = m_scene->simulationScale();
-
-        // Get the real rect and the 1m² fitted rect
-        QRectF area = m_scene->simulationBoundingRect();
-        QSizeF fit_size(ceil(area.width() / sim_scale) * sim_scale,
-                        ceil(area.height() / sim_scale) * sim_scale);
-
-        // Center the content in the area
-        QSizeF diff_sz = fit_size - area.size();
-        QRectF fit_area = area.adjusted(-diff_sz.width()/2, -diff_sz.height()/2,
-                                         diff_sz.width()/2,  diff_sz.height()/2);
-
-        // Create the area rectangle
-        m_sim_area_item = m_scene->addRect(fit_area);
-        m_sim_area_item->setZValue(-1);
-        m_sim_area_item->setPen(QPen(Qt::darkGray, 1, Qt::DashDotDotLine));
-        m_sim_area_item->setBrush(QBrush(qRgba(225, 225, 255, 255), Qt::DiagCrossPattern));
+        // Re-draw the simulation area
+        m_sim_area_item->setArea(area);
     }
     else if (!visible && m_sim_area_item != nullptr)
     {
+        // Be sure the simulation is resetted
+        m_simulation_handler->resetComputedData();
+
         // Remove the simulation area
         delete m_sim_area_item;
         m_sim_area_item = nullptr;
