@@ -1,5 +1,6 @@
 #include "raypath.h"
 #include "simulationscene.h"
+#include "simulationdata.h"
 
 #include <QPainter>
 
@@ -54,7 +55,12 @@ QPainterPath RayPath::shape() const {
 }
 
 void RayPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) {
-    //painter->setPen(m_pen);
+    // Get the pen color (function of the power)
+    const double dbm_power = SimulationData::convertPowerTodBm(getPower());
+    const QColor pen_color(SimulationData::ratioToColor((dbm_power+50)/-100.0));
+
+    // Set the pen for this raypath
+    painter->setPen(QPen(pen_color, PEN_WIDTH));
 
     // Draw each ray as a line
     for (int i = 0 ; i < m_rays.size() ; i++) {

@@ -54,10 +54,13 @@ double SimulationData::convertPowerTodBm(double power_watts) {
  * @param ratio
  * @return
  *
- * This function converts a ratio [0;1] to a color from red to blue
+ * This function converts a ratio [0,1] to a color from red to blue
  */
 QRgb SimulationData::ratioToColor(qreal ratio) {
     int r, g, b;
+
+    // Ratio limited from 0 to 1
+    ratio = max(0.0, min(1.0, ratio));
 
     if (ratio < 0.25) {
         r = 255;
@@ -76,7 +79,7 @@ QRgb SimulationData::ratioToColor(qreal ratio) {
     }
     else {
         r = 0;
-        g = 255 * (3 - ratio/0.25);
+        g = 255 * (4 - ratio/0.25);
         b = 255;
     }
 
