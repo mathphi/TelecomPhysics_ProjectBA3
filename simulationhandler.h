@@ -21,6 +21,8 @@ public:
     SimulationData *simulationData();
     QList<RayPath*> getRayPathsList();
 
+    bool isRunning();
+
     static QPointF mirror(QPointF source, Wall *wall);
 
     complex<double> computeReflection(Emitter *em, Wall *w, QLineF in_ray);
@@ -45,16 +47,19 @@ public:
 
     void computeAllRays();
 
-    void attachThread( Emitter *e, Receiver *r, Wall *w);
+    void recursiveReflectionThreaded( Emitter *e, Receiver *r, Wall *w);
 
     void generateReceiversTooltip();
 
-    void computeRaysToReceivers(QList<Receiver *> rcv_list);
+    void startSimulationComputation(QList<Receiver *> rcv_list);
+    void stopSimulationComputation();
     void resetComputedData();
 
 signals:
     void simulationStarted();
     void simulationFinished();
+    void simulationCancelled();
+    void simulationProgress(double);
 
 private slots:
     void computationUnitFinished();
@@ -66,9 +71,12 @@ private:
     QElapsedTimer m_computation_timer;
 
     QThreadPool m_threadpool;
-    QList<ComputationUnit*> m_units;
+    QList<ComputationUnit*> m_computation_units;
     QMutex m_mutex;
 
+    bool m_sim_started;
+    bool m_sim_cancelling;
+    int m_init_cu_count;
 };
 
 #endif // SIMULATIONHANDLER_H

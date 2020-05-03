@@ -96,6 +96,10 @@ private slots:
 
     void simulationTypeChanged();
     void simulationControlAction();
+    void simulationStarted();
+    void simulationFinished();
+    void simulationCancelled();
+    void simulationProgress(double p);
     void simulationResetAction();
 
     void raysCheckboxToggled(bool state);

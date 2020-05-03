@@ -5,12 +5,21 @@
 SimulationHandler::SimulationHandler()
 {
     m_simulation_data = new SimulationData();
+    m_sim_started = false;
+    m_sim_cancelling = false;
+    m_init_cu_count = 0;
 }
 
 SimulationData *SimulationHandler::simulationData() {
     return m_simulation_data;
 }
 
+/**
+ * @brief SimulationHandler::getRayPathsList
+ * @return
+ *
+ * This function returns all the computed ray paths in the scene
+ */
 QList<RayPath*> SimulationHandler::getRayPathsList() {
     QList<RayPath*> ray_paths;
 
@@ -21,6 +30,21 @@ QList<RayPath*> SimulationHandler::getRayPathsList() {
 
     return ray_paths;
 }
+
+/**
+ * @brief SimulationHandler::isRunning
+ * @return
+ *
+ * This function returns true if a simulation computation is running
+ */
+bool SimulationHandler::isRunning() {
+    return m_sim_started;
+}
+
+
+/**************************************************************************************************/
+// --------------------------------- COMPUTATION FUNCTIONS ---------------------------------------//
+/**************************************************************************************************/
 
 /**
  * @brief SimulationHandler::mirror
@@ -390,9 +414,11 @@ void SimulationHandler::recursiveReflection(
 /**
  * @brief SimulationHandler::computeAllRays
  *
- * This function computes the rays from every emitters to every receivers
+ * This function computes the rays from every emitters to every receivers.
+ * This is an asynchronous function that adds computation units to the thread pool.
  */
 void SimulationHandler::computeAllRays() {
+    // Start the time counter
     m_computation_timer.start();
 
     // Loop over the receivers
@@ -409,34 +435,84 @@ void SimulationHandler::computeAllRays() {
             {
                 // Don't compute any reflection if not needed
                 if (simulationData()->maxReflectionsCount() > 0) {
-                    // Compute the ray paths recursively
-                    attachThread(e,r,w);
+                    // Compute the ray paths recursively (in a thread)
+                    recursiveReflectionThreaded(e, r, w);
                 }
             }
         }
     }
 
+
 }
 
-void SimulationHandler::attachThread(Emitter *e, Receiver *r, Wall *w){
+/**
+ * @brief SimulationHandler::recursiveReflectionThreaded
+ * @param e
+ * @param r
+ * @param w
+ *
+ * This function creates a computation unit to compute the reflections
+ * recursively in a thread.
+ */
+void SimulationHandler::recursiveReflectionThreaded(Emitter *e, Receiver *r, Wall *w) {
+    // Create a computation unit for the recursive computation of the reflections
     ComputationUnit *cu = new ComputationUnit(this, e, r, w);
-    connect(cu, SIGNAL(computationFinished()), this , SLOT(computationUnitFinished()) );
-    m_units.append(cu);
+
+    // One thread can write in this list at a time (mutex)
+    m_mutex.lock();
+    m_computation_units.append(cu);
+    m_mutex.unlock();
+
+    // Connect the computation unit to the simulation handler
+    connect(cu, SIGNAL(computationFinished()), this, SLOT(computationUnitFinished()));
+
+    // Add this computation unit to the queue of the thread pool
     m_threadpool.start(cu);
+
+    // Increase the computation units counter
+    m_init_cu_count++;
 }
 
-void SimulationHandler::computationUnitFinished(){
+/**
+ * @brief SimulationHandler::computationUnitFinished
+ *
+ * This slot is called when a computation unit finished to compute
+ */
+void SimulationHandler::computationUnitFinished() {
+    // Get the computation unit (origin of the signal)
     ComputationUnit *cu = qobject_cast<ComputationUnit*> (sender());
+
+    // One thread can write in this list at a time (mutex)
     m_mutex.lock();
-    m_units.removeAll(cu);
+    m_computation_units.removeOne(cu);
     m_mutex.unlock();
+
+    // Delete this computation unit
     delete cu;
-    if(m_units.size() == 0){
-       qDebug() << "Time (ms):" << m_computation_timer.nsecsElapsed() / 1e6;
-       emit simulationFinished();
+
+    // Compute the progression and send the progression signal
+    double progress = 1.0 - (double) m_computation_units.size() / (double) m_init_cu_count;
+    emit simulationProgress(progress);
+
+    // All computations done
+    if (m_computation_units.size() == 0){
+        qDebug() << "Time (ms):" << m_computation_timer.nsecsElapsed() / 1e6;
+
+        // Mark the simulation as stopped
+        m_sim_started = false;
+
+        if (!m_sim_cancelling) {
+            // Emit the simulation finished signal
+            emit simulationFinished();
+        }
+        else {
+            // Reset the cancelling flag
+            m_sim_cancelling = false;
+
+            // Emit the simulation cancelled signal
+            emit simulationCancelled();
+        }
     }
-
-
 }
 
 /**
@@ -456,9 +532,16 @@ void SimulationHandler::generateReceiversTooltip() {
     }
 }
 
-void SimulationHandler::computeRaysToReceivers(QList<Receiver*> rcv_list) {
-    // Emit the simulation started signal
-    emit simulationStarted();
+/**
+ * @brief SimulationHandler::startSimulationComputation
+ * @param rcv_list
+ *
+ * This function starts a computation of all rays to a list of receivers
+ */
+void SimulationHandler::startSimulationComputation(QList<Receiver*> rcv_list) {
+    // Don't start a new computation if already running
+    if (isRunning())
+        return;
 
     // Reset the previously computed data (if one)
     resetComputedData();
@@ -466,14 +549,45 @@ void SimulationHandler::computeRaysToReceivers(QList<Receiver*> rcv_list) {
     // Setup the receivers list
     m_receivers_list = rcv_list;
 
+    // Mark the simulation as running
+    m_sim_started = true;
+
+    // Reset the counter of computation units
+    m_init_cu_count = 0;
+
+    // Emit the simulation started signal
+    emit simulationStarted();
+    emit simulationProgress(0);
+
     // Compute all rays
     computeAllRays();
+}
 
-    // Generate the tooltip for all receivers
-    generateReceiversTooltip();
+/**
+ * @brief SimulationHandler::stopSimulationComputation
+ *
+ * This function cancel the current simulation.
+ * The cancel operation must wait for all threads to finish.
+ */
+void SimulationHandler::stopSimulationComputation() {
+    // Clear the queue of the thread pool
+    m_threadpool.clear();
 
-    // Emit the simulation finished signal
-    emit simulationFinished();
+    // Mark the simulation as cancelling
+    m_sim_cancelling = true;
+
+    // Delete all CU that are not (yet) running
+    foreach(ComputationUnit *cu, m_computation_units) {
+        if (!cu->isRunning()) {
+            // One thread can write in this list at a time (mutex)
+            m_mutex.lock();
+            m_computation_units.removeOne(cu);
+            m_mutex.unlock();
+
+            // Delete this CU
+            delete cu;
+        }
+    }
 }
 
 /**
@@ -482,9 +596,11 @@ void SimulationHandler::computeRaysToReceivers(QList<Receiver*> rcv_list) {
  * This function erases the computation results and computed RayPaths
  */
 void SimulationHandler::resetComputedData() {
+    // Reset each receiver
     foreach(Receiver *r, m_receivers_list) {
         r->reset();
     }
 
+    // Clear the receivers list
     m_receivers_list.clear();
 }

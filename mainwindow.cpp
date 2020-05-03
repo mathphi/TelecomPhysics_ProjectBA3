@@ -107,6 +107,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->spinbox_reflections, SIGNAL(valueChanged(int)),
             m_simulation_handler->simulationData(), SLOT(setReflectionsCount(int)));
 
+    // Simulation handler signals
+    connect(m_simulation_handler, SIGNAL(simulationStarted()), this, SLOT(simulationStarted()));
+    connect(m_simulation_handler, SIGNAL(simulationFinished()), this, SLOT(simulationFinished()));
+    connect(m_simulation_handler, SIGNAL(simulationCancelled()), this, SLOT(simulationCancelled()));
+    connect(m_simulation_handler, SIGNAL(simulationProgress(double)), this, SLOT(simulationProgress(double)));
+
     // Scene events handling
     connect(m_scene, SIGNAL(mouseRightReleased(QGraphicsSceneMouseEvent*)),
             this, SLOT(graphicsSceneRightReleased(QGraphicsSceneMouseEvent*)));
@@ -1071,6 +1077,11 @@ void MainWindow::updateSimulationUI() {
     // Set the current reflections count
     ui->spinbox_reflections->setValue(m_simulation_handler->simulationData()->maxReflectionsCount());
 
+    if (!m_simulation_handler->isRunning()) {
+        // Hide the progress bar
+        ui->progressbar_simulation->hide();
+    }
+
     // Update the simulation type
     simulationTypeChanged();
 }
@@ -1141,32 +1152,107 @@ void MainWindow::switchAreaReceiverMode() {
 }
 
 void MainWindow::simulationControlAction() {
-    switch (m_simulation_handler->simulationData()->simulationType())
+    // If there is no simulation computation currently running
+    if (!m_simulation_handler->isRunning())
     {
-    case SimType::PointReceiver: {
-        QList<Receiver*> rcv_list = m_simulation_handler->simulationData()->getReceiverList();
-        m_simulation_handler->computeRaysToReceivers(rcv_list);
-        break;
-    }
-    case SimType::AreaReceiver: {
-        // If there is no simulation area
-        if (m_sim_area_item == nullptr) {
-            // This wouldn't happen
-            return;
+        // Start the computation for the current simulation type
+        switch (m_simulation_handler->simulationData()->simulationType())
+        {
+        case SimType::PointReceiver: {
+            QList<Receiver*> rcv_list = m_simulation_handler->simulationData()->getReceiverList();
+            m_simulation_handler->startSimulationComputation(rcv_list);
+            break;
         }
+        case SimType::AreaReceiver: {
+            // If there is no simulation area
+            if (m_sim_area_item == nullptr) {
+                // This wouldn't happen
+                return;
+            }
 
-        m_simulation_handler->computeRaysToReceivers(m_sim_area_item->getReceiversList());
-        break;
+            m_simulation_handler->startSimulationComputation(m_sim_area_item->getReceiversList());
+            break;
+        }
+        }
     }
-    }
+    else {
+        // Cancel the current simulation
+        m_simulation_handler->stopSimulationComputation();
 
-    // Add all computed rays to the scene
-    foreach (RayPath *rp, m_simulation_handler->getRayPathsList()) {
-        m_scene->addItem(rp);
+        // Change the UI control button
+        ui->button_simControl->setText("Arrêt en cours...");
+        ui->button_simControl->setEnabled(false);
+    }
+}
+
+void MainWindow::simulationStarted() {
+    // Disable the UI controls
+    ui->combobox_simType->setEnabled(false);
+    ui->spinbox_reflections->setEnabled(false);
+    ui->button_simReset->setEnabled(false);
+    ui->button_editScene->setEnabled(false);
+    ui->actionOpen->setEnabled(false);
+
+    // Change the control button text
+    ui->button_simControl->setText("Arrêter la simulation");
+    ui->button_simControl->setEnabled(true);
+
+    // Show the progress bar
+    ui->progressbar_simulation->show();
+}
+
+void MainWindow::simulationFinished() {
+    // Enable the UI controls
+    ui->combobox_simType->setEnabled(true);
+    ui->spinbox_reflections->setEnabled(true);
+    ui->button_simReset->setEnabled(true);
+    ui->button_editScene->setEnabled(true);
+    ui->actionOpen->setEnabled(true);
+
+    // Change the control button text
+    ui->button_simControl->setText("Démarrer la simulation");
+    ui->button_simControl->setEnabled(true);
+
+    // Hide the progress bar
+    ui->progressbar_simulation->hide();
+
+    // Don't add the ray paths is this is a AreaReceivers simulations
+    if (m_simulation_handler->simulationData()->simulationType() == SimType::PointReceiver) {
+        // Add all computed rays to the scene
+        foreach (RayPath *rp, m_simulation_handler->getRayPathsList()) {
+            m_scene->addItem(rp);
+        }
     }
 
     // Filter the rays to show
     filterRaysThreshold();
+
+    //TODO: what to do with this ?
+    m_simulation_handler->generateReceiversTooltip();
+}
+
+void MainWindow::simulationCancelled() {
+    // Enable the UI controls
+    ui->combobox_simType->setEnabled(true);
+    ui->spinbox_reflections->setEnabled(true);
+    ui->button_simReset->setEnabled(true);
+    ui->button_editScene->setEnabled(true);
+    ui->actionOpen->setEnabled(true);
+
+    // Change the control button text
+    ui->button_simControl->setText("Démarrer la simulation");
+    ui->button_simControl->setEnabled(true);
+
+    // Hide the progress bar
+    ui->progressbar_simulation->hide();
+
+    // Reset the simulations
+    m_simulation_handler->resetComputedData();
+}
+
+void MainWindow::simulationProgress(double p) {
+    // Update the progress bar's value
+    ui->progressbar_simulation->setValue(p * 100);
 }
 
 void MainWindow::simulationResetAction() {

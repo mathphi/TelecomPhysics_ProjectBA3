@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>650</height>
+    <height>696</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -372,7 +372,7 @@
        <item>
         <widget class="QLabel" name="label_threshold_msg">
          <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;N'afficher que les rayons dont la puissance au récepteur est plus élevée que le seuil&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>N'afficher que les rayons dont la puissance au récepteur est plus élevée que le seuil</string>
          </property>
          <property name="text">
           <string>Seuil d'affichage* :</string>
@@ -396,7 +396,7 @@
             </sizepolicy>
            </property>
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;N'afficher que les rayons dont la puissance au récepteur est plus élevée que le seuil&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>N'afficher que les rayons dont la puissance au récepteur est plus élevée que le seuil</string>
            </property>
            <property name="minimum">
             <number>-200</number>
@@ -547,6 +547,22 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item>
+        <widget class="QProgressBar" name="progressbar_simulation">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximum">
+          <number>100</number>
+         </property>
+         <property name="value">
+          <number>24</number>
+         </property>
+        </widget>
        </item>
        <item>
         <spacer name="horizontalSpacer_2">
