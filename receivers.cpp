@@ -120,7 +120,6 @@ void Receiver::generateTooltip() {
 }
 
 
-//TODO: also write the received power ?
 QDataStream &operator>>(QDataStream &in, Receiver *&r) {
     QPoint pos;
     in >> pos;

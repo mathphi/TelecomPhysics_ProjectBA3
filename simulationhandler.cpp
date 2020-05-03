@@ -526,9 +526,6 @@ void SimulationHandler::generateReceiversTooltip() {
     {
         // Generate the tooltip for this receiver
         re->generateTooltip();
-
-        qDebug() << "TotalPrx" << re->receivedPower() << SimulationData::convertPowerTodBm(re->receivedPower());
-        qDebug() << "#Rays" << re->getRayPaths().size();
     }
 }
 

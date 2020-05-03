@@ -11,6 +11,9 @@ RayPath::RayPath(Emitter *em, QList<QLineF> rays, double power) : SimulationItem
     m_emitter = em;
     m_rays = rays;
     m_power = power;
+
+    // Under the walls
+    setZValue(500);
 }
 
 Emitter *RayPath::getEmitter() {
@@ -57,6 +60,7 @@ QPainterPath RayPath::shape() const {
 void RayPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) {
     // Get the pen color (function of the power)
     const double dbm_power = SimulationData::convertPowerTodBm(getPower());
+    //TODO: clean this colour computation...
     const QColor pen_color(SimulationData::ratioToColor((dbm_power+50)/-100.0));
 
     // Set the pen for this raypath
