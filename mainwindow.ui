@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>606</height>
+    <height>650</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -199,7 +199,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>170</width>
-           <height>20</height>
+           <height>10</height>
           </size>
          </property>
         </spacer>
@@ -324,7 +324,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>30</height>
+           <height>20</height>
           </size>
          </property>
         </spacer>
@@ -354,7 +354,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>30</height>
+           <height>20</height>
           </size>
          </property>
         </spacer>
@@ -437,6 +437,53 @@
         </layout>
        </item>
        <item>
+        <spacer name="verticalSpacer_13">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>15</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Valeurs à afficher :</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="radioButton">
+           <property name="text">
+            <string>Puissance (dBm)</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="radioButton_2">
+           <property name="text">
+            <string>Débit binaire (Mb/s)</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
         <spacer name="verticalSpacer_11">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -447,7 +494,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>30</height>
+           <height>20</height>
           </size>
          </property>
         </spacer>
@@ -470,7 +517,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>50</height>
+           <height>40</height>
           </size>
          </property>
         </spacer>
@@ -512,7 +559,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>170</width>
-           <height>20</height>
+           <height>10</height>
           </size>
          </property>
         </spacer>

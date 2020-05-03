@@ -993,6 +993,9 @@ void MainWindow::actionZoomBest() {
 //////////////////////////////////// MODE SWITCHING FUNCTIONS //////////////////////////////////////
 
 void MainWindow::switchSimulationMode() {
+    if (m_ui_mode == UIMode::SimulationMode)
+        return;
+
     // If there is no emitter in the simulation
     if (m_simulation_handler->simulationData()->getEmittersList().size() < 1) {
         QMessageBox::information(this, "Simulation", "Vous devez inclure au moins un émetteur pour effectuer une simulation");
@@ -1024,6 +1027,9 @@ void MainWindow::switchSimulationMode() {
 }
 
 void MainWindow::switchEditSceneMode() {
+    if (m_ui_mode == UIMode::EditorMode)
+        return;
+
     // This will reset the simulation data
     bool ans = askSimulationReset();
 

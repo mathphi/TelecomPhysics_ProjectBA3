@@ -215,6 +215,8 @@ BrickWall::BrickWall(QLineF line, double thickness) : Wall(line, thickness) {
     setPen(QPen(Qt::black, 1));
     setBrush(QBrush(Qt::black, Qt::SolidPattern));
     setZValue(1002);
+
+    //TODO: add tooltips for properties ?
 }
 
 // This constructor is equivalent to the main constructor but using a default thickness

@@ -54,11 +54,12 @@ QPainterPath RayPath::shape() const {
 }
 
 void RayPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) {
+    //painter->setPen(m_pen);
+
     // Draw each ray as a line
     for (int i = 0 ; i < m_rays.size() ; i++) {
         QLineF ray = m_rays[i];
 
-        //painter->setPen(m_pen);
         painter->drawLine(getScaledLine(ray));
     }
 }

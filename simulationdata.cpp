@@ -49,6 +49,40 @@ double SimulationData::convertPowerTodBm(double power_watts) {
     return 10 * log10(power_watts / 0.001);
 }
 
+/**
+ * @brief SimulationData::ratioToColor
+ * @param ratio
+ * @return
+ *
+ * This function converts a ratio [0;1] to a color from red to blue
+ */
+QRgb SimulationData::ratioToColor(qreal ratio) {
+    int r, g, b;
+
+    if (ratio < 0.25) {
+        r = 255;
+        g = 255 * ratio/0.25;
+        b = 0;
+    }
+    else if (ratio < 0.5) {
+        r = 255 * (2 - ratio/0.25);
+        g = 255;
+        b = 0;
+    }
+    else if (ratio < 0.75) {
+        r = 0;
+        g = 255;
+        b = 255 * (ratio/0.25 - 2);
+    }
+    else {
+        r = 0;
+        g = 255 * (3 - ratio/0.25);
+        b = 255;
+    }
+
+    return qRgb(r, g, b);
+}
+
 // ---------------------------------------------------------------------------------------------- //
 
 // +++++++++++++++++++ WALLS / EMITTERS / RECEIVER LISTS MANAGEMENT FUNCTIONS +++++++++++++++++++ //
