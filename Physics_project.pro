@@ -16,6 +16,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    computationunit.cpp \
     emitterdialog.cpp \
     emitters.cpp \
     main.cpp \
@@ -30,6 +31,7 @@ SOURCES += \
     walls.cpp
 
 HEADERS += \
+    computationunit.h \
     constants.h \
     emitterdialog.h \
     emitters.h \

@@ -3,14 +3,16 @@
 
 #include <QObject>
 #include <QElapsedTimer>
+#include <QThreadPool>
 
 #include "simulationdata.h"
 #include "simulationitem.h"
 #include "simulationscene.h"
 #include "constants.h"
 #include "raypath.h"
+#include "computationunit.h"
 
-class SimulationHandler : QObject
+class SimulationHandler : public QObject
 {
     Q_OBJECT
 public:
@@ -43,6 +45,8 @@ public:
 
     void computeAllRays();
 
+    void attachThread( Emitter *e, Receiver *r, Wall *w);
+
     void generateReceiversTooltip();
 
     void computeRaysToReceivers(QList<Receiver *> rcv_list);
@@ -52,11 +56,19 @@ signals:
     void simulationStarted();
     void simulationFinished();
 
+private slots:
+    void computationUnitFinished();
+
 private:
     SimulationData *m_simulation_data;
     QList<Receiver*> m_receivers_list;
 
     QElapsedTimer m_computation_timer;
+
+    QThreadPool m_threadpool;
+    QList<ComputationUnit*> m_units;
+    QMutex m_mutex;
+
 };
 
 #endif // SIMULATIONHANDLER_H

@@ -410,13 +410,33 @@ void SimulationHandler::computeAllRays() {
                 // Don't compute any reflection if not needed
                 if (simulationData()->maxReflectionsCount() > 0) {
                     // Compute the ray paths recursively
-                    recursiveReflection(e, r, w);
+                    attachThread(e,r,w);
                 }
             }
         }
     }
 
-    qDebug() << "Time (ms):" << m_computation_timer.nsecsElapsed() / 1e6;
+}
+
+void SimulationHandler::attachThread(Emitter *e, Receiver *r, Wall *w){
+    ComputationUnit *cu = new ComputationUnit(this, e, r, w);
+    connect(cu, SIGNAL(computationFinished()), this , SLOT(computationUnitFinished()) );
+    m_units.append(cu);
+    m_threadpool.start(cu);
+}
+
+void SimulationHandler::computationUnitFinished(){
+    ComputationUnit *cu = qobject_cast<ComputationUnit*> (sender());
+    m_mutex.lock();
+    m_units.removeAll(cu);
+    m_mutex.unlock();
+    delete cu;
+    if(m_units.size() == 0){
+       qDebug() << "Time (ms):" << m_computation_timer.nsecsElapsed() / 1e6;
+       emit simulationFinished();
+    }
+
+
 }
 
 /**
