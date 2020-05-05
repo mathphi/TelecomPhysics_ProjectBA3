@@ -8,6 +8,10 @@ Antenna::Antenna(double efficiency) {
     m_efficiency = efficiency;
 }
 
+Antenna::~Antenna() {
+
+}
+
 double Antenna::getEfficiency() const {
     return m_efficiency;
 }

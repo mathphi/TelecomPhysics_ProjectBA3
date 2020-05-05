@@ -20,6 +20,8 @@ public:
             double efficiency,
             AntennaType::AntennaType antenna_type);
 
+    ~Emitter();
+
     Emitter* clone();
     Antenna *getAntenna();
 

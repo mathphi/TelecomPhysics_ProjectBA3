@@ -1,8 +1,8 @@
 #include "ui_mainwindow.h"
 #include "mainwindow.h"
 #include "walls.h"
-#include "emitters.h"
-#include "receivers.h"
+#include "emitter.h"
+#include "receiver.h"
 #include "emitterdialog.h"
 
 #include <QDebug>

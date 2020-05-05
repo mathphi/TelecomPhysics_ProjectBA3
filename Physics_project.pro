@@ -18,12 +18,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     antennas.cpp \
     computationunit.cpp \
+    emitter.cpp \
     emitterdialog.cpp \
-    emitters.cpp \
     main.cpp \
     mainwindow.cpp \
     raypath.cpp \
-    receivers.cpp \
+    receiver.cpp \
     scaleruleritem.cpp \
     simulationdata.cpp \
     simulationhandler.cpp \
@@ -35,11 +35,11 @@ HEADERS += \
     antennas.h \
     computationunit.h \
     constants.h \
+    emitter.h \
     emitterdialog.h \
-    emitters.h \
     mainwindow.h \
     raypath.h \
-    receivers.h \
+    receiver.h \
     scaleruleritem.h \
     simulationdata.h \
     simulationhandler.h \

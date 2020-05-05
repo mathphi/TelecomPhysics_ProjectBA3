@@ -15,6 +15,8 @@ public:
     Receiver(AntennaType::AntennaType antenna_type = AntennaType::HalfWaveDipoleVert,
              double efficiency = 1.0);
 
+    ~Receiver();
+
     Antenna *getAntenna();
 
     void setRotation(double angle);

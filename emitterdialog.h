@@ -3,7 +3,7 @@
 
 #include <QDialog>
 
-#include "emitters.h"
+#include "emitter.h"
 
 namespace Ui {
 class EmitterDialog;

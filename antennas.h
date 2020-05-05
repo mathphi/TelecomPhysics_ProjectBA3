@@ -4,10 +4,16 @@
 #include "constants.h"
 #include <QString>
 
+
 namespace AntennaType {
+// Enumeration
 enum AntennaType {
-    HalfWaveDipoleVert  = 1,
-    End = -1
+    HalfWaveDipoleVert,
+};
+
+// Iterative list (must contains the same as the enum)
+const AntennaType AntennaTypeList[] = {
+    HalfWaveDipoleVert,
 };
 }
 
@@ -16,6 +22,7 @@ class Antenna
 {
 public:
     Antenna(double efficiency = 1.0);
+    virtual ~Antenna();
 
     double getEfficiency() const;
 

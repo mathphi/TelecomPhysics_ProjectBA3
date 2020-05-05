@@ -1,5 +1,5 @@
 #include "constants.h"
-#include "receivers.h"
+#include "receiver.h"
 #include "simulationscene.h"
 #include "simulationdata.h"
 
@@ -28,6 +28,11 @@ Receiver::Receiver(AntennaType::AntennaType antenna_type, double efficiency)
     : Receiver(Antenna::createAntenna(antenna_type, efficiency))
 {
 
+}
+
+Receiver::~Receiver()
+{
+    delete m_antenna;
 }
 
 Antenna *Receiver::getAntenna() {

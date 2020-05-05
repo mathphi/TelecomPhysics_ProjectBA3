@@ -273,7 +273,7 @@ RayPath *SimulationHandler::computeRayPath(
         QList<QPointF> images,
         QList<Wall*> walls)
 {
-    // We run backward in this function (from receiver to emitter) \\
+    // We run backward in this function (from receiver to emitter)
 
     // The first target point is the receiver
     QPointF target_point = receiver->getRealPos();

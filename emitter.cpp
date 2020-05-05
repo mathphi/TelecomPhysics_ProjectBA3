@@ -1,4 +1,4 @@
-#include "emitters.h"
+#include "emitter.h"
 #include "constants.h"
 #include "simulationdata.h"
 
@@ -61,6 +61,11 @@ Emitter::Emitter(
 
 }
 
+Emitter::~Emitter()
+{
+    delete m_antenna;
+}
+
 /**
  * @brief clone
  * @return
@@ -114,9 +119,9 @@ QPainterPath Emitter::shape() const {
 
 void Emitter::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) {
     // Draw the shape of the gain in blue
-    //painter->setPen(QPen(QBrush(Qt::blue), 1));
-    //painter->setBrush(Qt::transparent);
-    //painter->drawPolygon(getPolyGain());
+    painter->setPen(QPen(QBrush(Qt::blue), 1));
+    painter->setBrush(Qt::transparent);
+    painter->drawPolygon(getPolyGain());
 
     // Draw a circle over a line, with the origin at the end of the line
     painter->setPen(QPen(QBrush(Qt::black), 1));

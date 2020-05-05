@@ -4,8 +4,8 @@
 #include <QObject>
 
 #include "walls.h"
-#include "emitters.h"
-#include "receivers.h"
+#include "emitter.h"
+#include "receiver.h"
 
 
 namespace SimType {
