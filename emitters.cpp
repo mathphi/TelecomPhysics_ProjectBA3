@@ -11,8 +11,6 @@
 
 #define EMITTER_POLYGAIN_SIZE 7.0
 
-#define HALF_WAVE_LABEL "λ/2"
-
 
 // Defines the rectangle where to place the emitter's label
 const QRectF TEXT_RECT(
@@ -21,7 +19,10 @@ const QRectF TEXT_RECT(
         EMITTER_TEXT_WIDTH,
         EMITTER_TEXT_HEIGHT);
 
-Emitter::Emitter (double frequency, double power, double efficiency) : SimulationItem()
+Emitter::Emitter(
+        double frequency,
+        double power,
+        Antenna *antenna) : SimulationItem()
 {
     // Over receivers and walls
     setZValue(5000);
@@ -31,7 +32,9 @@ Emitter::Emitter (double frequency, double power, double efficiency) : Simulatio
 
     m_frequency  = frequency;
     m_power      = power;
-    m_efficiency = efficiency;
+
+    // Create the associated antenna of right type
+    m_antenna = antenna;
 
     // Setup the tooltip with all emitter's info
     QString tip("<b>Fréquence:</b> %1 GHz<br/>"
@@ -40,37 +43,37 @@ Emitter::Emitter (double frequency, double power, double efficiency) : Simulatio
 
     tip = tip.arg(frequency * 1e-9, 0, 'f', 2)
             .arg(SimulationData::convertPowerTodBm(power), 0, 'f', 2)
-            .arg(efficiency * 100.0, 0, 'f', 1);
+            .arg(getEfficiency() * 100.0, 0, 'f', 1);
 
     setToolTip(tip);
 }
 
-/**
- * @brief Emitter::getEffectiveHeight
- * @param phi
- * @return
- *
- * Returns the same as getEffectiveHeight(theta, phi), but with the default angle
- * theta to π/2, since the 2D simulation is in the plane θ = π/2
- */
-complex<double> Emitter::getEffectiveHeight(double phi) const {
-    // The 2D simulation is in the plane θ = π/2
-    return getEffectiveHeight(M_PI_2, phi);
+Emitter::Emitter(
+        double frequency,
+        double power,
+        double efficiency,
+        AntennaType::AntennaType antenna_type)
+    : Emitter(
+          frequency,
+          power,
+          Antenna::createAntenna(antenna_type, efficiency))
+{
+
 }
 
 /**
- * @brief Emitter::getGain
- * @param phi
+ * @brief clone
  * @return
  *
- * Returns the same as getGain(theta, phi), but with the default angle
- * theta to π/2, since the 2D simulation is in the plane θ = π/2
+ * This function returns a new Emitter with the same properties
  */
-double Emitter::getGain(double phi) const {
-    // The 2D simulation is in the plane θ = π/2
-    return getGain(M_PI_2, phi);
+Emitter* Emitter::clone() {
+    return new Emitter(getFrequency(), getPower(), getEfficiency(), m_antenna->getAntennaType());
 }
 
+Antenna *Emitter::getAntenna() {
+    return m_antenna;
+}
 
 /**
  * @brief Emitter::getPolyGain
@@ -122,7 +125,7 @@ void Emitter::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget
     painter->drawLine(0, 0, 0, -(EMITTER_HEIGHT - EMITTER_WIDTH));
 
     // Draw the label of the emitter
-    painter->drawText(TEXT_RECT, Qt::AlignHCenter | Qt::AlignTop, getEmitterLabel());
+    painter->drawText(TEXT_RECT, Qt::AlignHCenter | Qt::AlignTop, m_antenna->getAntennaLabel());
 }
 
 /**
@@ -150,15 +153,12 @@ double Emitter::getRotation() {
  * @param ray
  * @return
  *
- * Returns the incidence angle of the ray to the emitter (in radians)
+ * Returns the incidence angle of the ray to the emitter (in radians).
+ * This function assumes the ray comes out the emitter.
  */
 double Emitter::getIncidentRayAngle(QLineF ray) {
     double ray_angle = ray.angle() / 180.0 * M_PI;
-    return ray_angle - m_rotation_angle;
-}
-
-double Emitter::getEfficiency() const {
-    return m_efficiency;
+    return ray_angle - getRotation();
 }
 
 double Emitter::getFrequency() const {
@@ -169,92 +169,53 @@ double Emitter::getPower() const {
     return m_power;
 }
 
+double Emitter::getEfficiency() const {
+    return m_antenna->getEfficiency();
+}
 
-HalfWaveDipole::HalfWaveDipole(double frequency, double power, double efficiency)
-    : Emitter(frequency, power, efficiency)
-{
-
+double Emitter::getResistance() const {
+    return m_antenna->getResistance();
 }
 
 /**
- * @brief clone
+ * @brief Emitter::getEffectiveHeight
+ * @param phi
  * @return
  *
- * This function returns a new HalfWaveDipole with the same properties
+ * Returns the same as getEffectiveHeight(theta, phi), but with the default angle
+ * theta to π/2, since the 2D simulation is in the plane θ = π/2
  */
-Emitter* HalfWaveDipole::clone() {
-    return new HalfWaveDipole(getFrequency(), getPower(), getEfficiency());
+complex<double> Emitter::getEffectiveHeight(double phi) const {
+    return m_antenna->getEffectiveHeight(M_PI_2, phi, m_frequency);
 }
 
-EmitterType::EmitterType HalfWaveDipole::getEmitterType() const {
-    return EmitterType::HalfWaveDipoleVert;
-}
-
-QString HalfWaveDipole::getEmitterLabel() const {
-    return HALF_WAVE_LABEL;
-}
-
-double HalfWaveDipole::getResistance() const {
-    // Compute the radiation resistance of the HalfWave dipole (equations 5.48, 5.47, 5.10)
-    double Rar = 6.0 * Z_0 / 32.0;
-
-    // The total resistance is the radiation resistance divided by the
-    // efficiency (equations 5.13, 5.11)
-    return Rar / getEfficiency();
-}
-
-double HalfWaveDipole::getGain(double theta, double phi) const {
-    Q_UNUSED(phi);
-
-    // This function equals 0 for theta == 0, but avoid the 0/0 situation
-    if (theta == 0) {
-        return 0;
-    }
-
-    // Get the efficiency
-    double eta = getEfficiency();
-
-    // Compute the gain (equations 5.44, 5.24, 5.22)
-    return eta * 16.0/(3*M_PI) * pow(cos(M_PI_2 * cos(theta)) / sin(theta), 2);
-}
-
-complex<double> HalfWaveDipole::getEffectiveHeight(double theta, double phi) const {
-    Q_UNUSED(phi);
-
-    // This function equals 0 for theta == 0, but avoid the 0/0 situation
-    if (theta == 0) {
-        return 0;
-    }
-
-    // Compute the wave length
-    double lambda = LIGHT_SPEED / getFrequency();
-
-    // Compute the effective height (equation 5.42)
-    return -lambda/M_PI * cos(M_PI_2 * cos(theta))/pow(sin(theta),2);
+/**
+ * @brief Emitter::getEffectiveHeight
+ * @param phi
+ * @return
+ *
+ * Returns the same as getEffectiveHeight(theta, phi), but with the default angle
+ * theta to π/2, since the 2D simulation is in the plane θ = π/2
+ */
+double Emitter::getGain(double phi) const {
+    return m_antenna->getGain(M_PI_2, phi);
 }
 
 
 QDataStream &operator>>(QDataStream &in, Emitter *&e) {
-    int type;
+    Antenna *ant;
     double power;
     double frequency;
-    double efficiency;
     double rotation;
     QPoint pos;
 
-    in >> type;
+    in >> ant;
     in >> power;
     in >> frequency;
-    in >> efficiency;
     in >> rotation;
     in >> pos;
 
-    switch (type) {
-    case EmitterType::HalfWaveDipoleVert:
-        e = new HalfWaveDipole(frequency, power, efficiency);
-        break;
-    }
-
+    e = new Emitter(frequency, power, ant);
     e->setRotation(rotation);
     e->setPos(pos);
 
@@ -262,10 +223,9 @@ QDataStream &operator>>(QDataStream &in, Emitter *&e) {
 }
 
 QDataStream &operator<<(QDataStream &out, Emitter *e) {
-    out << e->getEmitterType();
+    out << e->getAntenna();
     out << e->getPower();
     out << e->getFrequency();
-    out << e->getEfficiency();
     out << e->getRotation();
     out << e->pos().toPoint();
 

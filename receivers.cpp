@@ -9,8 +9,14 @@
 #define RECEIVER_SIZE (1.0 * simulationScene()->simulationScale())
 #define RECEIVER_CIRCLE_SIZE 8 // Size of the circle at the center (in pixels)
 
-Receiver::Receiver() : SimulationItem()
+Receiver::Receiver(Antenna *antenna) : SimulationItem()
 {
+    // The default angle for the emitter is PI/2 (incidence to top)
+    m_rotation_angle = M_PI_2;
+
+    // Create the associated antenna of right type
+    m_antenna = antenna;
+
     // Over walls
     setZValue(2000);
 
@@ -18,36 +24,69 @@ Receiver::Receiver() : SimulationItem()
     reset();
 }
 
-QRectF Receiver::boundingRect() const {
-    return QRectF(-RECEIVER_SIZE/2 - 2, -RECEIVER_SIZE/2 - 2,
-                  RECEIVER_SIZE + 4, RECEIVER_SIZE + 4);
+Receiver::Receiver(AntennaType::AntennaType antenna_type, double efficiency)
+    : Receiver(Antenna::createAntenna(antenna_type, efficiency))
+{
+
 }
 
-QPainterPath Receiver::shape() const {
-    QPainterPath path;
-    path.addRect(-RECEIVER_SIZE/2 - 2, -RECEIVER_SIZE/2 - 2,
-                 RECEIVER_SIZE + 4, RECEIVER_SIZE + 4);
-    return path;
+Antenna *Receiver::getAntenna() {
+    return m_antenna;
 }
 
-void Receiver::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) {
-    // Draw a dash-dot lined square with a cross on his center
-    painter->setBrush(Qt::transparent);
-    painter->setPen(QPen(QBrush(Qt::black), 1,Qt::DashDotLine));
-    painter->drawRect(-RECEIVER_SIZE/2, -RECEIVER_SIZE/2, RECEIVER_SIZE, RECEIVER_SIZE);
-
-    painter->drawLine(0, -RECEIVER_SIZE/2, 0, RECEIVER_SIZE/2);
-    painter->drawLine(-RECEIVER_SIZE/2, 0, RECEIVER_SIZE/2, 0);
-
-    // Draw a circle on the center of the drawn square
-    painter->setPen(QPen(QBrush(Qt::black), 1));
-    painter->setBrush(Qt::green);
-    painter->drawEllipse(
-                -RECEIVER_CIRCLE_SIZE/2,
-                -RECEIVER_CIRCLE_SIZE/2,
-                RECEIVER_CIRCLE_SIZE,
-                RECEIVER_CIRCLE_SIZE);
+/**
+ * @brief Receiver::setRotation
+ * @param angle
+ *
+ * Sets the rotation angle of the emitter (in radians)
+ */
+void Receiver::setRotation(double angle) {
+    m_rotation_angle = angle;
 }
+
+/**
+ * @brief Receiver::getRotation
+ * @return
+ *
+ * Get the rotation angle of the antenna (in radians)
+ */
+double Receiver::getRotation() {
+    return m_rotation_angle;
+}
+
+/**
+ * @brief Receiver::getIncidentRayAngle
+ * @param ray
+ * @return
+ *
+ * Returns the incidence angle of the ray to the emitter (in radians)
+ * This function assumes the ray comes into the emitter.
+ */
+double Receiver::getIncidentRayAngle(QLineF ray) {
+    double ray_angle = ray.angle() / 180.0 * M_PI - M_PI;
+    return ray_angle - getRotation();
+}
+
+double Receiver::getEfficiency() const {
+    return m_antenna->getEfficiency();
+}
+
+double Receiver::getResistance() const {
+    return m_antenna->getResistance();
+}
+
+complex<double> Receiver::getEffectiveHeight(double phi, double frequency) const {
+    return m_antenna->getEffectiveHeight(M_PI_2, phi, frequency);
+}
+
+double Receiver::getGain(double phi) const {
+    return m_antenna->getGain(M_PI_2, phi);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// --------------------------------- RAYS RECEIVING FUNCTIONS ------------------------------------//
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void Receiver::reset() {
     // Delete all RayPaths to this receiver
@@ -106,6 +145,42 @@ double Receiver::getBitRate() {
     return bit_rate;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// ------------------------------------ GRAPHICS FUNCTIONS ---------------------------------------//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+QRectF Receiver::boundingRect() const {
+    return QRectF(-RECEIVER_SIZE/2 - 2, -RECEIVER_SIZE/2 - 2,
+                  RECEIVER_SIZE + 4, RECEIVER_SIZE + 4);
+}
+
+QPainterPath Receiver::shape() const {
+    QPainterPath path;
+    path.addRect(-RECEIVER_SIZE/2 - 2, -RECEIVER_SIZE/2 - 2,
+                 RECEIVER_SIZE + 4, RECEIVER_SIZE + 4);
+    return path;
+}
+
+void Receiver::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) {
+    // Draw a dash-dot lined square with a cross on his center
+    painter->setBrush(Qt::transparent);
+    painter->setPen(QPen(QBrush(Qt::black), 1,Qt::DashDotLine));
+    painter->drawRect(-RECEIVER_SIZE/2, -RECEIVER_SIZE/2, RECEIVER_SIZE, RECEIVER_SIZE);
+
+    painter->drawLine(0, -RECEIVER_SIZE/2, 0, RECEIVER_SIZE/2);
+    painter->drawLine(-RECEIVER_SIZE/2, 0, RECEIVER_SIZE/2, 0);
+
+    // Draw a circle on the center of the drawn square
+    painter->setPen(QPen(QBrush(Qt::black), 1));
+    painter->setBrush(Qt::green);
+    painter->drawEllipse(
+                -RECEIVER_CIRCLE_SIZE/2,
+                -RECEIVER_CIRCLE_SIZE/2,
+                RECEIVER_CIRCLE_SIZE,
+                RECEIVER_CIRCLE_SIZE);
+}
+
 void Receiver::generateTooltip() {
     // Set the tooltip of the receiver with
     //  - the number of incident rays
@@ -121,16 +196,20 @@ void Receiver::generateTooltip() {
 
 
 QDataStream &operator>>(QDataStream &in, Receiver *&r) {
+    Antenna *ant;
     QPoint pos;
+
+    in >> ant;
     in >> pos;
 
-    r = new Receiver();
+    r = new Receiver(ant);
     r->setPos(pos);
 
     return in;
 }
 
 QDataStream &operator<<(QDataStream &out, Receiver *r) {
+    out << r->getAntenna();
     out << r->pos().toPoint();
 
     return out;

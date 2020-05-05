@@ -17,7 +17,7 @@ public:
     explicit EmitterDialog(QWidget *parent = nullptr);
     ~EmitterDialog();
 
-    EmitterType::EmitterType getEmitterType();
+    AntennaType::AntennaType getAntennaType();
     double getPower();
     double getFrequency();
     double getEfficiency();

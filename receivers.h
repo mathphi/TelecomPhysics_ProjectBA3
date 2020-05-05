@@ -6,18 +6,31 @@
 
 #include "simulationitem.h"
 #include "raypath.h"
+#include "antennas.h"
 
 class Receiver : public SimulationItem
 {
 public:
-    Receiver();
+    Receiver(Antenna *antenna);
+    Receiver(AntennaType::AntennaType antenna_type = AntennaType::HalfWaveDipoleVert,
+             double efficiency = 1.0);
+
+    Antenna *getAntenna();
+
+    void setRotation(double angle);
+    double getRotation();
+    double getIncidentRayAngle(QLineF ray);
+
+    double getEfficiency() const;
+    double getResistance() const;
+    complex<double> getEffectiveHeight(double phi, double frequency) const;
+    double getGain(double phi) const;
 
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override;
 
     void reset();
-
     void addRayPath(RayPath *rp);
     QList<RayPath*> getRayPaths();
 
@@ -27,6 +40,9 @@ public:
     void generateTooltip();
 
 private:
+    double m_rotation_angle;
+    Antenna *m_antenna;
+
     QList<RayPath*> m_received_rays;
     double m_received_power;
 

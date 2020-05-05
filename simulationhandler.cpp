@@ -231,21 +231,26 @@ complex<double> SimulationHandler::computeNominalElecField(Emitter *em, QLineF r
 /**
  * @brief SimulationHandler::computeRayPower
  *
- * This function computes the power of a ray path from an emitter
+ * This function computes the power of a ray path from an emitter to a receiver
  * (equation 8.83, applyed to one ray)
  *
  * @param em  : The emitter (source of the ray path)
- * @param ray : The ray coming out from the emitter
+ * @param re  : The receiver (destination of the ray path)
+ * @param ray : The ray coming to the receiver
  * @param En  : The electric field of the ray
  * @return    : The power of the ray path to the receiver
  */
-double SimulationHandler::computeRayPower(Emitter *em, QLineF ray, complex<double> En) {
-    // Incidence angle of the ray from the emitter
-    double phi = em->getIncidentRayAngle(ray);
+double SimulationHandler::computeRayPower(Emitter *em, Receiver *re, QLineF ray, complex<double> En)
+{
+    // Incidence angle of the ray to the receiver
+    double phi = re->getIncidentRayAngle(ray);
+
+    // Get the frequency from the emitter
+    double frequency = em->getFrequency();
 
     // Get the antenna's resistance and effective height
-    double Ra = em->getResistance();
-    complex<double> he = em->getEffectiveHeight(phi);
+    double Ra = re->getResistance();
+    complex<double> he = re->getEffectiveHeight(phi, frequency);
 
     // norm() = square of modulus
     return norm(he * En) / (8.0 * Ra);
@@ -268,7 +273,7 @@ RayPath *SimulationHandler::computeRayPath(
         QList<QPointF> images,
         QList<Wall*> walls)
 {
-    // We run backward in this function (from receiver to emitter)
+    // We run backward in this function (from receiver to emitter) \\
 
     // The first target point is the receiver
     QPointF target_point = receiver->getRealPos();
@@ -342,8 +347,8 @@ RayPath *SimulationHandler::computeRayPath(
     // Compute the electric field for this ray path (equation 8.78)
     complex<double> En = coeff * computeNominalElecField(emitter, ray, dn);
 
-    // Compute the power of the ray
-    double power = computeRayPower(emitter, ray, En);
+    // Compute the power of the ray coming to the receiver (first ray in the list)
+    double power = computeRayPower(emitter, receiver, rays.first(), En);
 
     // Return a new RayPath object
     RayPath *rp = new RayPath(emitter, rays, power);

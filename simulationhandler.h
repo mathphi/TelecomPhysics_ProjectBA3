@@ -29,7 +29,7 @@ public:
     complex<double> computeTransmissons(Emitter *em, QLineF ray, Wall *origin_wall = nullptr, Wall *target_wall = nullptr);
     complex<double> computeNominalElecField(Emitter *em, QLineF ray, double dn);
 
-    double computeRayPower(Emitter *em, QLineF ray, complex<double> En);
+    double computeRayPower(Emitter *em, Receiver *re, QLineF ray, complex<double> En);
 
     RayPath *computeRayPath(
             Emitter *emitter,

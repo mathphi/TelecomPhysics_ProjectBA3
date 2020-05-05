@@ -3,32 +3,25 @@
 
 #include "simulationitem.h"
 #include "constants.h"
+#include "antennas.h"
 
 #include <QGraphicsItem>
 #include <complex>
 
-namespace EmitterType {
-enum EmitterType {
-    HalfWaveDipoleVert  = 1,
-};
-}
-
 class Emitter : public SimulationItem
 {
 public:
-    Emitter (double frequency, double power, double efficiency);
+    Emitter(double frequency,
+            double power,
+            Antenna *antenna);
 
-    virtual Emitter* clone() = 0;
+    Emitter(double frequency,
+            double power,
+            double efficiency,
+            AntennaType::AntennaType antenna_type);
 
-    virtual EmitterType::EmitterType getEmitterType() const = 0;
-    virtual QString getEmitterLabel() const = 0;
-
-    virtual double getResistance() const = 0;
-    virtual complex<double> getEffectiveHeight(double theta, double phi) const = 0;
-    virtual double getGain(double theta, double phi) const = 0;
-
-    complex<double> getEffectiveHeight(double phi) const;
-    double getGain(double phi) const;
+    Emitter* clone();
+    Antenna *getAntenna();
 
     QPolygonF getPolyGain() const;
     QRectF boundingRect() const override;
@@ -37,36 +30,25 @@ public:
 
     void setRotation(double angle);
     double getRotation();
-
     double getIncidentRayAngle(QLineF ray);
 
     double getPower() const;
     double getFrequency() const;
     double getEfficiency() const;
 
+    double getResistance() const;
+    complex<double> getEffectiveHeight(double phi) const;
+    double getGain(double phi) const;
+
 private:
     double m_rotation_angle;
 
     double m_frequency;
     double m_power;
-    double m_efficiency;
+
+    Antenna *m_antenna;
 };
 
-
-class HalfWaveDipole : public Emitter
-{
-public:
-    HalfWaveDipole(double frequency, double power, double efficiency);
-
-    Emitter* clone() override;
-
-    EmitterType::EmitterType getEmitterType() const override;
-    QString getEmitterLabel() const override;
-
-    double getResistance() const override;
-    complex<double> getEffectiveHeight(double theta, double phi) const override;
-    double getGain(double theta, double phi) const override;
-};
 
 // Operator overload to write objects from the Emitter class into a files
 QDataStream &operator>>(QDataStream &in, Emitter *&e);

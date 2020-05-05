@@ -14,7 +14,7 @@ EmitterDialog::EmitterDialog(QWidget *parent) :
     setWindowFlag(Qt::WindowContextHelpButtonHint, false);
 
     // Add items to the antenna type combobox
-    ui->combobox_antenna_type->addItem("Dipôle λ/2 Vertical", EmitterType::HalfWaveDipoleVert);
+    ui->combobox_antenna_type->addItem("Dipôle λ/2 Vertical", AntennaType::HalfWaveDipoleVert);
 
     connect(ui->spinbox_power, SIGNAL(valueChanged(double)), this, SLOT(powerSpinboxChanged(double)));
 }
@@ -32,8 +32,8 @@ void EmitterDialog::keyPressEvent(QKeyEvent *event) {
     QDialog::keyPressEvent(event);
 }
 
-EmitterType::EmitterType EmitterDialog::getEmitterType() {
-    return (EmitterType::EmitterType) ui->combobox_antenna_type->currentData().toInt();
+AntennaType::AntennaType EmitterDialog::getAntennaType() {
+    return (AntennaType::AntennaType) ui->combobox_antenna_type->currentData().toInt();
 }
 
 double EmitterDialog::getPower() {

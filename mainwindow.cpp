@@ -364,17 +364,13 @@ void MainWindow::addEmitter() {
     if (ans == QDialog::Rejected)
         return;
 
-    EmitterType::EmitterType type = emitter_dialog->getEmitterType();
+    AntennaType::AntennaType type = emitter_dialog->getAntennaType();
     double power      = emitter_dialog->getPower();
     double frequency  = emitter_dialog->getFrequency();
     double efficiency = emitter_dialog->getEfficiency();
 
     // Create an emitter of the selected type to place on the scene
-    switch (type) {
-    case EmitterType::HalfWaveDipoleVert:
-        m_drawing_item = new HalfWaveDipole(frequency, power, efficiency);
-        break;
-    }
+    m_drawing_item = new Emitter(frequency, power, efficiency, type);
 
     // We are placing an emitter
     m_draw_action = DrawActions::Emitter;
