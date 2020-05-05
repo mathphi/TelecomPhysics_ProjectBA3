@@ -447,7 +447,8 @@ void SimulationHandler::computeAllRays() {
         }
     }
 
-
+    // Call it once (in the case we don't have any computation unit created)
+    computationUnitFinished();
 }
 
 /**
@@ -487,13 +488,16 @@ void SimulationHandler::computationUnitFinished() {
     // Get the computation unit (origin of the signal)
     ComputationUnit *cu = qobject_cast<ComputationUnit*> (sender());
 
-    // One thread can write in this list at a time (mutex)
-    m_mutex.lock();
-    m_computation_units.removeOne(cu);
-    m_mutex.unlock();
+    // If a computation unit is the origin of the call to this function
+    if (cu != nullptr) {
+        // One thread can write in this list at a time (mutex)
+        m_mutex.lock();
+        m_computation_units.removeOne(cu);
+        m_mutex.unlock();
 
-    // Delete this computation unit
-    delete cu;
+        // Delete this computation unit
+        delete cu;
+    }
 
     // Compute the progression and send the progression signal
     double progress = 1.0 - (double) m_computation_units.size() / (double) m_init_cu_count;

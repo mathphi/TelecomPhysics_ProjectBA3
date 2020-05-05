@@ -910,6 +910,7 @@ void MainWindow::actionOpen() {
    }
 
    // Clear all the current data
+   m_simulation_handler->resetComputedData();
    clearAllItems();
 
    // Read data from the file
