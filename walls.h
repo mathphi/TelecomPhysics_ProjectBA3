@@ -20,6 +20,7 @@ class Wall : public SimulationItem
 {
 public:
     Wall(QLineF line, double thickness);
+    void setupTooltip();
 
     QLineF getLine();
     void setLine(QLineF line);
@@ -35,10 +36,12 @@ public:
     QBrush getBrush();
     void setBrush(QBrush b);
 
+    virtual QString getTypeName() const = 0;
+
     // The 'virtual' keyword makes these functions abstracts
-    virtual double getRelPermitivity() = 0;
-    virtual double getConductivity() = 0;
-    virtual WallType::WallType getWallType() = 0;
+    virtual double getRelPermitivity() const = 0;
+    virtual double getConductivity() const = 0;
+    virtual WallType::WallType getWallType() const = 0;
 
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
@@ -63,9 +66,11 @@ public:
     BrickWall(QLineF line);
     BrickWall(QLineF line, double thickness);
 
-    double getRelPermitivity();
-    double getConductivity();
-    WallType::WallType getWallType();
+    QString getTypeName() const override;
+
+    double getRelPermitivity() const override;
+    double getConductivity() const override;
+    WallType::WallType getWallType() const override;
 };
 
 
@@ -75,9 +80,11 @@ public:
     ConcreteWall(QLineF line);
     ConcreteWall(QLineF line, double thickness);
 
-    double getRelPermitivity();
-    double getConductivity();
-    WallType::WallType getWallType();
+    QString getTypeName() const override;
+
+    double getRelPermitivity() const override;
+    double getConductivity() const override;
+    WallType::WallType getWallType() const override;
 };
 
 
@@ -87,9 +94,11 @@ public:
     PartitionWall(QLineF line);
     PartitionWall(QLineF line, double thickness);
 
-    double getRelPermitivity();
-    double getConductivity();
-    WallType::WallType getWallType();
+    QString getTypeName() const override;
+
+    double getRelPermitivity() const override;
+    double getConductivity() const override;
+    WallType::WallType getWallType() const override;
 };
 
 // Operator overload to write objects from the Wall class into a files

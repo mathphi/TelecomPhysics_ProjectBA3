@@ -191,9 +191,12 @@ void Receiver::generateTooltip() {
     //  - the number of incident rays
     //  - the received power
     //  - the bitrate
-    setToolTip(QString("<b>Rayons incidents&nbsp;:</b> %1<br>"
-                       "<b>Puissance&nbsp;:</b> %2&nbsp;dBm<br>"
-                       "<b>Débit&nbsp;:</b> %3&nbsp;Mb/s")
+    setToolTip(QString("<b><u>Récepteur</u></b><br/>"
+                       "<b><i>%1</i></b><br/>"
+                       "<b>Rayons incidents&nbsp;:</b> %2<br>"
+                       "<b>Puissance&nbsp;:</b> %3&nbsp;dBm<br>"
+                       "<b>Débit&nbsp;:</b> %4&nbsp;Mb/s")
+               .arg(m_antenna->getAntennaName())
                .arg(getRayPaths().size())
                .arg(SimulationData::convertPowerTodBm(receivedPower()), 0, 'f', 2)
                .arg(getBitRate(), 0, 'f', 2));

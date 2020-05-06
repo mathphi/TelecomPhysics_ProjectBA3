@@ -35,6 +35,17 @@ Wall::Wall(QLineF line, double thickness) : SimulationItem() {
     m_text_scale = 1.0;
 }
 
+void Wall::setupTooltip() {
+    // Setup the tooltip with the wall's info
+    QString tip("<b><i>%1</i></b><br/>"
+                "<b>Épaisseur:</b> %2 cm");
+
+    tip = tip.arg(getTypeName())
+             .arg(int(m_thickness * 100));
+
+    setToolTip(tip);
+}
+
 QLineF Wall::getLine() {
     return m_line;
 }
@@ -216,20 +227,23 @@ BrickWall::BrickWall(QLineF line, double thickness) : Wall(line, thickness) {
     setBrush(QBrush(Qt::black, Qt::SolidPattern));
     setZValue(1002);
 
-    //TODO: add tooltips for properties ?
+    setupTooltip();
 }
 
 // This constructor is equivalent to the main constructor but using a default thickness
 BrickWall::BrickWall(QLineF line) : BrickWall(line, BRICK_THICKNESS_DEFAULT) {}
 
+QString BrickWall::getTypeName() const {
+    return "Mur en briques";
+}
 
-double BrickWall::getRelPermitivity() {
+double BrickWall::getRelPermitivity() const {
     return BRICK_R_PERMITTIVITY;
 }
-double BrickWall::getConductivity() {
+double BrickWall::getConductivity() const {
     return BRICK_CONDUCTIVITY;
 }
-WallType::WallType BrickWall::getWallType(){
+WallType::WallType BrickWall::getWallType() const{
     return WallType::BrickWall;
 }
 
@@ -238,19 +252,24 @@ ConcreteWall::ConcreteWall(QLineF line, double thickness) : Wall(line, thickness
     setPen(QPen(Qt::black, 1));
     setBrush(QBrush(Qt::black, Qt::BDiagPattern));
     setZValue(1001);
+
+    setupTooltip();
 }
 
 // This constructor is equivalent to the main constructor but using a default thickness
 ConcreteWall::ConcreteWall(QLineF line) : ConcreteWall(line, CONCRETE_THICKNESS_DEFAULT) {}
 
+QString ConcreteWall::getTypeName() const {
+    return "Mur en béton";
+}
 
-double ConcreteWall::getRelPermitivity() {
+double ConcreteWall::getRelPermitivity() const {
     return CONCRETE_R_PERMITTIVITY;
 }
-double ConcreteWall::getConductivity() {
+double ConcreteWall::getConductivity() const {
     return CONCRETE_CONDUCTIVITY;
 }
-WallType::WallType ConcreteWall::getWallType(){
+WallType::WallType ConcreteWall::getWallType() const {
     return WallType::ConcreteWall;
 }
 
@@ -259,18 +278,24 @@ PartitionWall::PartitionWall(QLineF line, double thickness) : Wall(line, thickne
     setPen(QPen(Qt::black, 1));
     setBrush(QBrush(Qt::white, Qt::SolidPattern));
     setZValue(1000);
+
+    setupTooltip();
 }
 
 // This constructor is equivalent to the main constructor but using a default thickness
 PartitionWall::PartitionWall(QLineF line) : PartitionWall(line, PARTITION_THICKNESS_DEFAULT) {}
 
-double PartitionWall::getRelPermitivity() {
+QString PartitionWall::getTypeName() const {
+    return "Cloison";
+}
+
+double PartitionWall::getRelPermitivity() const {
     return PARTITION_R_PERMITTIVITY;
 }
-double PartitionWall::getConductivity() {
+double PartitionWall::getConductivity() const {
     return PARTITION_CONDUCTIVITY;
 }
-WallType::WallType PartitionWall::getWallType(){
+WallType::WallType PartitionWall::getWallType() const {
     return WallType::PartitionWall;
 }
 

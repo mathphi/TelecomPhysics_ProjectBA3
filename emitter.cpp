@@ -37,11 +37,14 @@ Emitter::Emitter(
     m_antenna = antenna;
 
     // Setup the tooltip with all emitter's info
-    QString tip("<b>Fréquence:</b> %1 GHz<br/>"
-                "<b>Puissance:</b> %2 dBm<br/>"
-                "<b>Rendement:</b> %4 %");
+    QString tip("<b><u>Émetteur</u></b><br/>"
+                "<b><i>%1</i></b><br/>"
+                "<b>Fréquence:</b> %2 GHz<br/>"
+                "<b>Puissance:</b> %3 dBm<br/>"
+                "<b>Rendement:</b> %4%");
 
-    tip = tip.arg(frequency * 1e-9, 0, 'f', 2)
+    tip = tip.arg(m_antenna->getAntennaName())
+            .arg(frequency * 1e-9, 0, 'f', 2)
             .arg(SimulationData::convertPowerTodBm(power), 0, 'f', 2)
             .arg(getEfficiency() * 100.0, 0, 'f', 1);
 
