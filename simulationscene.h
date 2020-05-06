@@ -27,6 +27,7 @@ protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+    virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
 
     virtual void wheelEvent(QGraphicsSceneWheelEvent *event) override;
 
@@ -39,6 +40,7 @@ signals:
     void mouseRightPressed(QGraphicsSceneMouseEvent *event);
     void mouseRightReleased(QGraphicsSceneMouseEvent *event);
     void mouseMoved(QGraphicsSceneMouseEvent *event);
+    void mouseDoubleClicked(QGraphicsSceneMouseEvent *event);
 
     void mouseWheelEvent(QGraphicsSceneWheelEvent *event);
 

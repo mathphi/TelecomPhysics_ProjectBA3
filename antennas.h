@@ -25,6 +25,7 @@ public:
     virtual ~Antenna();
 
     double getEfficiency() const;
+    void setEfficiency(double efficiency);
 
     static Antenna *createAntenna(AntennaType::AntennaType type, double efficiency);
 

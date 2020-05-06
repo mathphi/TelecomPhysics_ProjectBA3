@@ -15,6 +15,7 @@ class EmitterDialog : public QDialog
 
 public:
     explicit EmitterDialog(QWidget *parent = nullptr);
+    explicit EmitterDialog(Emitter *em, QWidget *parent = nullptr);
     ~EmitterDialog();
 
     AntennaType::AntennaType getAntennaType();

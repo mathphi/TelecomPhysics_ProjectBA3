@@ -23,7 +23,6 @@ public:
     ~Emitter();
 
     Emitter* clone();
-    Antenna *getAntenna();
 
     QPolygonF getPolyGain() const;
     QRectF boundingRect() const override;
@@ -34,6 +33,12 @@ public:
     double getRotation();
     double getIncidentRayAngle(QLineF ray);
 
+    void setAntenna(AntennaType::AntennaType type, double efficiency);
+    void setAntenna(Antenna *a);
+    void setPower(double power);
+    void setFrequency(double freq);
+
+    Antenna *getAntenna();
     double getPower() const;
     double getFrequency() const;
     double getEfficiency() const;

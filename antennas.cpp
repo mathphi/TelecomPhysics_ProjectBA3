@@ -16,6 +16,10 @@ double Antenna::getEfficiency() const {
     return m_efficiency;
 }
 
+void Antenna::setEfficiency(double efficiency) {
+    m_efficiency = efficiency;
+}
+
 Antenna *Antenna::createAntenna(AntennaType::AntennaType type, double efficiency) {
     Antenna *antenna;
 

@@ -67,6 +67,10 @@ void SimulationScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
     emit mouseMoved(event);
 }
 
+void SimulationScene::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) {
+    emit mouseDoubleClicked(event);
+}
+
 
 void SimulationScene::wheelEvent(QGraphicsSceneWheelEvent *event) {
     emit mouseWheelEvent(event);

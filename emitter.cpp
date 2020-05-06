@@ -36,6 +36,7 @@ Emitter::Emitter(
     // Create the associated antenna of right type
     m_antenna = antenna;
 
+    //TODO: update tooltip when data updated (setPower,...)
     // Setup the tooltip with all emitter's info
     QString tip("<b><u>Émetteur</u></b><br/>"
                 "<b><i>%1</i></b><br/>"
@@ -167,6 +168,27 @@ double Emitter::getRotation() {
 double Emitter::getIncidentRayAngle(QLineF ray) {
     double ray_angle = ray.angle() / 180.0 * M_PI;
     return ray_angle - getRotation();
+}
+
+
+void Emitter::setAntenna(AntennaType::AntennaType type, double efficiency) {
+    setAntenna(Antenna::createAntenna(type, efficiency));
+}
+
+void Emitter::setAntenna(Antenna *a) {
+    if (m_antenna != nullptr) {
+        delete m_antenna;
+    }
+
+    m_antenna = a;
+}
+
+void Emitter::setPower(double power) {
+    m_power = power;
+}
+
+void Emitter::setFrequency(double freq) {
+    m_frequency = freq;
 }
 
 double Emitter::getFrequency() const {

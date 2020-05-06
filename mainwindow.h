@@ -86,10 +86,13 @@ private slots:
     void graphicsSceneLeftPressed(QGraphicsSceneMouseEvent *event);
     void graphicsSceneLeftReleased(QGraphicsSceneMouseEvent *event);
     void graphicsSceneMouseMoved(QGraphicsSceneMouseEvent *event);
+    void graphicsSceneDoubleClicked(QGraphicsSceneMouseEvent *event);
 
     void graphicsSceneWheelEvent(QGraphicsSceneWheelEvent *event);
 
     void keyPressed(QKeyEvent *e);
+
+    void configureEmitter(Emitter *em);
 
     void switchEditSceneMode();
     void switchSimulationMode();

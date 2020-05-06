@@ -122,6 +122,8 @@ MainWindow::MainWindow(QWidget *parent)
             this, SLOT(graphicsSceneLeftReleased(QGraphicsSceneMouseEvent*)));
     connect(m_scene, SIGNAL(mouseMoved(QGraphicsSceneMouseEvent*)),
             this, SLOT(graphicsSceneMouseMoved(QGraphicsSceneMouseEvent*)));
+    connect(m_scene, SIGNAL(mouseDoubleClicked(QGraphicsSceneMouseEvent*)),
+            this, SLOT(graphicsSceneDoubleClicked(QGraphicsSceneMouseEvent*)));
     connect(m_scene, SIGNAL(mouseWheelEvent(QGraphicsSceneWheelEvent*)),
             this, SLOT(graphicsSceneWheelEvent(QGraphicsSceneWheelEvent*)));
     connect(m_scene, SIGNAL(keyPressed(QKeyEvent*)), this, SLOT(keyPressed(QKeyEvent*)));
@@ -354,20 +356,38 @@ void MainWindow::eraseAll() {
     }
 }
 
-void MainWindow::addEmitter() {
-    cancelCurrentDrawing();
-
-    // Dialog to configure the antenna
-    EmitterDialog *emitter_dialog = new EmitterDialog(this);
-    int ans = emitter_dialog->exec();
+void MainWindow::configureEmitter(Emitter *em) {
+    // Dialog to configure the emitter
+    EmitterDialog emitter_dialog(em, this);
+    int ans = emitter_dialog.exec();
 
     if (ans == QDialog::Rejected)
         return;
 
-    AntennaType::AntennaType type = emitter_dialog->getAntennaType();
-    double power      = emitter_dialog->getPower();
-    double frequency  = emitter_dialog->getFrequency();
-    double efficiency = emitter_dialog->getEfficiency();
+    AntennaType::AntennaType type = emitter_dialog.getAntennaType();
+    double power      = emitter_dialog.getPower();
+    double frequency  = emitter_dialog.getFrequency();
+    double efficiency = emitter_dialog.getEfficiency();
+
+    em->setPower(power);
+    em->setFrequency(frequency);
+    em->setAntenna(type, efficiency);
+}
+
+void MainWindow::addEmitter() {
+    cancelCurrentDrawing();
+
+    // Dialog to configure the emitter
+    EmitterDialog emitter_dialog(this);
+    int ans = emitter_dialog.exec();
+
+    if (ans == QDialog::Rejected)
+        return;
+
+    AntennaType::AntennaType type = emitter_dialog.getAntennaType();
+    double power      = emitter_dialog.getPower();
+    double frequency  = emitter_dialog.getFrequency();
+    double efficiency = emitter_dialog.getEfficiency();
 
     // Create an emitter of the selected type to place on the scene
     m_drawing_item = new Emitter(frequency, power, efficiency, type);
@@ -485,8 +505,31 @@ void MainWindow::graphicsSceneWheelEvent(QGraphicsSceneWheelEvent *event) {
 }
 
 /**
+ * @brief MainWindow::graphicsSceneDoubleClicked
+ * @param event
+ *
+ * Slot called when the user double click on the graphics scene
+ */
+void MainWindow::graphicsSceneDoubleClicked(QGraphicsSceneMouseEvent *event) {
+    // If we are placing something -> nothing to do
+    if (m_drawing_item != nullptr) {
+        return;
+    }
+
+    // Loop over the items under the mouse position
+    foreach(QGraphicsItem *item, m_scene->items(event->scenePos())) {
+        // Try to cast this item
+        Emitter *em = dynamic_cast<Emitter*>(item);
+
+        // If one of them is an Emitter -> configure it
+        if (em != nullptr) {
+            configureEmitter(em);
+        }
+    }
+}
+
+/**
  * @brief MainWindow::graphicsSceneRightReleased
- * @param pos
  *
  * Slot called when the user releases the right button on the graphics scene
  */

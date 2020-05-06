@@ -28,6 +28,25 @@ EmitterDialog::EmitterDialog(QWidget *parent) :
     connect(ui->spinbox_power, SIGNAL(valueChanged(double)), this, SLOT(powerSpinboxChanged(double)));
 }
 
+EmitterDialog::EmitterDialog(Emitter *em, QWidget *parent)
+    : EmitterDialog(parent)
+{
+    int type_index = 0;
+
+    // Get the index of the antenna type in the combobox
+    for (int i = 0 ; i < ui->combobox_antenna_type->count() ; i++) {
+        if (ui->combobox_antenna_type->itemData(i) == em->getAntenna()->getAntennaType()) {
+            type_index = i;
+        }
+    }
+
+    // Set the initial data in the fields
+    ui->combobox_antenna_type->setCurrentIndex(type_index);
+    ui->spinbox_frequency->setValue(em->getFrequency() / 1.0e9);
+    ui->spinbox_efficiency->setValue(em->getEfficiency() * 100.0);
+    ui->spinbox_power->setValue(SimulationData::convertPowerTodBm(em->getPower()));
+}
+
 EmitterDialog::~EmitterDialog()
 {
     delete ui;
