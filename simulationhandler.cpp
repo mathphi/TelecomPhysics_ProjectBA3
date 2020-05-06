@@ -212,9 +212,18 @@ complex<double> SimulationHandler::computeTransmissons(Emitter *em, QLineF ray, 
  * @param dn  : The total length of the ray path
  * @return    : The "Nominal" electric field
  */
-complex<double> SimulationHandler::computeNominalElecField(Emitter *em, QLineF ray, double dn) {
+vector<complex<double> > SimulationHandler::computeNominalElecField(
+        Emitter *em,
+        QLineF emitter_ray,
+        QLineF receiver_ray,
+        double dn)
+{
     // Incidence angle of the ray from the emitter
-    double phi = em->getIncidentRayAngle(ray);
+    double phi = em->getIncidentRayAngle(emitter_ray);
+
+    vector<double> polarization = em->getPolarization();
+
+    QLineF E_unit = receiver_ray.normalVector().unitVector();
 
     // Get properties from the emitter
     double GTX = em->getGain(phi);
@@ -225,7 +234,12 @@ complex<double> SimulationHandler::computeNominalElecField(Emitter *em, QLineF r
     complex<double> gamma_0 = 1i*omega*sqrt(MU_0*EPSILON_0);
 
     // Direct (nominal) electric field (equation 8.77)
-    return sqrt(60.0*GTX*PTX)*exp(-gamma_0*dn)/dn;
+    complex<double> E=sqrt(60.0*GTX*PTX)*exp(-gamma_0*dn)/dn;
+    return {
+        E*polarization[0]*E_unit.dx(), //0 parallel 1 perpediculaire
+        E*polarization[0]*E_unit.dy(),
+        E*polarization[1]
+    };
 }
 
 /**

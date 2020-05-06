@@ -215,10 +215,10 @@ double Emitter::getResistance() const {
  * Returns the same as getEffectiveHeight(theta, phi), but with the default angle
  * theta to π/2, since the 2D simulation is in the plane θ = π/2
  */
-complex<double> Emitter::getEffectiveHeight(double phi) const {
+vector<complex<double> > Emitter::getEffectiveHeight(double phi) const {
     return m_antenna->getEffectiveHeight(M_PI_2, phi, m_frequency);
 }
-
+//TODO change this comment
 /**
  * @brief Emitter::getEffectiveHeight
  * @param phi
@@ -229,6 +229,10 @@ complex<double> Emitter::getEffectiveHeight(double phi) const {
  */
 double Emitter::getGain(double phi) const {
     return m_antenna->getGain(M_PI_2, phi);
+}
+
+vector<double>Emitter::getPolarization() const{
+    return m_antenna->getPolarization();
 }
 
 

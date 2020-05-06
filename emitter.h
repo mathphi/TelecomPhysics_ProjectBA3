@@ -44,8 +44,9 @@ public:
     double getEfficiency() const;
 
     double getResistance() const;
-    complex<double> getEffectiveHeight(double phi) const;
+    vector<complex<double> > getEffectiveHeight(double phi) const;
     double getGain(double phi) const;
+    vector<double> getPolarization() const;
 
 private:
     double m_rotation_angle;

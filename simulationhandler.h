@@ -27,7 +27,7 @@ public:
 
     complex<double> computeReflection(Emitter *em, Wall *w, QLineF in_ray);
     complex<double> computeTransmissons(Emitter *em, QLineF ray, Wall *origin_wall = nullptr, Wall *target_wall = nullptr);
-    complex<double> computeNominalElecField(Emitter *em, QLineF ray, double dn);
+    vector<complex<double> > computeNominalElecField(Emitter *em, QLineF emitter_ray, QLineF receiver_ray, double dn);
 
     double computeRayPower(Emitter *em, Receiver *re, QLineF ray, complex<double> En);
 

@@ -103,17 +103,27 @@ double HalfWaveDipoleVert::getGain(double theta, double phi) const {
     return eta * 16.0/(3*M_PI) * pow(cos(M_PI_2 * cos(theta)) / sin(theta), 2);
 }
 
-complex<double> HalfWaveDipoleVert::getEffectiveHeight(double theta, double phi, double frequency) const {
+
+vector<complex<double> > HalfWaveDipoleVert::getEffectiveHeight(double theta, double phi, double frequency) const {
     Q_UNUSED(phi);
 
     // This function equals 0 for theta == 0, but avoid the 0/0 situation
     if (theta == 0) {
-        return 0;
+        return {0, 0, 0};
     }
 
     // Compute the wave length
     double lambda = LIGHT_SPEED / frequency;
 
     // Compute the effective height (equation 5.42)
-    return -lambda/M_PI * cos(M_PI_2 * cos(theta))/pow(sin(theta),2);
+    return {
+        0,
+        0,
+        -lambda/M_PI * cos(M_PI_2 * cos(theta))/pow(sin(theta),2)
+    };
 }
+
+vector<double>HalfWaveDipoleVert::getPolarization() const{
+    return{0,1};
+}
+
