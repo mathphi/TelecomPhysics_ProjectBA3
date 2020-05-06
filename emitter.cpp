@@ -32,9 +32,7 @@ Emitter::Emitter(
 
     m_frequency  = frequency;
     m_power      = power;
-
-    // Create the associated antenna of right type
-    m_antenna = antenna;
+    m_antenna    = antenna;
 
     //TODO: update tooltip when data updated (setPower,...)
     // Setup the tooltip with all emitter's info
@@ -62,7 +60,7 @@ Emitter::Emitter(
           power,
           Antenna::createAntenna(antenna_type, efficiency))
 {
-
+    // Create the associated antenna of right type
 }
 
 Emitter::~Emitter()
@@ -80,9 +78,118 @@ Emitter* Emitter::clone() {
     return new Emitter(getFrequency(), getPower(), getEfficiency(), m_antenna->getAntennaType());
 }
 
+/**
+ * @brief Emitter::setRotation
+ * @param angle
+ *
+ * Sets the rotation angle of the emitter (in radians)
+ */
+void Emitter::setRotation(double angle) {
+    m_rotation_angle = angle;
+}
+
+/**
+ * @brief Emitter::getRotation
+ * @return
+ *
+ * Get the rotation angle of the antenna (in radians)
+ */
+double Emitter::getRotation() {
+    return m_rotation_angle;
+}
+
+/**
+ * @brief Emitter::getIncidentRayAngle
+ * @param ray
+ * @return
+ *
+ * Returns the incidence angle of the ray to the emitter (in radians).
+ * This function assumes the ray comes out the emitter.
+ */
+double Emitter::getIncidentRayAngle(QLineF ray) {
+    double ray_angle = ray.angle() / 180.0 * M_PI;
+    return ray_angle - getRotation();
+}
+
+
+void Emitter::setAntenna(AntennaType::AntennaType type, double efficiency) {
+    setAntenna(Antenna::createAntenna(type, efficiency));
+}
+
+void Emitter::setAntenna(Antenna *a) {
+    if (m_antenna != nullptr) {
+        delete m_antenna;
+    }
+
+    m_antenna = a;
+}
+
+void Emitter::setFrequency(double freq) {
+    m_frequency = freq;
+}
+
+void Emitter::setPower(double power) {
+    m_power = power;
+}
+
 Antenna *Emitter::getAntenna() {
     return m_antenna;
 }
+
+double Emitter::getFrequency() const {
+    return m_frequency;
+}
+
+double Emitter::getPower() const {
+    return m_power;
+}
+
+double Emitter::getEfficiency() const {
+    return m_antenna->getEfficiency();
+}
+
+double Emitter::getResistance() const {
+    return m_antenna->getResistance();
+}
+
+/**
+ * @brief Emitter::getEffectiveHeight
+ * @param phi
+ * @return
+ *
+ * Returns the same as getEffectiveHeight(theta, phi), but with the default angle
+ * theta to π/2, since the 2D simulation is in the plane θ = π/2
+ */
+vector<complex> Emitter::getEffectiveHeight(double phi) const {
+    return m_antenna->getEffectiveHeight(M_PI_2, phi, m_frequency);
+}
+
+/**
+ * @brief Emitter::getGain
+ * @param phi
+ * @return
+ *
+ * Returns the same as getGain(theta, phi), but with the default angle
+ * theta to π/2, since the 2D simulation is in the plane θ = π/2
+ */
+double Emitter::getGain(double phi) const {
+    return m_antenna->getGain(M_PI_2, phi);
+}
+
+/**
+ * @brief Emitter::getPolarization
+ * @return
+ *
+ * Returns the antenna's polarization vector
+ */
+vector<double> Emitter::getPolarization() const{
+    return m_antenna->getPolarization();
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// -------------------------------------- GRAPHICS FUNCTIONS ------------------------------------ //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
  * @brief Emitter::getPolyGain
@@ -137,104 +244,10 @@ void Emitter::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget
     painter->drawText(TEXT_RECT, Qt::AlignHCenter | Qt::AlignTop, m_antenna->getAntennaLabel());
 }
 
-/**
- * @brief Emitter::setRotation
- * @param angle
- *
- * Sets the rotation angle of the emitter (in radians)
- */
-void Emitter::setRotation(double angle) {
-    m_rotation_angle = angle;
-}
 
-/**
- * @brief Emitter::getRotation
- * @return
- *
- * Get the rotation angle of the antenna (in radians)
- */
-double Emitter::getRotation() {
-    return m_rotation_angle;
-}
-
-/**
- * @brief Emitter::getIncidentRayAngle
- * @param ray
- * @return
- *
- * Returns the incidence angle of the ray to the emitter (in radians).
- * This function assumes the ray comes out the emitter.
- */
-double Emitter::getIncidentRayAngle(QLineF ray) {
-    double ray_angle = ray.angle() / 180.0 * M_PI;
-    return ray_angle - getRotation();
-}
-
-
-void Emitter::setAntenna(AntennaType::AntennaType type, double efficiency) {
-    setAntenna(Antenna::createAntenna(type, efficiency));
-}
-
-void Emitter::setAntenna(Antenna *a) {
-    if (m_antenna != nullptr) {
-        delete m_antenna;
-    }
-
-    m_antenna = a;
-}
-
-void Emitter::setPower(double power) {
-    m_power = power;
-}
-
-void Emitter::setFrequency(double freq) {
-    m_frequency = freq;
-}
-
-double Emitter::getFrequency() const {
-    return m_frequency;
-}
-
-double Emitter::getPower() const {
-    return m_power;
-}
-
-double Emitter::getEfficiency() const {
-    return m_antenna->getEfficiency();
-}
-
-double Emitter::getResistance() const {
-    return m_antenna->getResistance();
-}
-
-/**
- * @brief Emitter::getEffectiveHeight
- * @param phi
- * @return
- *
- * Returns the same as getEffectiveHeight(theta, phi), but with the default angle
- * theta to π/2, since the 2D simulation is in the plane θ = π/2
- */
-vector<complex<double> > Emitter::getEffectiveHeight(double phi) const {
-    return m_antenna->getEffectiveHeight(M_PI_2, phi, m_frequency);
-}
-//TODO change this comment
-/**
- * @brief Emitter::getEffectiveHeight
- * @param phi
- * @return
- *
- * Returns the same as getEffectiveHeight(theta, phi), but with the default angle
- * theta to π/2, since the 2D simulation is in the plane θ = π/2
- */
-double Emitter::getGain(double phi) const {
-    return m_antenna->getGain(M_PI_2, phi);
-}
-
-vector<double>Emitter::getPolarization() const{
-    return m_antenna->getPolarization();
-}
-
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// -------------------------------- DATA SERIALIZATION FUNCTIONS -------------------------------- //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 QDataStream &operator>>(QDataStream &in, Emitter *&e) {
     Antenna *ant;

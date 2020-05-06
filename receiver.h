@@ -25,7 +25,7 @@ public:
 
     double getEfficiency() const;
     double getResistance() const;
-    complex<double> getEffectiveHeight(double phi, double frequency) const;
+    vector<complex> getEffectiveHeight(double phi, double frequency) const;
     double getGain(double phi) const;
 
     QRectF boundingRect() const override;

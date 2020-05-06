@@ -34,9 +34,10 @@ public:
     virtual QString getAntennaLabel() const = 0;
 
     virtual double getResistance() const = 0;
-    virtual vector<complex<double> > getEffectiveHeight(double theta, double phi, double frequency) const = 0;
+    virtual vector<complex> getEffectiveHeight(double theta, double phi, double frequency) const = 0;
     virtual double getGain(double theta, double phi) const = 0;
-    virtual vector<double> getPolarization()const=0;
+    virtual vector<double> getPolarization() const = 0;
+
 private:
     double m_efficiency;
 };
@@ -51,7 +52,7 @@ public:
     QString getAntennaLabel() const override;
 
     double getResistance() const override;
-    vector<complex<double> > getEffectiveHeight(double theta, double phi, double frequency) const override;
+    vector<complex> getEffectiveHeight(double theta, double phi, double frequency) const override;
     double getGain(double theta, double phi) const override;
     vector<double> getPolarization() const override;
 

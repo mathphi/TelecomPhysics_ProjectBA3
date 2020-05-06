@@ -76,6 +76,12 @@ QString HalfWaveDipoleVert::getAntennaLabel() const {
     return "λ/2";
 }
 
+/**
+ * @brief HalfWaveDipoleVert::getResistance
+ * @return
+ *
+ * Returns the antenna's resistance
+ */
 double HalfWaveDipoleVert::getResistance() const {
     // Compute the radiation resistance of the HalfWave dipole (equations 5.48, 5.47, 5.10)
     //double Rar = 6.0 * Z_0 / 32.0;
@@ -88,6 +94,14 @@ double HalfWaveDipoleVert::getResistance() const {
     return Rar / getEfficiency();
 }
 
+/**
+ * @brief HalfWaveDipoleVert::getGain
+ * @param theta
+ * @param phi
+ * @return
+ *
+ * Returns the gain of the dipole at the given incidents angles
+ */
 double HalfWaveDipoleVert::getGain(double theta, double phi) const {
     Q_UNUSED(phi);
 
@@ -103,8 +117,21 @@ double HalfWaveDipoleVert::getGain(double theta, double phi) const {
     return eta * 16.0/(3*M_PI) * pow(cos(M_PI_2 * cos(theta)) / sin(theta), 2);
 }
 
-
-vector<complex<double> > HalfWaveDipoleVert::getEffectiveHeight(double theta, double phi, double frequency) const {
+/**
+ * @brief HalfWaveDipoleVert::getEffectiveHeight
+ * @param theta
+ * @param phi
+ * @param frequency
+ * @return
+ *
+ * Returns the effective height of the dipole at the given incidents angles.
+ * The 'frequency' defines the design of the antenna (wave length)
+ */
+vector<complex> HalfWaveDipoleVert::getEffectiveHeight(
+        double theta,
+        double phi,
+        double frequency) const
+{
     Q_UNUSED(phi);
 
     // This function equals 0 for theta == 0, but avoid the 0/0 situation
@@ -123,7 +150,14 @@ vector<complex<double> > HalfWaveDipoleVert::getEffectiveHeight(double theta, do
     };
 }
 
-vector<double>HalfWaveDipoleVert::getPolarization() const{
-    return{0,1};
+/**
+ * @brief HalfWaveDipoleVert::getPolarization
+ * @return
+ *
+ * Returns the vector describing the polarization.
+ * The first component is the parallel, the second is the orthogonal.
+ */
+vector<double> HalfWaveDipoleVert::getPolarization() const {
+    return {0, 1};
 }
 

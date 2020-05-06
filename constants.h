@@ -3,23 +3,55 @@
 
 #include <math.h>
 #include <complex>
+#include <vector>
+
+// Avoid the std:: before the vector keyword
+using std::vector;
+
+// Define the type 'complex' as 'std::complex<double>'
+typedef std::complex<double> complex;
 
 // Needed to avoid a confusion with 1i implementations
 using namespace std::literals::complex_literals;
 
-// To avoid to type std:: before each complex
-using namespace std;
-
+// Pi definition (Windows compatibility)
 #ifndef M_PI
 #define M_PI    3.14159265358979323846  // pi
 #define M_PI_2  1.57079632679489661923  // pi/2
 #endif
 
+// Universal constants
 const double LIGHT_SPEED = 299792458.0;     // [m/s]
 const double EPSILON_0   = 8.85418782e-12;  // [F/m]
 const double MU_0        = 12.566370614e-7; // [T m/A]
 
 // Vacuum impedance
 const double Z_0 = sqrt(MU_0/EPSILON_0);  // [Ohm]
+
+// Operator overload for vector component to component multiplication.
+// This is only valid for 3-dimensionnal vectors.
+vector<complex> operator*(vector<complex> &v1, vector<complex> &v2) {
+    return {
+        v1[0] * v2[0],
+        v1[1] * v2[1],
+        v1[2] * v2[2]
+    };
+}
+
+// Operator overload for vector component to component multiplication.
+// This is only valid for 3-dimensionnal vectors.
+vector<complex> operator*=(vector<complex> &v1, vector<complex> &v2) {
+    v1 = {
+        v1[0] * v2[0],
+        v1[1] * v2[1],
+        v1[2] * v2[2]
+    };
+    return v1;
+}
+
+// Dot product basic function. Applicable on two 3-dimensional vectors.
+complex dotProduct(vector<complex> &v1, vector<complex> &v2) {
+    return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
+}
 
 #endif // CONSTANTS_H

@@ -44,7 +44,7 @@ public:
     double getEfficiency() const;
 
     double getResistance() const;
-    vector<complex<double> > getEffectiveHeight(double phi) const;
+    vector<complex> getEffectiveHeight(double phi) const;
     double getGain(double phi) const;
     vector<double> getPolarization() const;
 

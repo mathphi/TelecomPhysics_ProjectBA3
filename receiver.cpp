@@ -80,7 +80,7 @@ double Receiver::getResistance() const {
     return m_antenna->getResistance();
 }
 
-complex<double> Receiver::getEffectiveHeight(double phi, double frequency) const {
+vector<complex> Receiver::getEffectiveHeight(double phi, double frequency) const {
     return m_antenna->getEffectiveHeight(M_PI_2, phi, frequency);
 }
 

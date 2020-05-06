@@ -93,7 +93,7 @@ QPointF SimulationHandler::mirror(QPointF source, Wall *wall) {
  * @param ray_in : The incident ray
  * @return       : The reflection coefficient for this reflection
  */
-complex<double> SimulationHandler::computeReflection(Emitter *em, Wall *w, QLineF in_ray) {
+complex SimulationHandler::computeReflection(Emitter *em, Wall *w, QLineF in_ray) {
     // Get the pulsation of the emitter
     double omega = em->getFrequency()*2*M_PI;
 
@@ -102,9 +102,9 @@ complex<double> SimulationHandler::computeReflection(Emitter *em, Wall *w, QLine
     double sigma = w->getConductivity();
 
     // Compute the properties of the mediums (air and wall)
-    complex<double> epsilon_tilde = e_r*EPSILON_0 - 1i*sigma/omega;
-    complex<double> Z1 = Z_0;
-    complex<double> Z2 = sqrt(MU_0/epsilon_tilde);
+    complex epsilon_tilde = e_r*EPSILON_0 - 1i*sigma/omega;
+    complex Z1 = Z_0;
+    complex Z2 = sqrt(MU_0/epsilon_tilde);
 
     // Compute the incident and transmission angles
     double theta_i = w->getNormalAngleTo(in_ray);
@@ -115,14 +115,14 @@ complex<double> SimulationHandler::computeReflection(Emitter *em, Wall *w, QLine
 
     // Compute the reflection coefficient for an orthogonal
     // polarisation (equation 8.39)
-    complex<double> Gamma_orth = (Z2*cos(theta_i) - Z1*cos(theta_t)) / (Z2*cos(theta_i) + Z1*cos(theta_t));
+    complex Gamma_orth = (Z2*cos(theta_i) - Z1*cos(theta_t)) / (Z2*cos(theta_i) + Z1*cos(theta_t));
 
     // Propagation constants (m -> in wall, 0 -> in air)
-    complex<double> gamma_m = 1i*omega*sqrt(MU_0*epsilon_tilde);
-    complex<double> gamma_0 = 1i*omega*sqrt(MU_0*EPSILON_0);
+    complex gamma_m = 1i*omega*sqrt(MU_0*epsilon_tilde);
+    complex gamma_0 = 1i*omega*sqrt(MU_0*EPSILON_0);
 
     // Compute the reflection coefficient (equation 8.43)
-    complex<double> reflection = Gamma_orth + (1.0 - pow(Gamma_orth,2.0)) * Gamma_orth*exp(-2.0* gamma_m*s  + gamma_0*2.0*s*sin(theta_t)*sin(theta_i))/(1.0 - pow(Gamma_orth,2.0)*exp(-2.0* gamma_m*s  + gamma_0*2.0*s*sin(theta_t)*sin(theta_i)));
+    complex reflection = Gamma_orth + (1.0 - pow(Gamma_orth,2.0)) * Gamma_orth*exp(-2.0* gamma_m*s  + gamma_0*2.0*s*sin(theta_t)*sin(theta_i))/(1.0 - pow(Gamma_orth,2.0)*exp(-2.0* gamma_m*s  + gamma_0*2.0*s*sin(theta_t)*sin(theta_i)));
 
     return reflection;
 }
@@ -139,15 +139,15 @@ complex<double> SimulationHandler::computeReflection(Emitter *em, Wall *w, QLine
  * @param target_wall : The wall to which this ray go to (reflection), or nullptr
  * @return            : The total transmission coefficient for all undergone transmissions
  */
-complex<double> SimulationHandler::computeTransmissons(Emitter *em, QLineF ray, Wall *origin_wall, Wall *target_wall) {
+complex SimulationHandler::computeTransmissons(Emitter *em, QLineF ray, Wall *origin_wall, Wall *target_wall) {
     // Get pulsation from the emitter
     double omega = em->getFrequency()*2*M_PI;
 
     // Propagation constant (air)
-    complex<double> gamma_0 = 1i*omega*sqrt(MU_0*EPSILON_0);
+    complex gamma_0 = 1i*omega*sqrt(MU_0*EPSILON_0);
 
     // Total transmission coefficient (for this ray)
-    complex<double> coeff = 1;
+    complex coeff = 1;
 
     // Loop over all walls of the scene and look for transmissions (intersection with ray)
     foreach(Wall *w, simulationData()->getWallsList()) {
@@ -171,12 +171,12 @@ complex<double> SimulationHandler::computeTransmissons(Emitter *em, QLineF ray, 
         double sigma = w->getConductivity();
 
         // Compute the properties of the mediums (air and wall)
-        complex<double> epsilon_tilde = e_r*EPSILON_0 - 1i*sigma/omega;
-        complex<double> Z1 = Z_0;
-        complex<double> Z2 = sqrt(MU_0/epsilon_tilde);
+        complex epsilon_tilde = e_r*EPSILON_0 - 1i*sigma/omega;
+        complex Z1 = Z_0;
+        complex Z2 = sqrt(MU_0/epsilon_tilde);
 
         // Propagation constant (in this wall)
-        complex<double> gamma_m = 1i*omega*sqrt(MU_0*epsilon_tilde);
+        complex gamma_m = 1i*omega*sqrt(MU_0*epsilon_tilde);
 
         // Compute the incident and transmission angles
         double theta_i = w->getNormalAngleTo(ray);
@@ -189,10 +189,10 @@ complex<double> SimulationHandler::computeTransmissons(Emitter *em, QLineF ray, 
         // polarisation (equation 8.39).
         // The transmission coefficient is deduced from the reflection
         // coefficient (equation 8.37).
-        complex<double> Gamma_orth = (Z2*cos(theta_i) - Z1*cos(theta_t)) / (Z2*cos(theta_i) + Z1*cos(theta_t));
+        complex Gamma_orth = (Z2*cos(theta_i) - Z1*cos(theta_t)) / (Z2*cos(theta_i) + Z1*cos(theta_t));
 
         // Compute the reflection coefficient (equation 8.44)
-        complex<double> transmission = (1.0-pow(Gamma_orth,2.0))*exp(-gamma_m*s)/(1.0-pow(Gamma_orth,2.0)*exp(-2.0*gamma_m*s + gamma_0*2.0*s*sin(theta_t)*sin(theta_i)));
+        complex transmission = (1.0-pow(Gamma_orth,2.0))*exp(-gamma_m*s)/(1.0-pow(Gamma_orth,2.0)*exp(-2.0*gamma_m*s + gamma_0*2.0*s*sin(theta_t)*sin(theta_i)));
 
         // Multiply the total transmission coefficient with this one
         coeff *= transmission;
@@ -206,39 +206,48 @@ complex<double> SimulationHandler::computeTransmissons(Emitter *em, QLineF ray, 
  *
  * This function computes the "Nominal" electric field (equation 8.77).
  * So this is the electric field as if there were no reflection or transmission.
+ * The electric field is returned in a 3-dimentionnal vector.
  *
- * @param em  : The emitter (source of this ray)
- * @param ray : The ray coming out from the emitter
- * @param dn  : The total length of the ray path
- * @return    : The "Nominal" electric field
+ * @param em    : The emitter (source of this ray)
+ * @param e_ray : The ray coming out from the emitter
+ * @param r_ray : The ray coming to the receiver
+ * @param dn    : The total length of the ray path
+ * @return      : The "Nominal" electric field
  */
-vector<complex<double> > SimulationHandler::computeNominalElecField(
+vector<complex> SimulationHandler::computeNominalElecField(
         Emitter *em,
-        QLineF emitter_ray,
-        QLineF receiver_ray,
+        QLineF e_ray,
+        QLineF r_ray,
         double dn)
 {
     // Incidence angle of the ray from the emitter
-    double phi = em->getIncidentRayAngle(emitter_ray);
+    double phi = em->getIncidentRayAngle(e_ray);
 
+    // Get the polarization vector of the emitter
     vector<double> polarization = em->getPolarization();
-
-    QLineF E_unit = receiver_ray.normalVector().unitVector();
 
     // Get properties from the emitter
     double GTX = em->getGain(phi);
     double PTX = em->getPower();
     double omega = em->getFrequency()*2*M_PI;
 
+    // Compute the direction of the electric field at the receiver.
+    // This direction is a unit vector normal to the propagation vector in the incidence plane.
+    QLineF E_unit = r_ray.normalVector().unitVector();
+
     // Propagation constant (air)
-    complex<double> gamma_0 = 1i*omega*sqrt(MU_0*EPSILON_0);
+    complex gamma_0 = 1i*omega*sqrt(MU_0*EPSILON_0);
 
     // Direct (nominal) electric field (equation 8.77)
-    complex<double> E=sqrt(60.0*GTX*PTX)*exp(-gamma_0*dn)/dn;
+    complex E = sqrt(60.0*GTX*PTX) * exp(-gamma_0*dn) / dn;
+
+    // The first component of the polarization vector is the parallel component, the second
+    // is the orthogonal one.
+    // E_unit is the direction vector of the electric field in the incidence plane.
     return {
-        E*polarization[0]*E_unit.dx(), //0 parallel 1 perpediculaire
-        E*polarization[0]*E_unit.dy(),
-        E*polarization[1]
+        E * polarization[0] * E_unit.dx(),
+        E * polarization[0] * E_unit.dy(),
+        E * polarization[1]
     };
 }
 
@@ -254,7 +263,11 @@ vector<complex<double> > SimulationHandler::computeNominalElecField(
  * @param En  : The electric field of the ray
  * @return    : The power of the ray path to the receiver
  */
-double SimulationHandler::computeRayPower(Emitter *em, Receiver *re, QLineF ray, complex<double> En)
+double SimulationHandler::computeRayPower(
+        Emitter *em,
+        Receiver *re,
+        QLineF ray,
+        vector<complex> En)
 {
     // Incidence angle of the ray to the receiver
     double phi = re->getIncidentRayAngle(ray);
@@ -264,10 +277,10 @@ double SimulationHandler::computeRayPower(Emitter *em, Receiver *re, QLineF ray,
 
     // Get the antenna's resistance and effective height
     double Ra = re->getResistance();
-    complex<double> he = re->getEffectiveHeight(phi, frequency);
+    vector<complex> he = re->getEffectiveHeight(phi, frequency);
 
     // norm() = square of modulus
-    return norm(he * En) / (8.0 * Ra);
+    return norm(dotProduct(he, En)) / (8.0 * Ra);
 }
 
 /**
@@ -297,7 +310,7 @@ RayPath *SimulationHandler::computeRayPath(
 
     // This coefficient will contain the product of all reflection and
     // transmission coefficients for this ray path
-    complex<double> coeff = 1;
+    complex coeff = 1;
 
     // Total length of the ray path
     double dn;
@@ -359,7 +372,7 @@ RayPath *SimulationHandler::computeRayPath(
     }
 
     // Compute the electric field for this ray path (equation 8.78)
-    complex<double> En = coeff * computeNominalElecField(emitter, ray, dn);
+    complex En = coeff * computeNominalElecField(emitter, rays.last(), rays.first(), dn);
 
     // Compute the power of the ray coming to the receiver (first ray in the list)
     double power = computeRayPower(emitter, receiver, rays.first(), En);
