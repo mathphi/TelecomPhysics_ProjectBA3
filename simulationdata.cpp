@@ -66,22 +66,22 @@ QRgb SimulationData::ratioToColor(qreal ratio) {
     // Ratio limited from 0 to 1
     ratio = max(0.0, min(1.0, ratio));
 
-    if (ratio < 0.25) {
+    if (ratio < 0.25) {         // Go from red to yellow
         r = PEAK_COLOR;
         g = PEAK_COLOR * ratio/0.25;
         b = 0;
     }
-    else if (ratio < 0.5) {
+    else if (ratio < 0.5) {     // Go from yellow to green
         r = PEAK_COLOR * (2 - ratio/0.25);
         g = PEAK_COLOR;
         b = 0;
     }
-    else if (ratio < 0.75) {
+    else if (ratio < 0.75) {    // Go from green to turquoise
         r = 0;
         g = PEAK_COLOR;
         b = PEAK_COLOR * (ratio/0.25 - 2);
     }
-    else {
+    else {                      // Go from turquoise to blue
         r = 0;
         g = PEAK_COLOR * (4 - ratio/0.25);
         b = PEAK_COLOR;

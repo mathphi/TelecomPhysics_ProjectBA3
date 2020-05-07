@@ -1267,7 +1267,11 @@ void MainWindow::simulationFinished() {
     // Filter the rays to show
     filterRaysThreshold();
 
-    //TODO: what to do with this ?
+    /*
+     * TODO: what to do with this ?
+     *   -> For each receiver, call a function to setup the tooltip and (if the simulation mode is
+     *      area mode) hide the structure to show the background data color.
+     */
     m_simulation_handler->generateReceiversTooltip();
 }
 
