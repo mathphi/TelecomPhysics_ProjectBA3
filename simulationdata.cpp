@@ -1,5 +1,9 @@
 #include "simulationdata.h"
 
+// The max amplitude for the data color
+#define PEAK_COLOR 245
+
+// The default max number of reflections
 #define MAX_REFLECTIONS_COUNT_DEFAULT 3
 
 
@@ -63,24 +67,24 @@ QRgb SimulationData::ratioToColor(qreal ratio) {
     ratio = max(0.0, min(1.0, ratio));
 
     if (ratio < 0.25) {
-        r = 255;
-        g = 255 * ratio/0.25;
+        r = PEAK_COLOR;
+        g = PEAK_COLOR * ratio/0.25;
         b = 0;
     }
     else if (ratio < 0.5) {
-        r = 255 * (2 - ratio/0.25);
-        g = 255;
+        r = PEAK_COLOR * (2 - ratio/0.25);
+        g = PEAK_COLOR;
         b = 0;
     }
     else if (ratio < 0.75) {
         r = 0;
-        g = 255;
-        b = 255 * (ratio/0.25 - 2);
+        g = PEAK_COLOR;
+        b = PEAK_COLOR * (ratio/0.25 - 2);
     }
     else {
         r = 0;
-        g = 255 * (4 - ratio/0.25);
-        b = 255;
+        g = PEAK_COLOR * (4 - ratio/0.25);
+        b = PEAK_COLOR;
     }
 
     return qRgb(r, g, b);
