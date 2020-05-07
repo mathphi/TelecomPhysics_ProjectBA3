@@ -17,6 +17,17 @@ Receiver::Receiver(Antenna *antenna) : SimulationItem()
     // Create the associated antenna of right type
     m_antenna = antenna;
 
+    // The receiver is shaped or flat
+    m_flat = false;
+
+    // If the results must be shown or not
+    m_show_result = false;
+
+    // Default type and range of the result
+    m_res_type = ResultType::Bitrate;
+    m_res_min = 54;
+    m_res_max = 433;
+
     // Over walls
     setZValue(2000);
 
@@ -118,8 +129,15 @@ void Receiver::reset() {
     m_received_rays.clear();
     m_received_power = 0;
 
-    // Disable the tooltip
-    setToolTip(QString());
+    // Hide the results
+    m_show_result = false;
+
+    // Generate the idle tooltip
+    generateIdleTooltip();
+
+    // Update graphics
+    prepareGeometryChange();
+    update();
 }
 
 void Receiver::addRayPath(RayPath *rp) {
@@ -184,6 +202,26 @@ QPainterPath Receiver::shape() const {
 }
 
 void Receiver::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) {
+    if (!m_flat) {
+        paintShaped(painter);
+    }
+    else {
+        paintFlat(painter);
+    }
+}
+
+void Receiver::setFlat(bool flat) {
+    m_flat = flat;
+
+    if (flat) {
+        setZValue(0);
+    }
+    else {
+        setZValue(2000);
+    }
+}
+
+void Receiver::paintShaped(QPainter *painter) {
     // Draw a dash-dot lined square with a cross on his center
     painter->setBrush(Qt::transparent);
     painter->setPen(QPen(QBrush(Qt::black), 1,Qt::DashDotLine));
@@ -202,7 +240,65 @@ void Receiver::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidge
                 RECEIVER_CIRCLE_SIZE);
 }
 
-void Receiver::generateTooltip() {
+void Receiver::paintFlat(QPainter *painter) {
+    double data = 0;
+
+    // Nothing to paint
+    if (!m_show_result) {
+        return;
+    }
+
+    if (m_res_type == ResultType::Bitrate) {
+        data = getBitRate();
+    }
+    else {
+        data = SimulationData::convertPowerTodBm(receivedPower());
+    }
+
+    QColor background_color;
+
+    if (data != 0 && !isinf(data)) {
+        double data_ratio = (data - m_res_min) / (double)(m_res_max - m_res_min);
+
+        // Use the light color profile
+        background_color = SimulationData::ratioToColor(data_ratio, true);
+    }
+    else {
+        // Gray background
+        background_color = qRgb(220,220,220);
+    }
+
+    painter->fillRect(
+                -RECEIVER_SIZE/2, -RECEIVER_SIZE/2,
+                RECEIVER_SIZE, RECEIVER_SIZE,
+                background_color);
+}
+
+void Receiver::showResults(ResultType::ResultType type, int min, int max) {
+    // Result type and range
+    m_res_type = type;
+    m_res_min = min;
+    m_res_max = max;
+
+    // Paint the results
+    m_show_result = true;
+
+    // Update the tooltip
+    generateResultsTooltip();
+
+    // Update graphics
+    prepareGeometryChange();
+    update();
+}
+
+void Receiver::generateIdleTooltip() {
+    // Set the tooltip of the receiver
+    setToolTip(QString("<b><u>Récepteur</u></b><br/>"
+                       "<b><i>%1</i></b>")
+               .arg(m_antenna->getAntennaName()));
+}
+
+void Receiver::generateResultsTooltip() {
     // Set the tooltip of the receiver with
     //  - the number of incident rays
     //  - the received power
@@ -243,7 +339,7 @@ QDataStream &operator<<(QDataStream &out, Receiver *r) {
 
 ReceiversArea::ReceiversArea() : QGraphicsRectItem(), SimulationItem()
 {
-    QGraphicsRectItem::setZValue(-1);
+    QGraphicsRectItem::setZValue(-10);
 }
 
 ReceiversArea::~ReceiversArea() {
@@ -259,8 +355,8 @@ void ReceiversArea::setArea(QRectF area) {
     qreal sim_scale = simulationScene()->simulationScale();
 
     // Compute the 1m² fitted rect
-    QSizeF fit_size(ceil(area.width() / sim_scale) * sim_scale,
-                    ceil(area.height() / sim_scale) * sim_scale);
+    QSizeF fit_size(round(area.width() / sim_scale) * sim_scale,
+                    round(area.height() / sim_scale) * sim_scale);
 
     // Center the content in the area
     QSizeF diff_sz = fit_size - area.size();
@@ -295,6 +391,8 @@ void ReceiversArea::createReceivers(QRectF area) {
 
             Receiver *rcv = new Receiver();
             simulationScene()->addItem(rcv);
+
+            rcv->setFlat(true);
             rcv->setPos(rcv_pos);
 
             m_receivers_list.append(rcv);

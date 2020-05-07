@@ -8,11 +8,18 @@
 #include "raypath.h"
 #include "antennas.h"
 
+namespace ResultType {
+enum ResultType {
+    Power,
+    Bitrate
+};
+}
+
 class Receiver : public SimulationItem
 {
 public:
     Receiver(Antenna *antenna);
-    Receiver(AntennaType::AntennaType antenna_type = AntennaType::HalfWaveDipoleHoriz,
+    Receiver(AntennaType::AntennaType antenna_type = AntennaType::HalfWaveDipoleVert,
              double efficiency = 1.0);
 
     ~Receiver();
@@ -34,6 +41,10 @@ public:
     QPainterPath shape() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override;
 
+    void setFlat(bool flat);
+    void paintShaped(QPainter *painter);
+    void paintFlat(QPainter *painter);
+
     void reset();
     void addRayPath(RayPath *rp);
     QList<RayPath*> getRayPaths();
@@ -41,7 +52,10 @@ public:
     double receivedPower();
     double getBitRate();
 
-    void generateTooltip();
+    void showResults(ResultType::ResultType type, int min, int max);
+
+    void generateIdleTooltip();
+    void generateResultsTooltip();
 
 private:
     double m_rotation_angle;
@@ -49,6 +63,13 @@ private:
 
     QList<RayPath*> m_received_rays;
     double m_received_power;
+
+    ResultType::ResultType m_res_type;
+    int m_res_min;
+    int m_res_max;
+
+    bool m_flat;
+    bool m_show_result;
 
     QMutex m_mutex;
 };

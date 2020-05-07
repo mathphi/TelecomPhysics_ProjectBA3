@@ -361,6 +361,12 @@ RayPath *SimulationHandler::computeRayPath(
             return nullptr; // Return an invalid ray path
         }
 
+        // If the target point is the same as the reflection point
+        //  -> not a physics situation -> invalid raypath
+        if (reflection_pt == target_point) {
+            return nullptr;
+        }
+
         // Add this ray line to the list of lines forming the ray path
         QLineF ray(reflection_pt, target_point);
         rays.append(ray);
@@ -375,6 +381,12 @@ RayPath *SimulationHandler::computeRayPath(
         // The next target point is the current reflection point
         target_point = reflection_pt;
         target_wall = reflect_wall;
+    }
+
+    // If the target point is the same as the emitter point
+    //  -> not a physics situation -> invalid raypath
+    if (emitter->getRealPos() == target_point) {
+        return nullptr;
     }
 
     // The last ray line is from the emitter to the target point
@@ -573,16 +585,16 @@ void SimulationHandler::computationUnitFinished() {
 }
 
 /**
- * @brief SimulationHandler::generateReceiversTooltip
+ * @brief SimulationHandler::showReceiversResults
  *
- * This function generates the tooltip for each receiver
+ * This function send to all receivers to show their results
  */
-void SimulationHandler::generateReceiversTooltip() {
-    // Loop over every receiver and generate its tooltip
+void SimulationHandler::showReceiversResults() {
+    // Loop over every receiver and show its results
     foreach(Receiver *re , m_receivers_list)
     {
-        // Generate the tooltip for this receiver
-        re->generateTooltip();
+        // Show the results of each receiver
+        re->showResults(ResultType::Bitrate, 54, 433);
     }
 }
 

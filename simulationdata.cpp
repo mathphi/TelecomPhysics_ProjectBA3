@@ -1,7 +1,8 @@
 #include "simulationdata.h"
 
 // The max amplitude for the data's color
-#define PEAK_COLOR 240
+#define PEAK_COLOR_LIGHT 255
+#define PEAK_COLOR_DARK 240
 
 // The default max number of reflections
 #define MAX_REFLECTIONS_COUNT_DEFAULT 3
@@ -60,31 +61,33 @@ double SimulationData::convertPowerTodBm(double power_watts) {
  *
  * This function converts a ratio [0,1] to a color from red to blue
  */
-QRgb SimulationData::ratioToColor(qreal ratio) {
+QRgb SimulationData::ratioToColor(qreal ratio, bool light) {
     int r, g, b;
+
+    const int peak_color = (light ? PEAK_COLOR_LIGHT : PEAK_COLOR_DARK);
 
     // Ratio limited from 0 to 1
     ratio = max(0.0, min(1.0, ratio));
 
-    if (ratio < 0.25) {         // Go from red to yellow
-        r = PEAK_COLOR;
-        g = PEAK_COLOR * ratio/0.25;
+    if (ratio > 0.75) {         // Go from red to yellow
+        r = peak_color;
+        g = peak_color * (4 - ratio/0.25);
         b = 0;
     }
-    else if (ratio < 0.5) {     // Go from yellow to green
-        r = PEAK_COLOR * (2 - ratio/0.25);
-        g = PEAK_COLOR;
+    else if (ratio > 0.5) {     // Go from yellow to green
+        r = peak_color * (ratio/0.25 - 2);
+        g = peak_color;
         b = 0;
     }
-    else if (ratio < 0.75) {    // Go from green to turquoise
+    else if (ratio > 0.25) {    // Go from green to turquoise
         r = 0;
-        g = PEAK_COLOR;
-        b = PEAK_COLOR * (ratio/0.25 - 2);
+        g = peak_color;
+        b = peak_color * (2 - ratio/0.25);
     }
     else {                      // Go from turquoise to blue
         r = 0;
-        g = PEAK_COLOR * (4 - ratio/0.25);
-        b = PEAK_COLOR;
+        g = peak_color * ratio/0.25;
+        b = peak_color;
     }
 
     return qRgb(r, g, b);

@@ -1312,7 +1312,7 @@ void MainWindow::simulationFinished() {
      *   -> For each receiver, call a function to setup the tooltip and (if the simulation mode is
      *      area mode) hide the structure to show the background data color.
      */
-    m_simulation_handler->generateReceiversTooltip();
+    m_simulation_handler->showReceiversResults();
 }
 
 void MainWindow::simulationCancelled() {

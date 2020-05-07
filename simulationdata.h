@@ -28,7 +28,7 @@ public:
     static double convertPowerToWatts(double power_dbm);
     static double convertPowerTodBm(double power_watts);
 
-    static QRgb ratioToColor(qreal ratio);
+    static QRgb ratioToColor(qreal ratio, bool light = false);
 
     void attachWall(Wall *w);
     void attachEmitter(Emitter *e);

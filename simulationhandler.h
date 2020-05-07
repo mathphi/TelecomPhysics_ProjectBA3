@@ -49,7 +49,7 @@ public:
 
     void recursiveReflectionThreaded( Emitter *e, Receiver *r, Wall *w);
 
-    void generateReceiversTooltip();
+    void showReceiversResults();
 
     void startSimulationComputation(QList<Receiver *> rcv_list);
     void stopSimulationComputation();

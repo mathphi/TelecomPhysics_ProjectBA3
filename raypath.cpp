@@ -61,7 +61,7 @@ void RayPath::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget
     // Get the pen color (function of the power)
     const double dbm_power = SimulationData::convertPowerTodBm(getPower());
     //TODO: clean this colour computation...
-    const QColor pen_color(SimulationData::ratioToColor((dbm_power+60)/-100.0));
+    const QColor pen_color(SimulationData::ratioToColor(1.0 - (dbm_power+60)/-100.0));
 
     // Set the pen for this raypath
     painter->setPen(QPen(pen_color, PEN_WIDTH));
