@@ -25,7 +25,7 @@ public:
     Emitter* clone();
 
     void setRotation(double angle);
-    double getRotation();
+    double getRotation() const;
     double getIncidentRayAngle(QLineF ray);
 
     void setAntenna(AntennaType::AntennaType type, double efficiency);
@@ -51,8 +51,6 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override;
 
 private:
-    double m_rotation_angle;
-
     double m_frequency;
     double m_power;
 

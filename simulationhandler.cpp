@@ -397,6 +397,8 @@ RayPath *SimulationHandler::computeRayPath(
     // Compute the power of the ray coming to the receiver (first ray in the list)
     double power = computeRayPower(emitter, receiver, rays.first(), En);
 
+    qDebug() << power;
+
     // Return a new RayPath object
     RayPath *rp = new RayPath(emitter, rays, power);
     return rp;

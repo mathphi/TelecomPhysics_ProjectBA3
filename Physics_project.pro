@@ -25,6 +25,7 @@ SOURCES += \
     mainwindow.cpp \
     raypath.cpp \
     receiver.cpp \
+    receiverdialog.cpp \
     scaleruleritem.cpp \
     simulationdata.cpp \
     simulationhandler.cpp \
@@ -41,6 +42,7 @@ HEADERS += \
     mainwindow.h \
     raypath.h \
     receiver.h \
+    receiverdialog.h \
     scaleruleritem.h \
     simulationdata.h \
     simulationhandler.h \
@@ -50,7 +52,8 @@ HEADERS += \
 
 FORMS += \
     emitterdialog.ui \
-    mainwindow.ui
+    mainwindow.ui \
+    receiverdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

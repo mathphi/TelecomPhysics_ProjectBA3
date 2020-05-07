@@ -18,6 +18,8 @@ public:
     ~Receiver();
 
     Antenna *getAntenna();
+    void setAntenna(AntennaType::AntennaType type, double efficiency);
+    void setAntenna(Antenna *a);
 
     void setRotation(double angle);
     double getRotation();

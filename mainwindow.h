@@ -93,6 +93,7 @@ private slots:
     void keyPressed(QKeyEvent *e);
 
     void configureEmitter(Emitter *em);
+    void configureReceiver(Receiver *re);
 
     void switchEditSceneMode();
     void switchSimulationMode();

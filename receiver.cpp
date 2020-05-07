@@ -39,6 +39,22 @@ Antenna *Receiver::getAntenna() {
     return m_antenna;
 }
 
+void Receiver::setAntenna(AntennaType::AntennaType type, double efficiency) {
+    setAntenna(Antenna::createAntenna(type, efficiency));
+}
+
+void Receiver::setAntenna(Antenna *a) {
+    if (m_antenna != nullptr) {
+        delete m_antenna;
+    }
+
+    m_antenna = a;
+
+    // Update the graphics
+    prepareGeometryChange();
+    update();
+}
+
 /**
  * @brief Receiver::setRotation
  * @param angle

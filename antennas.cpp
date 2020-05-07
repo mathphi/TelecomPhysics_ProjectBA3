@@ -5,11 +5,34 @@
 
 
 Antenna::Antenna(double efficiency) {
+    // The default angle for the antenna is PI/2 (incidence to top)
+    m_rotation_angle = M_PI_2;
+
     m_efficiency = efficiency;
 }
 
 Antenna::~Antenna() {
 
+}
+
+/**
+ * @brief Antenna::setRotation
+ * @param angle
+ *
+ * Sets the rotation angle of the antenna (in radians)
+ */
+void Antenna::setRotation(double angle) {
+    m_rotation_angle = angle;
+}
+
+/**
+ * @brief Antenna::getRotation
+ * @return
+ *
+ * Get the rotation angle of the antenna (in radians)
+ */
+double Antenna::getRotation() const {
+    return m_rotation_angle;
 }
 
 double Antenna::getEfficiency() const {
@@ -146,9 +169,6 @@ vector<complex> HalfWaveDipoleVert::getEffectiveHeight(
     // Compute the wave length
     double lambda = LIGHT_SPEED / frequency;
 
-    // Compute the effective height (equation 5.42)
-    complex he = -lambda/M_PI * cos(M_PI_2 * cos(theta))/pow(sin(theta),2);
-
     return {
         0,
         0,
@@ -237,13 +257,15 @@ double HalfWaveDipoleHoriz::getGain(double theta, double phi) const {
  *
  * Returns the effective height of the dipole at the given incidents angles.
  * The 'frequency' defines the design of the antenna (wave length)
+ *
+ * WARNING: the y axis is upside down in the graphics scene !
  */
 vector<complex> HalfWaveDipoleHoriz::getEffectiveHeight(
         double theta,
         double phi,
         double frequency) const
 {
-    Q_UNUSED(phi);
+    Q_UNUSED(theta);
 
     // This function equals 0 for theta == 0, but avoid the 0/0 situation
     if (phi == 0) {
@@ -254,10 +276,12 @@ vector<complex> HalfWaveDipoleHoriz::getEffectiveHeight(
     double lambda = LIGHT_SPEED / frequency;
 
     // Compute the effective height (equation 5.42)
+    complex he = -lambda/M_PI * cos(M_PI_2 * cos(phi))/pow(sin(phi),2);
+
     return {
-        0,
-        0,
-        -lambda/M_PI * cos(M_PI_2 * cos(phi))/pow(sin(phi),2)
+        cos(getRotation()) * he,
+        -sin(getRotation()) * he,
+        0
     };
 }
 

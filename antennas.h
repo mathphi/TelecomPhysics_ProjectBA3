@@ -26,6 +26,9 @@ public:
     Antenna(double efficiency = 1.0);
     virtual ~Antenna();
 
+    double getRotation() const;
+    void setRotation(double angle);
+
     double getEfficiency() const;
     void setEfficiency(double efficiency);
 
@@ -41,6 +44,7 @@ public:
     virtual vector<double> getPolarization() const = 0;
 
 private:
+    double m_rotation_angle;
     double m_efficiency;
 };
 

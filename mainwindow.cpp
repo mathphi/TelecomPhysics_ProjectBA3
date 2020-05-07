@@ -4,6 +4,7 @@
 #include "emitter.h"
 #include "receiver.h"
 #include "emitterdialog.h"
+#include "receiverdialog.h"
 
 #include <QDebug>
 #include <QMessageBox>
@@ -369,9 +370,25 @@ void MainWindow::configureEmitter(Emitter *em) {
     double frequency  = emitter_dialog.getFrequency();
     double efficiency = emitter_dialog.getEfficiency();
 
+    // Update the emitter
     em->setPower(power);
     em->setFrequency(frequency);
     em->setAntenna(type, efficiency);
+}
+
+void MainWindow::configureReceiver(Receiver *re) {
+    // Dialog to configure the emitter
+    ReceiverDialog receiver_dialog(re, this);
+    int ans = receiver_dialog.exec();
+
+    if (ans == QDialog::Rejected)
+        return;
+
+    AntennaType::AntennaType type = receiver_dialog.getAntennaType();
+    double efficiency = receiver_dialog.getEfficiency();
+
+    // Update the receiver
+    re->setAntenna(type, efficiency);
 }
 
 void MainWindow::addEmitter() {
@@ -516,14 +533,25 @@ void MainWindow::graphicsSceneDoubleClicked(QGraphicsSceneMouseEvent *event) {
         return;
     }
 
+    // Don't edit if we aren't in editor mode
+    if (m_ui_mode != UIMode::EditorMode)
+        return;
+
     // Loop over the items under the mouse position
     foreach(QGraphicsItem *item, m_scene->items(event->scenePos())) {
         // Try to cast this item
         Emitter *em = dynamic_cast<Emitter*>(item);
+        Receiver *re = dynamic_cast<Receiver*>(item);
 
         // If one of them is an Emitter -> configure it
         if (em != nullptr) {
             configureEmitter(em);
+            break;
+        }
+        // If one of them is an Receiver -> configure it
+        else if (re != nullptr) {
+            configureReceiver(re);
+            break;
         }
     }
 }

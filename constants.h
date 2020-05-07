@@ -32,14 +32,14 @@ const double Z_0 = sqrt(MU_0/EPSILON_0);  // [Ohm]
 
 // Operator overload for vector component to component multiplication.
 // This is only valid for 3-dimensionnal vectors.
-vector<complex> operator*(vector<complex> &v1, vector<complex> v2) ;
+vector<complex> operator*(const vector<complex> v1, const vector<complex> v2) ;
 
 // Operator overload for vector component to component multiplication.
 // This is only valid for 3-dimensionnal vectors.
-vector<complex> operator*=(vector<complex> &v1, vector<complex> v2) ;
+vector<complex> operator*=(vector<complex> &v1, const vector<complex> v2) ;
 
 // Dot product basic function. Applicable on two 3-dimensional vectors.
-complex dotProduct(vector<complex> &v1, vector<complex> &v2);
+complex dotProduct(const vector<complex> v1, const vector<complex> v2);
 
 
 #endif // CONSTANTS_H

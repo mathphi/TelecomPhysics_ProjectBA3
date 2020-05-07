@@ -5,11 +5,11 @@
 #include <QPainter>
 
 #define EMITTER_WIDTH 8
-#define EMITTER_HEIGHT 18
+#define EMITTER_HEIGHT 20
 #define EMITTER_TEXT_WIDTH 24
 #define EMITTER_TEXT_HEIGHT 20
 
-#define EMITTER_POLYGAIN_SIZE 7.0
+#define EMITTER_POLYGAIN_SIZE 9.0
 
 
 // Defines the rectangle where to place the emitter's label
@@ -26,9 +26,6 @@ Emitter::Emitter(
 {
     // Over receivers and walls
     setZValue(5000);
-
-    // The default angle for the emitter is PI/2 (incidence to top)
-    m_rotation_angle = M_PI_2;
 
     m_frequency  = frequency;
     m_power      = power;
@@ -73,7 +70,7 @@ Emitter* Emitter::clone() {
  * Sets the rotation angle of the emitter (in radians)
  */
 void Emitter::setRotation(double angle) {
-    m_rotation_angle = angle;
+    m_antenna->setRotation(angle);
 }
 
 /**
@@ -82,8 +79,8 @@ void Emitter::setRotation(double angle) {
  *
  * Get the rotation angle of the antenna (in radians)
  */
-double Emitter::getRotation() {
-    return m_rotation_angle;
+double Emitter::getRotation() const {
+    return m_antenna->getRotation();
 }
 
 /**
@@ -115,6 +112,7 @@ void Emitter::setAntenna(Antenna *a) {
     updateTooltip();
 
     // Update the graphics
+    prepareGeometryChange();
     update();
 }
 
@@ -224,7 +222,7 @@ QPolygonF Emitter::getPolyGain() const {
 
     for (double phi = -M_PI ; phi < M_PI + 0.1 ; phi += 0.1) {
         pt = QPointF(cos(phi), sin(phi));
-        poly_gain.append(pt * getGain(phi + m_rotation_angle) * EMITTER_POLYGAIN_SIZE);
+        poly_gain.append(pt * getGain(phi + getRotation()) * EMITTER_POLYGAIN_SIZE);
     }
 
     return poly_gain;
@@ -242,8 +240,8 @@ QRectF Emitter::boundingRect() const {
 
 QPainterPath Emitter::shape() const {
     QPainterPath path;
-    path.addRect(-EMITTER_WIDTH/2 - 2, -EMITTER_HEIGHT - 2,
-                 EMITTER_WIDTH + 4, EMITTER_HEIGHT + 4);
+    path.addRect(-EMITTER_WIDTH/2 - 4, -EMITTER_HEIGHT - 4,
+                 EMITTER_WIDTH + 8, EMITTER_HEIGHT + 8);
     path.addRect(TEXT_RECT);
     path.addPolygon(getPolyGain());
     return path;
