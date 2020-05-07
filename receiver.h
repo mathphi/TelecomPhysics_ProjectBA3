@@ -12,7 +12,7 @@ class Receiver : public SimulationItem
 {
 public:
     Receiver(Antenna *antenna);
-    Receiver(AntennaType::AntennaType antenna_type = AntennaType::HalfWaveDipoleVert,
+    Receiver(AntennaType::AntennaType antenna_type = AntennaType::HalfWaveDipoleHoriz,
              double efficiency = 1.0);
 
     ~Receiver();

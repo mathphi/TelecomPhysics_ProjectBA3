@@ -25,8 +25,8 @@ public:
 
     static QPointF mirror(QPointF source, Wall *wall);
 
-    complex computeReflection(Emitter *em, Wall *w, QLineF in_ray);
-    complex computeTransmissons(Emitter *em, QLineF ray, Wall *origin_wall = nullptr, Wall *target_wall = nullptr);
+    vector<complex> computeReflection(Emitter *em, Wall *w, QLineF in_ray);
+    vector<complex> computeTransmissons(Emitter *em, QLineF ray, Wall *origin_wall = nullptr, Wall *target_wall = nullptr);
     vector<complex> computeNominalElecField(Emitter *em, QLineF emitter_ray, QLineF receiver_ray, double dn);
 
     double computeRayPower(Emitter *em, Receiver *re, QLineF ray, vector<complex> En);

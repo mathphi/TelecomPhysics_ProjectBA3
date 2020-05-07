@@ -18,6 +18,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     antennas.cpp \
     computationunit.cpp \
+    constants.cpp \
     emitter.cpp \
     emitterdialog.cpp \
     main.cpp \

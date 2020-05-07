@@ -9,11 +9,13 @@ namespace AntennaType {
 // Enumeration
 enum AntennaType {
     HalfWaveDipoleVert,
+    HalfWaveDipoleHoriz,
 };
 
 // Iterative list (must contains the same as the enum)
 const AntennaType AntennaTypeList[] = {
     HalfWaveDipoleVert,
+    HalfWaveDipoleHoriz,
 };
 }
 
@@ -46,6 +48,23 @@ class HalfWaveDipoleVert : public Antenna
 {
 public:
     HalfWaveDipoleVert(double efficiency = 1.0);
+
+    AntennaType::AntennaType getAntennaType() const override;
+    QString getAntennaName() const override;
+    QString getAntennaLabel() const override;
+
+    double getResistance() const override;
+    vector<complex> getEffectiveHeight(double theta, double phi, double frequency) const override;
+    double getGain(double theta, double phi) const override;
+    vector<double> getPolarization() const override;
+
+};
+
+
+class HalfWaveDipoleHoriz : public Antenna
+{
+public:
+    HalfWaveDipoleHoriz(double efficiency = 1.0);
 
     AntennaType::AntennaType getAntennaType() const override;
     QString getAntennaName() const override;
