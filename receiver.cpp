@@ -27,7 +27,7 @@ Receiver::Receiver(Antenna *antenna) : SimulationItem()
 Receiver::Receiver(AntennaType::AntennaType antenna_type, double efficiency)
     : Receiver(Antenna::createAntenna(antenna_type, efficiency))
 {
-
+    //TODO: show a default tooltip + a label or polygain to recognize to antenna ?
 }
 
 Receiver::~Receiver()

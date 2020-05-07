@@ -1,7 +1,7 @@
 #include "simulationdata.h"
 
-// The max amplitude for the data color
-#define PEAK_COLOR 245
+// The max amplitude for the data's color
+#define PEAK_COLOR 240
 
 // The default max number of reflections
 #define MAX_REFLECTIONS_COUNT_DEFAULT 3

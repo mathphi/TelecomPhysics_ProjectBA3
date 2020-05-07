@@ -207,11 +207,12 @@ vector<complex> SimulationHandler::computeTransmissons(Emitter *em, QLineF ray, 
         complex transmission_orth = (1.0-pow(Gamma_orth,2.0))*exp(-gamma_m*s)/(1.0-pow(Gamma_orth,2.0)*exp(-2.0*gamma_m*s + gamma_0*2.0*s*sin(theta_t)*sin(theta_i)));
         complex transmission_para = (1.0-pow(Gamma_para,2.0))*exp(-gamma_m*s)/(1.0-pow(Gamma_para,2.0)*exp(-2.0*gamma_m*s + gamma_0*2.0*s*sin(theta_t)*sin(theta_i)));
 
-        vector<complex> coeff ={
-                        transmission_para,
-                        transmission_para,
-                        transmission_orth
-            };
+        vector<complex> coeff = {
+            transmission_para,
+            transmission_para,
+            transmission_orth
+        };
+
         // Multiply the total transmission coefficient with this one
         total_coeff *= coeff;
     }
@@ -396,8 +397,6 @@ RayPath *SimulationHandler::computeRayPath(
 
     // Compute the power of the ray coming to the receiver (first ray in the list)
     double power = computeRayPower(emitter, receiver, rays.first(), En);
-
-    qDebug() << power;
 
     // Return a new RayPath object
     RayPath *rp = new RayPath(emitter, rays, power);

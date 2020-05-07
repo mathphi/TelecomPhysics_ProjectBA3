@@ -420,9 +420,21 @@ void MainWindow::addEmitter() {
 void MainWindow::addReceiver() {
     cancelCurrentDrawing();
 
+    // Dialog to configure the emitter
+    ReceiverDialog receiver_dialog(this);
+    int ans = receiver_dialog.exec();
+
+    if (ans == QDialog::Rejected)
+        return;
+
+    AntennaType::AntennaType type = receiver_dialog.getAntennaType();
+    double efficiency = receiver_dialog.getEfficiency();
+
+    // Create an receiver of the selected type to place on the scene
+    m_drawing_item = new Receiver(type, efficiency);
+
     // Create an Receiver to place on the scene
     m_draw_action = DrawActions::Receiver;
-    m_drawing_item = new Receiver();
 
     // Hide the item until the mouse come on the scene
     m_drawing_item->setVisible(false);
