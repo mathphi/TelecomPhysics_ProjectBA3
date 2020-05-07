@@ -5,8 +5,10 @@
 #include <complex>
 #include <vector>
 
-// Avoid the std:: before the vector keyword
+// Avoid the std:: before each of these keywords
 using std::vector;
+using std::min;
+using std::max;
 
 // Define the type 'complex' as 'std::complex<double>'
 typedef std::complex<double> complex;

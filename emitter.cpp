@@ -34,20 +34,8 @@ Emitter::Emitter(
     m_power      = power;
     m_antenna    = antenna;
 
-    //TODO: update tooltip when data updated (setPower,...)
-    // Setup the tooltip with all emitter's info
-    QString tip("<b><u>Émetteur</u></b><br/>"
-                "<b><i>%1</i></b><br/>"
-                "<b>Fréquence:</b> %2 GHz<br/>"
-                "<b>Puissance:</b> %3 dBm<br/>"
-                "<b>Rendement:</b> %4%");
-
-    tip = tip.arg(m_antenna->getAntennaName())
-            .arg(frequency * 1e-9, 0, 'f', 2)
-            .arg(SimulationData::convertPowerTodBm(power), 0, 'f', 2)
-            .arg(getEfficiency() * 100.0, 0, 'f', 1);
-
-    setToolTip(tip);
+    // Setup the tooltip
+    updateTooltip();
 }
 
 Emitter::Emitter(
@@ -122,14 +110,26 @@ void Emitter::setAntenna(Antenna *a) {
     }
 
     m_antenna = a;
+
+    // Update the tooltip
+    updateTooltip();
+
+    // Update the graphics
+    update();
 }
 
 void Emitter::setFrequency(double freq) {
     m_frequency = freq;
+
+    // Update the tooltip
+    updateTooltip();
 }
 
 void Emitter::setPower(double power) {
     m_power = power;
+
+    // Update the tooltip
+    updateTooltip();
 }
 
 Antenna *Emitter::getAntenna() {
@@ -190,6 +190,27 @@ vector<double> Emitter::getPolarization() const{
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // -------------------------------------- GRAPHICS FUNCTIONS ------------------------------------ //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @brief Emitter::updateTooltip
+ *
+ * This function updates the tooltip of the emitter
+ */
+void Emitter::updateTooltip() {
+    // Setup the tooltip with all emitter's info
+    QString tip("<b><u>Émetteur</u></b><br/>"
+                "<b><i>%1</i></b><br/>"
+                "<b>Fréquence:</b> %2 GHz<br/>"
+                "<b>Puissance:</b> %3 dBm<br/>"
+                "<b>Rendement:</b> %4%");
+
+    tip = tip.arg(getAntenna()->getAntennaName())
+            .arg(getFrequency() * 1e-9, 0, 'f', 2)
+            .arg(SimulationData::convertPowerTodBm(getPower()), 0, 'f', 2)
+            .arg(getEfficiency() * 100.0, 0, 'f', 1);
+
+    setToolTip(tip);
+}
 
 /**
  * @brief Emitter::getPolyGain

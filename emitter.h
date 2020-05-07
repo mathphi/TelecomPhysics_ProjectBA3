@@ -24,11 +24,6 @@ public:
 
     Emitter* clone();
 
-    QPolygonF getPolyGain() const;
-    QRectF boundingRect() const override;
-    QPainterPath shape() const override;
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override;
-
     void setRotation(double angle);
     double getRotation();
     double getIncidentRayAngle(QLineF ray);
@@ -47,6 +42,13 @@ public:
     vector<complex> getEffectiveHeight(double phi) const;
     double getGain(double phi) const;
     vector<double> getPolarization() const;
+
+    void updateTooltip();
+
+    QPolygonF getPolyGain() const;
+    QRectF boundingRect() const override;
+    QPainterPath shape() const override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override;
 
 private:
     double m_rotation_angle;

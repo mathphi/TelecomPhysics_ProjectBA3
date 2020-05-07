@@ -372,6 +372,8 @@ RayPath *SimulationHandler::computeRayPath(
     }
 
     // Compute the electric field for this ray path (equation 8.78)
+    // rays.last() is the ray coming out from the emitter
+    // rays.first() is the ray coming to the receiver
     complex En = coeff * computeNominalElecField(emitter, rays.last(), rays.first(), dn);
 
     // Compute the power of the ray coming to the receiver (first ray in the list)
