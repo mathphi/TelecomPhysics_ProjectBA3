@@ -6,8 +6,10 @@
 #include <QGraphicsItem>
 
 #include "simulationitem.h"
+#include "receiver.h"
 
 class ScaleRulerItem;
+class DataLegendItem;
 
 class SimulationScene : public QGraphicsScene
 {
@@ -22,6 +24,8 @@ public:
 
 public slots:
     void viewRectChanged(const QRectF rect, const qreal scale);
+    void showDataLegend(ResultType::ResultType type, int min, int max);
+    void hideDataLegend();
 
 protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
@@ -49,6 +53,7 @@ signals:
 
 private:
     ScaleRulerItem *m_scale_legend;
+    DataLegendItem *m_data_legend;
 };
 
 #endif // SIMULATIONSCENE_H

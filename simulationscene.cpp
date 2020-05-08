@@ -1,6 +1,7 @@
 #include "simulationscene.h"
 #include "simulationitem.h"
 #include "scaleruleritem.h"
+#include "datalegenditem.h"
 
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
@@ -12,6 +13,10 @@ SimulationScene::SimulationScene(QObject *parent) : QGraphicsScene (parent)
 {
     m_scale_legend = new ScaleRulerItem();
     addItem(m_scale_legend);
+
+    m_data_legend = new DataLegendItem();
+    m_data_legend->hide();
+    addItem(m_data_legend);
 }
 
 /**
@@ -86,9 +91,21 @@ void SimulationScene::keyReleaseEvent(QKeyEvent *event) {
 }
 
 void SimulationScene::viewRectChanged(const QRectF rect, const qreal scale) {
-    // Keep the legend at constant position
+    // Keep the legends at constant position
     m_scale_legend->setPos(rect.bottomRight());
+    m_data_legend->setPos(rect.adjusted(10,0,0,0).bottomLeft());
 
     // Send the new view scale to the legend
     m_scale_legend->viewScaleChanged(scale);
+}
+
+void SimulationScene::showDataLegend(ResultType::ResultType type, int min, int max) {
+    m_data_legend->setDataType(type, min, max);
+    m_data_legend->show();
+    update();
+}
+
+void SimulationScene::hideDataLegend() {
+    m_data_legend->hide();
+    update();
 }

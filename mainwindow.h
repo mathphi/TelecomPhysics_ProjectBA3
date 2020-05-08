@@ -106,6 +106,7 @@ private slots:
     void simulationFinished();
     void simulationCancelled();
     void simulationProgress(double p);
+    void simulationReset();
     void simulationResetAction();
 
     void raysCheckboxToggled(bool state);

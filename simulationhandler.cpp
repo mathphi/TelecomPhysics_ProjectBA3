@@ -679,7 +679,7 @@ void SimulationHandler::powerDataBoundaries(double *min, double *max) {
         if (*min > pwr || *min == 0) {
             *min = pwr;
         }
-        else if (*max < pwr) {
+        if (*max < pwr) {
             *max = pwr;
         }
     }

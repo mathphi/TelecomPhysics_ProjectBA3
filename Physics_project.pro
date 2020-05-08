@@ -19,6 +19,7 @@ SOURCES += \
     antennas.cpp \
     computationunit.cpp \
     constants.cpp \
+    datalegenditem.cpp \
     emitter.cpp \
     emitterdialog.cpp \
     main.cpp \
@@ -37,6 +38,7 @@ HEADERS += \
     antennas.h \
     computationunit.h \
     constants.h \
+    datalegenditem.h \
     emitter.h \
     emitterdialog.h \
     mainwindow.h \

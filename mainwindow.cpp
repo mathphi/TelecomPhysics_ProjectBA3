@@ -940,7 +940,7 @@ QPoint MainWindow::attractivePoint(QPoint actual) {
 
 void MainWindow::initMouseTracker() {
     // Add two lines to the scene that will track the mouse cursor when visible
-    QPen tracker_pen(QBrush(QColor(0, 0, 255, 100)), 1.0 * devicePixelRatioF(), Qt::DotLine);
+    QPen tracker_pen(QBrush(QColor(0, 0, 255, 175)), 1.0 * devicePixelRatioF(), Qt::DotLine);
     tracker_pen.setCosmetic(true);  // Keep the same pen width even if the view is scaled
 
     m_mouse_tracker_x = new QGraphicsLineItem();
@@ -1014,7 +1014,7 @@ void MainWindow::actionOpen() {
     }
 
     // Clear all the current data
-    m_simulation_handler->resetComputedData();
+    simulationReset();
 
     // Delete the simulation area item and its receivers before to clear all items
     if (m_sim_area_item != nullptr) {
@@ -1248,7 +1248,7 @@ void MainWindow::simulationTypeChanged() {
 
 void MainWindow::receiversAntennaChanged() {
     // Reset the computed data
-    m_simulation_handler->resetComputedData();
+    simulationReset();
 
     updateSimulationUI();
     updateSimulationScene();
@@ -1371,12 +1371,17 @@ void MainWindow::simulationCancelled() {
     ui->progressbar_simulation->hide();
 
     // Reset the simulations
-    m_simulation_handler->resetComputedData();
+    simulationReset();
 }
 
 void MainWindow::simulationProgress(double p) {
     // Update the progress bar's value
     ui->progressbar_simulation->setValue(p * 100);
+}
+
+void MainWindow::simulationReset() {
+    m_simulation_handler->resetComputedData();
+    m_scene->hideDataLegend();
 }
 
 void MainWindow::simulationResetAction() {
@@ -1395,7 +1400,7 @@ bool MainWindow::askSimulationReset() {
         return false;
 
     // Reset the computation data
-    m_simulation_handler->resetComputedData();
+    simulationReset();
 
     return true;
 }
@@ -1453,9 +1458,23 @@ void MainWindow::showReceiversResult() {
 
     if (ui->radio_bitrate->isChecked()) {
         m_simulation_handler->showReceiversResults(ResultType::Bitrate);
+
+        if (m_simulation_handler->simulationData()->simulationType() == SimType::AreaReceiver) {
+            m_scene->showDataLegend(ResultType::Bitrate, 54, 433);
+        }
     }
     else {
         m_simulation_handler->showReceiversResults(ResultType::Power);
+
+        if (m_simulation_handler->simulationData()->simulationType() == SimType::AreaReceiver) {
+            double min, max;
+            m_simulation_handler->powerDataBoundaries(&min, &max);
+
+            min = SimulationData::convertPowerTodBm(min);
+            max = SimulationData::convertPowerTodBm(max);
+
+            m_scene->showDataLegend(ResultType::Power, min, max);
+        }
     }
 }
 
@@ -1485,7 +1504,7 @@ void MainWindow::setSimAreaVisible(bool visible) {
     else if (!visible && m_sim_area_item != nullptr)
     {
         // Be sure the simulation is resetted
-        m_simulation_handler->resetComputedData();
+        simulationReset();
 
         // Remove the simulation area
         delete m_sim_area_item;
