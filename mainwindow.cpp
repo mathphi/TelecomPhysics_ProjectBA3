@@ -549,8 +549,11 @@ void MainWindow::graphicsSceneDoubleClicked(QGraphicsSceneMouseEvent *event) {
     if (m_ui_mode != UIMode::EditorMode)
         return;
 
+    // Search area for a double click
+    QRectF click_rect(event->scenePos() - QPointF(5,5), QSize(10,10));
+
     // Loop over the items under the mouse position
-    foreach(QGraphicsItem *item, m_scene->items(event->scenePos())) {
+    foreach(QGraphicsItem *item, m_scene->items(click_rect)) {
         // Try to cast this item
         Emitter *em = dynamic_cast<Emitter*>(item);
         Receiver *re = dynamic_cast<Receiver*>(item);

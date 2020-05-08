@@ -556,7 +556,7 @@ void SimulationHandler::computationUnitFinished() {
         m_mutex.unlock();
 
         // Delete this computation unit
-        delete cu;
+        cu->deleteLater();
     }
 
     // Compute the progression and send the progression signal
@@ -651,7 +651,7 @@ void SimulationHandler::stopSimulationComputation() {
             m_mutex.unlock();
 
             // Delete this CU
-            delete cu;
+            cu->deleteLater();
         }
     }
 }
