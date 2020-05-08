@@ -46,6 +46,16 @@ Receiver::~Receiver()
     delete m_antenna;
 }
 
+/**
+ * @brief Receiver::clone
+ * @return
+ *
+ * This function returns a new Receiver with the same properties
+ */
+Receiver* Receiver::clone() {
+    return new Receiver(m_antenna->getAntennaType(), getEfficiency());
+}
+
 Antenna *Receiver::getAntenna() {
     return m_antenna;
 }
@@ -350,7 +360,7 @@ QList<Receiver*> ReceiversArea::getReceiversList() {
     return m_receivers_list;
 }
 
-void ReceiversArea::setArea(QRectF area) {
+void ReceiversArea::setArea(AntennaType::AntennaType type, QRectF area) {
     // Compute the area as a rect of size multiple of 1m²
     qreal sim_scale = simulationScene()->simulationScale();
 
@@ -370,10 +380,10 @@ void ReceiversArea::setArea(QRectF area) {
 
     // Delete and recreate the receivers list
     deleteReceivers();
-    createReceivers(fit_area);
+    createReceivers(type, fit_area);
 }
 
-void ReceiversArea::createReceivers(QRectF area) {
+void ReceiversArea::createReceivers(AntennaType::AntennaType type, QRectF area) {
     if (!simulationScene())
         return;
 
@@ -389,7 +399,7 @@ void ReceiversArea::createReceivers(QRectF area) {
             QPointF delta_pos(x * RECEIVER_SIZE, y * RECEIVER_SIZE);
             QPointF rcv_pos = init_pos + delta_pos;
 
-            Receiver *rcv = new Receiver();
+            Receiver *rcv = new Receiver(type, 1.0);
             simulationScene()->addItem(rcv);
 
             rcv->setFlat(true);

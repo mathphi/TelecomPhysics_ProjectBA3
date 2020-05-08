@@ -98,6 +98,8 @@ private slots:
     void switchEditSceneMode();
     void switchSimulationMode();
 
+    void receiversAntennaChanged();
+
     void simulationTypeChanged();
     void simulationControlAction();
     void simulationStarted();
@@ -109,6 +111,8 @@ private slots:
     void raysCheckboxToggled(bool state);
     void raysThresholdChanged(int val);
     void filterRaysThreshold();
+
+    void showReceiversResult();
 
     void setPointReceiversVisible(bool visible);
     void setSimAreaVisible(bool visible);

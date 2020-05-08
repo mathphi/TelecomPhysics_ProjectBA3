@@ -19,10 +19,11 @@ class Receiver : public SimulationItem
 {
 public:
     Receiver(Antenna *antenna);
-    Receiver(AntennaType::AntennaType antenna_type = AntennaType::HalfWaveDipoleVert,
-             double efficiency = 1.0);
+    Receiver(AntennaType::AntennaType antenna_type, double efficiency = 1.0);
 
     ~Receiver();
+
+    Receiver *clone();
 
     Antenna *getAntenna();
     void setAntenna(AntennaType::AntennaType type, double efficiency);
@@ -86,14 +87,14 @@ public:
     ~ReceiversArea();
 
     QList<Receiver*> getReceiversList();
-    void setArea(QRectF area);
+    void setArea(AntennaType::AntennaType type, QRectF area);
 
     QRectF boundingRect() const override;
     QPainterPath shape() const override;
     void paint(QPainter *p, const QStyleOptionGraphicsItem *s, QWidget *w) override;
 
 private:
-    void createReceivers(QRectF area);
+    void createReceivers(AntennaType::AntennaType type, QRectF area);
     void deleteReceivers();
 
     QList<Receiver*> m_receivers_list;

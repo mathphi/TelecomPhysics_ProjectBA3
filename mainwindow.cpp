@@ -64,6 +64,21 @@ MainWindow::MainWindow(QWidget *parent)
     // Hide the simulation group by default
     ui->group_simulation->hide();
 
+    // Hide the antenna type combobox by default
+    ui->group_antenna_type->hide();
+
+    // Add items to the antenna type combobox
+    for (AntennaType::AntennaType type : AntennaType::AntennaTypeList) {
+        // Get an antenna's instance of this type
+        Antenna *ant = Antenna::createAntenna(type, 1.0);
+
+        // Add item for each type
+        ui->combobox_antennas_type->addItem(ant->getAntennaName(), type);
+
+        // We don't need the antenna's instance anymore
+        delete ant;
+    }
+
     // Window File menu actions
     connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
     connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(actionOpen()));
@@ -102,9 +117,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->button_simExport,  SIGNAL(clicked()),         this, SLOT(exportSimulationAction()));
     connect(ui->checkbox_rays,     SIGNAL(toggled(bool)),     this, SLOT(raysCheckboxToggled(bool)));
     connect(ui->slider_threshold,  SIGNAL(valueChanged(int)), this, SLOT(raysThresholdChanged(int)));
+    connect(ui->radio_bitrate,     SIGNAL(toggled(bool)),     this, SLOT(showReceiversResult()));
 
     connect(ui->combobox_simType,  SIGNAL(currentIndexChanged(int)),
             this, SLOT(simulationTypeChanged()));
+    connect(ui->combobox_antennas_type, SIGNAL(currentIndexChanged(int)),
+            this, SLOT(receiversAntennaChanged()));
     connect(ui->spinbox_reflections, SIGNAL(valueChanged(int)),
             m_simulation_handler->simulationData(), SLOT(setReflectionsCount(int)));
 
@@ -718,7 +736,7 @@ void MainWindow::graphicsSceneLeftReleased(QGraphicsSceneMouseEvent *event) {
             // Repeat the last action if the control or shift key was pressed
             if (event->modifiers() & (Qt::ShiftModifier | Qt::ControlModifier)) {
                 // Re-create a copy of the last placed receiver
-                m_drawing_item = new Receiver();
+                m_drawing_item = receiver->clone();
                 m_drawing_item->setVisible(false);
                 m_scene->addItem(m_drawing_item);
             }
@@ -972,61 +990,69 @@ void MainWindow::setMouseTrackerPosition(QPoint pos) {
 
 void MainWindow::actionOpen() {
     int answer = QMessageBox::question(
-                    this,
-                    "Confirmation",
-                    "L'état actuel de la simulation sera perdu.\n"
-                    "Voulez-vous continuer ?");
+                this,
+                "Confirmation",
+                "L'état actuel de la simulation sera perdu.\n"
+                "Voulez-vous continuer ?");
 
     if (answer == QMessageBox::No) {
         return;
     }
 
-   QString file_path = QFileDialog::getOpenFileName(this,"Ouvrir un fichier", QString(), "*.rtmap");
+    QString file_path = QFileDialog::getOpenFileName(this,"Ouvrir un fichier", QString(), "*.rtmap");
 
-   // If the user cancelled the dialog
-   if (file_path.isEmpty()) {
-       return;
-   }
+    // If the user cancelled the dialog
+    if (file_path.isEmpty()) {
+        return;
+    }
 
-   // Open the file (reading)
-   QFile file(file_path);
-   if (!file.open(QIODevice::ReadOnly)) {
-       QMessageBox::critical(this, "Erreur", "Impossible d'ouvrir le fichier en lecture");
-       return;
-   }
+    // Open the file (reading)
+    QFile file(file_path);
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::critical(this, "Erreur", "Impossible d'ouvrir le fichier en lecture");
+        return;
+    }
 
-   // Clear all the current data
-   m_simulation_handler->resetComputedData();
-   clearAllItems();
+    // Clear all the current data
+    m_simulation_handler->resetComputedData();
 
-   // Read data from the file
-   QDataStream in(&file);
-   in >> m_simulation_handler->simulationData();
+    // Delete the simulation area item and its receivers before to clear all items
+    if (m_sim_area_item != nullptr) {
+        delete m_sim_area_item;
+        m_sim_area_item = nullptr;
+    }
 
-   // Update the graphics scene with read data
-   foreach (Wall* w, m_simulation_handler->simulationData()->getWallsList()) {
-       m_scene->addItem(w);
-   }
-   foreach (Emitter* e, m_simulation_handler->simulationData()->getEmittersList()) {
-       m_scene->addItem(e);
-   }
-   foreach (Receiver* r, m_simulation_handler->simulationData()->getReceiverList()) {
-       m_scene->addItem(r);
-   }
+    // Clear the scene
+    clearAllItems();
 
-   updateSimulationUI();
-   updateSimulationScene();
+    // Read data from the file
+    QDataStream in(&file);
+    in >> m_simulation_handler->simulationData();
 
-   // Go to the edit mode if there is no emitter in the scene
-   if (m_simulation_handler->simulationData()->getEmittersList().size() < 1) {
-       switchEditSceneMode();
-   }
+    // Update the graphics scene with read data
+    foreach (Wall* w, m_simulation_handler->simulationData()->getWallsList()) {
+        m_scene->addItem(w);
+    }
+    foreach (Emitter* e, m_simulation_handler->simulationData()->getEmittersList()) {
+        m_scene->addItem(e);
+    }
+    foreach (Receiver* r, m_simulation_handler->simulationData()->getReceiverList()) {
+        m_scene->addItem(r);
+    }
 
-   // Close the file
-   file.close();
+    updateSimulationUI();
+    updateSimulationScene();
 
-   // Reset the view after opening the file
-   resetView();
+    // Go to the edit mode if there is no emitter in the scene
+    if (m_simulation_handler->simulationData()->getEmittersList().size() < 1) {
+        switchEditSceneMode();
+    }
+
+    // Close the file
+    file.close();
+
+    // Reset the view after opening the file
+    resetView();
 }
 
 void MainWindow::actionSave() {
@@ -1191,22 +1217,20 @@ void MainWindow::simulationTypeChanged() {
     // Retreive the selected simulation type
     SimType::SimType sim_type = (SimType::SimType) ui->combobox_simType->currentIndex();
 
-    // Nothing to do if no difference with current type
-    if (sim_type == m_simulation_handler->simulationData()->simulationType()) {
-        return;
+    // Don't ask if no difference with current type
+    if (sim_type != m_simulation_handler->simulationData()->simulationType()) {
+        // This will reset the data -> prevent user
+        bool ans = askSimulationReset();
+
+        if (!ans) {
+            // Go back to the current type if user refused
+            ui->combobox_simType->setCurrentIndex(m_simulation_handler->simulationData()->simulationType());
+            return;
+        }
+
+        // Set the current simulation type into simulation data
+        m_simulation_handler->simulationData()->setSimulationType(sim_type);
     }
-
-    // This will reset the data -> prevent user
-    bool ans = askSimulationReset();
-
-    if (!ans) {
-        // Go back to the current type if user refused
-        ui->combobox_simType->setCurrentIndex(m_simulation_handler->simulationData()->simulationType());
-        return;
-    }
-
-    // Set the current simulation type into simulation data
-    m_simulation_handler->simulationData()->setSimulationType(sim_type);
 
     switch (sim_type) {
     case SimType::PointReceiver: {
@@ -1222,16 +1246,30 @@ void MainWindow::simulationTypeChanged() {
     updateSimulationScene();
 }
 
+void MainWindow::receiversAntennaChanged() {
+    // Reset the computed data
+    m_simulation_handler->resetComputedData();
+
+    updateSimulationUI();
+    updateSimulationScene();
+}
+
 void MainWindow::switchPointReceiverMode() {
     // We can show the rays in point receiver mode
     ui->checkbox_rays->setEnabled(true);
     raysCheckboxToggled(ui->checkbox_rays->isChecked());
+
+    // Hide the antenna type combobox
+    ui->group_antenna_type->hide();
 }
 
 void MainWindow::switchAreaReceiverMode() {
     // Don't show the rays in area mode
     ui->checkbox_rays->setEnabled(false);
     raysCheckboxToggled(false);
+
+    // Show the antenna type combobox
+    ui->group_antenna_type->show();
 }
 
 void MainWindow::simulationControlAction() {
@@ -1271,6 +1309,7 @@ void MainWindow::simulationControlAction() {
 void MainWindow::simulationStarted() {
     // Disable the UI controls
     ui->combobox_simType->setEnabled(false);
+    ui->combobox_antennas_type->setEnabled(false);
     ui->spinbox_reflections->setEnabled(false);
     ui->button_simReset->setEnabled(false);
     ui->button_editScene->setEnabled(false);
@@ -1287,6 +1326,7 @@ void MainWindow::simulationStarted() {
 void MainWindow::simulationFinished() {
     // Enable the UI controls
     ui->combobox_simType->setEnabled(true);
+    ui->combobox_antennas_type->setEnabled(true);
     ui->spinbox_reflections->setEnabled(true);
     ui->button_simReset->setEnabled(true);
     ui->button_editScene->setEnabled(true);
@@ -1310,17 +1350,14 @@ void MainWindow::simulationFinished() {
     // Filter the rays to show
     filterRaysThreshold();
 
-    /*
-     * TODO: what to do with this ?
-     *   -> For each receiver, call a function to setup the tooltip and (if the simulation mode is
-     *      area mode) hide the structure to show the background data color.
-     */
-    m_simulation_handler->showReceiversResults();
+    // Show the results
+    showReceiversResult();
 }
 
 void MainWindow::simulationCancelled() {
     // Enable the UI controls
     ui->combobox_simType->setEnabled(true);
+    ui->combobox_antennas_type->setEnabled(true);
     ui->spinbox_reflections->setEnabled(true);
     ui->button_simReset->setEnabled(true);
     ui->button_editScene->setEnabled(true);
@@ -1409,6 +1446,19 @@ void MainWindow::filterRaysThreshold() {
     }
 }
 
+void MainWindow::showReceiversResult() {
+    // Don't show the results if not finished
+    if (m_simulation_handler->isRunning())
+        return;
+
+    if (ui->radio_bitrate->isChecked()) {
+        m_simulation_handler->showReceiversResults(ResultType::Bitrate);
+    }
+    else {
+        m_simulation_handler->showReceiversResults(ResultType::Power);
+    }
+}
+
 void MainWindow::setPointReceiversVisible(bool visible) {
     foreach(Receiver *r, m_simulation_handler->simulationData()->getReceiverList()) {
         r->setVisible(visible);
@@ -1420,6 +1470,7 @@ void MainWindow::setSimAreaVisible(bool visible) {
     {
         // Get the simulation bounding rect
         QRectF area = m_scene->simulationBoundingRect();
+        AntennaType::AntennaType type = (AntennaType::AntennaType) ui->combobox_antennas_type->currentData().toInt();
 
         if (m_sim_area_item == nullptr) {
             // Create the area rectangle
@@ -1428,7 +1479,8 @@ void MainWindow::setSimAreaVisible(bool visible) {
         }
 
         // Re-draw the simulation area
-        m_sim_area_item->setArea(area);
+        // Set the area after the item is added to the scene!
+        m_sim_area_item->setArea(type, area);
     }
     else if (!visible && m_sim_area_item != nullptr)
     {

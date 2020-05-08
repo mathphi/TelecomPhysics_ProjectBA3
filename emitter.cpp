@@ -54,7 +54,7 @@ Emitter::~Emitter()
 }
 
 /**
- * @brief clone
+ * @brief Emitter::clone
  * @return
  *
  * This function returns a new Emitter with the same properties
