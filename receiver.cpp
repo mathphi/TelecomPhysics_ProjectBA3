@@ -282,6 +282,21 @@ void Receiver::paintFlat(QPainter *painter) {
                 -RECEIVER_SIZE/2, -RECEIVER_SIZE/2,
                 RECEIVER_SIZE, RECEIVER_SIZE,
                 background_color);
+
+    QString data_str = QString("%1").arg(data, 0, 'f', 0);
+    const QRect text_rect(-RECEIVER_SIZE/2, -RECEIVER_SIZE/2, RECEIVER_SIZE, RECEIVER_SIZE);
+
+    int light_level = qGray(background_color.rgb());
+
+    // Paint a white or black text (function of the light level of the background)
+    if (light_level > 125) {
+        painter->setPen(Qt::black);
+    }
+    else {
+        painter->setPen(Qt::white);
+    }
+
+    painter->drawText(text_rect, Qt::AlignCenter | Qt::AlignHCenter, data_str);
 }
 
 void Receiver::showResults(ResultType::ResultType type, int min, int max) {

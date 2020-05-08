@@ -658,33 +658,49 @@ void SimulationHandler::resetComputedData() {
 }
 
 /**
+ * @brief SimulationHandler::getPowerDataBoundaries
+ * @param min
+ * @param max
+ *
+ * This function gives the boundary values of power in the scene
+ * (max and min power value around all receivers in the scene).
+ */
+void SimulationHandler::powerDataBoundaries(double *min, double *max) {
+    *min = 0;
+    *max = 0;
+
+    // Loop over every receiver and get its power
+    foreach(Receiver *re , m_receivers_list)
+    {
+        // Get the receiver's received power
+        double pwr = re->receivedPower();
+
+        // Keep this value if min/max
+        if (*min > pwr || *min == 0) {
+            *min = pwr;
+        }
+        else if (*max < pwr) {
+            *max = pwr;
+        }
+    }
+}
+
+/**
  * @brief SimulationHandler::showReceiversResults
  *
  * This function send to all receivers to show their results
  */
 void SimulationHandler::showReceiversResults(ResultType::ResultType r_type) {
+    // Data range for Bitrate
     double min = 54;
     double max = 433;
 
-    // If we want to show the power, get the max and min from the receivers
+    // If we want to show the power
     if (r_type == ResultType::Power) {
-        min = 0;
-        max = 0;
+        // Get the max and min from the receivers
+        powerDataBoundaries(&min, &max);
 
-        // Loop over every receiver and get its power
-        foreach(Receiver *re , m_receivers_list)
-        {
-            double pwr = re->receivedPower();
-
-            // Keep this value if min/max
-            if (min > pwr || min == 0) {
-                min = pwr;
-            }
-            else if (max < pwr) {
-                max = pwr;
-            }
-        }
-
+        // We show the values in dBm
         min = SimulationData::convertPowerTodBm(min);
         max = SimulationData::convertPowerTodBm(max);
     }

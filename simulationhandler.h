@@ -49,11 +49,12 @@ public:
 
     void recursiveReflectionThreaded( Emitter *e, Receiver *r, Wall *w);
 
-    void showReceiversResults(ResultType::ResultType r_type);
-
     void startSimulationComputation(QList<Receiver *> rcv_list);
     void stopSimulationComputation();
     void resetComputedData();
+
+    void powerDataBoundaries(double *min, double *max);
+    void showReceiversResults(ResultType::ResultType r_type);
 
 signals:
     void simulationStarted();
