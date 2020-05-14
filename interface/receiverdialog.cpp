@@ -1,6 +1,6 @@
 #include "ui_receiverdialog.h"
 #include "receiverdialog.h"
-#include "simulationdata.h"
+#include "computation/simulationdata.h"
 
 #include <QKeyEvent>
 

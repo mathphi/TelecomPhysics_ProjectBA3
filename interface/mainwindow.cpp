@@ -1,8 +1,8 @@
 #include "ui_mainwindow.h"
 #include "mainwindow.h"
-#include "walls.h"
-#include "emitter.h"
-#include "receiver.h"
+#include "computation/walls.h"
+#include "computation/emitter.h"
+#include "computation/receiver.h"
 #include "emitterdialog.h"
 #include "receiverdialog.h"
 

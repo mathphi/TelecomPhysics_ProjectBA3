@@ -16,46 +16,46 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    antennas.cpp \
-    computationunit.cpp \
-    constants.cpp \
-    datalegenditem.cpp \
-    emitter.cpp \
-    emitterdialog.cpp \
-    main.cpp \
-    mainwindow.cpp \
-    raypath.cpp \
-    receiver.cpp \
-    receiverdialog.cpp \
-    scaleruleritem.cpp \
-    simulationdata.cpp \
-    simulationhandler.cpp \
-    simulationitem.cpp \
-    simulationscene.cpp \
-    walls.cpp
+    computation/antennas.cpp \
+    computation/computationunit.cpp \
+    computation/constants.cpp \
+    computation/emitter.cpp \
+    computation/raypath.cpp \
+    computation/receiver.cpp \
+    computation/simulationdata.cpp \
+    computation/simulationhandler.cpp \
+    computation/walls.cpp \
+    interface/datalegenditem.cpp \
+    interface/emitterdialog.cpp \
+    interface/mainwindow.cpp \
+    interface/receiverdialog.cpp \
+    interface/scaleruleritem.cpp \
+    interface/simulationitem.cpp \
+    interface/simulationscene.cpp \
+    main.cpp
 
 HEADERS += \
-    antennas.h \
-    computationunit.h \
-    constants.h \
-    datalegenditem.h \
-    emitter.h \
-    emitterdialog.h \
-    mainwindow.h \
-    raypath.h \
-    receiver.h \
-    receiverdialog.h \
-    scaleruleritem.h \
-    simulationdata.h \
-    simulationhandler.h \
-    simulationitem.h \
-    simulationscene.h \
-    walls.h
+    computation/antennas.h \
+    computation/computationunit.h \
+    computation/constants.h \
+    computation/emitter.h \
+    computation/raypath.h \
+    computation/receiver.h \
+    computation/simulationdata.h \
+    computation/simulationhandler.h \
+    computation/walls.h \
+    interface/datalegenditem.h \
+    interface/emitterdialog.h \
+    interface/mainwindow.h \
+    interface/receiverdialog.h \
+    interface/scaleruleritem.h \
+    interface/simulationitem.h \
+    interface/simulationscene.h
 
 FORMS += \
-    emitterdialog.ui \
-    mainwindow.ui \
-    receiverdialog.ui
+    interface/emitterdialog.ui \
+    interface/mainwindow.ui \
+    interface/receiverdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -63,9 +63,9 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
-    antenna.ico
+    resources/antenna.ico
 
 RESOURCES += \
-    resources.qrc
+    resources/resources.qrc
 
-RC_ICONS = antenna.ico
+RC_ICONS = resources/antenna.ico

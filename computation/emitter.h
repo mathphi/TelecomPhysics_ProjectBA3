@@ -1,7 +1,7 @@
 #ifndef EMITTER_H
 #define EMITTER_H
 
-#include "simulationitem.h"
+#include "interface/simulationitem.h"
 #include "constants.h"
 #include "antennas.h"
 

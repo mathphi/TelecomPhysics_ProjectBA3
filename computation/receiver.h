@@ -4,7 +4,7 @@
 #include <QGraphicsItem>
 #include <QMutex>
 
-#include "simulationitem.h"
+#include "interface/simulationitem.h"
 #include "raypath.h"
 #include "antennas.h"
 

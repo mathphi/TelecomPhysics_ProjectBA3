@@ -4,7 +4,7 @@
 #include <QGraphicsItem>
 #include <QPen>
 
-#include "simulationitem.h"
+#include "interface/simulationitem.h"
 
 // Type used to recognize the saved classes into a file
 namespace WallType {

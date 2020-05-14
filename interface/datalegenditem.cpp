@@ -1,6 +1,6 @@
 #include "datalegenditem.h"
 #include "simulationscene.h"
-#include "simulationdata.h"
+#include "computation/simulationdata.h"
 
 #include <QPainter>
 

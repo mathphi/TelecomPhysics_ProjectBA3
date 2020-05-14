@@ -6,7 +6,7 @@
 #include <QGraphicsItem>
 
 #include "simulationitem.h"
-#include "receiver.h"
+#include "computation/receiver.h"
 
 class ScaleRulerItem;
 class DataLegendItem;

@@ -5,7 +5,7 @@
 #include <QGraphicsScene>
 
 #include "simulationscene.h"
-#include "simulationhandler.h"
+#include "computation/simulationhandler.h"
 
 namespace DrawActions {
 enum DrawActions {

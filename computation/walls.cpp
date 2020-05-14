@@ -1,6 +1,6 @@
 #include "walls.h"
 #include "constants.h"
-#include "simulationscene.h"
+#include "interface/simulationscene.h"
 
 #include <QPen>
 #include <QPainter>

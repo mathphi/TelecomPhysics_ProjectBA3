@@ -1,6 +1,6 @@
 #include "constants.h"
 #include "receiver.h"
-#include "simulationscene.h"
+#include "interface/simulationscene.h"
 #include "simulationdata.h"
 
 #include <QPainter>

@@ -1,5 +1,5 @@
 #include "raypath.h"
-#include "simulationscene.h"
+#include "interface/simulationscene.h"
 #include "simulationdata.h"
 
 #include <QPainter>

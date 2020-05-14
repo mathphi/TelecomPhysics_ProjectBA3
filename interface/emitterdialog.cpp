@@ -1,6 +1,6 @@
 #include "ui_emitterdialog.h"
 #include "emitterdialog.h"
-#include "simulationdata.h"
+#include "computation/simulationdata.h"
 
 #include <QKeyEvent>
 

@@ -6,8 +6,8 @@
 #include <QThreadPool>
 
 #include "simulationdata.h"
-#include "simulationitem.h"
-#include "simulationscene.h"
+#include "interface/simulationitem.h"
+#include "interface/simulationscene.h"
 #include "constants.h"
 #include "raypath.h"
 #include "computationunit.h"

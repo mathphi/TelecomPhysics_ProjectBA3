@@ -2,7 +2,7 @@
 #define DATALEGENDITEM_H
 
 #include <QGraphicsItem>
-#include "receiver.h"
+#include "computation/receiver.h"
 
 class DataLegendItem : public QGraphicsItem
 {

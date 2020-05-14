@@ -1,7 +1,7 @@
 #ifndef RAYPATH_H
 #define RAYPATH_H
 
-#include "simulationitem.h"
+#include "interface/simulationitem.h"
 #include "constants.h"
 
 class Emitter;

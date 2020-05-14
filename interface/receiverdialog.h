@@ -3,7 +3,7 @@
 
 #include <QDialog>
 
-#include "receiver.h"
+#include "computation/receiver.h"
 
 namespace Ui {
 class ReceiverDialog;
