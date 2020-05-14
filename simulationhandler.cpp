@@ -43,7 +43,7 @@ bool SimulationHandler::isRunning() {
 
 
 /**************************************************************************************************/
-// --------------------------------- COMPUTATION FUNCTIONS ---------------------------------------//
+// --------------------------------- COMPUTATION FUNCTIONS -------------------------------------- //
 /**************************************************************************************************/
 
 /**
@@ -86,7 +86,11 @@ QPointF SimulationHandler::mirror(QPointF source, Wall *wall) {
  * @brief SimulationHandler::computeReflection
  *
  * This function computes the reflection coefficient for the reflection of
- * an incident ray on a wall
+ * an incident ray on a wall.
+ * The coefficient returned is 3-dimensionnal:
+ *  - the two first components are the same and are the coefficient
+ *    for a parallel polarization
+ *  - the last component is the coefficient for the othogonal polarization
  *
  * @param em     : The emitter (source of this ray)
  * @param w      : The reflection wall
@@ -124,10 +128,23 @@ vector<complex> SimulationHandler::computeReflection(Emitter *em, Wall *w, QLine
     complex gamma_m = 1i*omega*sqrt(MU_0*epsilon_tilde);
     complex gamma_0 = 1i*omega*sqrt(MU_0*EPSILON_0);
 
-    // Compute the reflection coefficient (equation 8.43)
-    complex reflection_orth = Gamma_orth + (1.0 - pow(Gamma_orth,2.0)) * Gamma_orth*exp(-2.0* gamma_m*s  + gamma_0*2.0*s*sin(theta_t)*sin(theta_i))/(1.0 - pow(Gamma_orth,2.0)*exp(-2.0* gamma_m*s  + gamma_0*2.0*s*sin(theta_t)*sin(theta_i)));
-    complex reflection_para = Gamma_para + (1.0 - pow(Gamma_para,2.0)) * Gamma_para*exp(-2.0* gamma_m*s  + gamma_0*2.0*s*sin(theta_t)*sin(theta_i))/(1.0 - pow(Gamma_para,2.0)*exp(-2.0* gamma_m*s  + gamma_0*2.0*s*sin(theta_t)*sin(theta_i)));
+    // Compute the reflection coefficient for the orthogonal polarization (equation 8.43)
+    complex reflection_orth =
+            Gamma_orth +
+            (1.0 - pow(Gamma_orth, 2.0)) *
+            Gamma_orth * exp(-2.0*gamma_m*s + 2.0*gamma_0*s * sin(theta_t) * sin(theta_i)) /
+            (1.0 - pow(Gamma_orth, 2.0) *
+             exp(-2.0*gamma_m*s + 2.0*gamma_0*s * sin(theta_t) * sin(theta_i)));
 
+    // Compute the reflection coefficient for the parallel polarization (equation 8.43)
+    complex reflection_para =
+            Gamma_para +
+            (1.0 - pow(Gamma_para, 2.0)) *
+            Gamma_para * exp(-2.0*gamma_m*s + 2.0*gamma_0*s * sin(theta_t) * sin(theta_i)) /
+            (1.0 - pow(Gamma_para, 2.0) *
+             exp(-2.0*gamma_m*s + 2.0*gamma_0*s * sin(theta_t) * sin(theta_i)));
+
+    // Return as a 3-D vector
     return {
         reflection_para,
         reflection_para,
@@ -140,6 +157,10 @@ vector<complex> SimulationHandler::computeReflection(Emitter *em, Wall *w, QLine
  *
  * This function computes all the transmissions undergone by the 'ray', and returns
  * the total transmission coefficient.
+ * The coefficient returned is 3-dimensionnal:
+ *  - the two first components are the same and are the coefficient
+ *    for a parallel polarization
+ *  - the last component is the coefficient for the othogonal polarization
  *
  * @param em          : The emitter (source of this ray)
  * @param ray         : The ray for which to compute the transmissions
@@ -147,7 +168,12 @@ vector<complex> SimulationHandler::computeReflection(Emitter *em, Wall *w, QLine
  * @param target_wall : The wall to which this ray go to (reflection), or nullptr
  * @return            : The total transmission coefficient for all undergone transmissions
  */
-vector<complex> SimulationHandler::computeTransmissons(Emitter *em, QLineF ray, Wall *origin_wall, Wall *target_wall) {
+vector<complex> SimulationHandler::computeTransmissons(
+        Emitter *em,
+        QLineF ray,
+        Wall *origin_wall,
+        Wall *target_wall)
+{
     // Get pulsation from the emitter
     double omega = em->getFrequency()*2*M_PI;
 
@@ -193,20 +219,26 @@ vector<complex> SimulationHandler::computeTransmissons(Emitter *em, QLineF ray, 
         // Length of the travel of the ray in the wall
         double s = w->getThickness() / cos(theta_t);
 
-        // Compute the reflection coefficient for an orthogonal
-        // polarization (equation 8.39).
-        // The transmission coefficient is deduced from the reflection
-        // coefficient (equation 8.37).
-        complex Gamma_orth = (Z2*cos(theta_i) - Z1*cos(theta_t)) / (Z2*cos(theta_i) + Z1*cos(theta_t));
+        // Compute the reflection coefficient for an orthogonal polarization (equation 8.39).
+        // The transmission coefficient is deduced from the reflection coefficient (equation 8.37).
+        complex Gamma_orth = (Z2*cos(theta_i)-Z1*cos(theta_t))/(Z2*cos(theta_i)+Z1*cos(theta_t));
 
-        // Compute the reflection coefficient for a parallel
-        // polarization (equation 8.32)
-        complex Gamma_para = (Z2*cos(theta_t) - Z1*cos(theta_i)) / (Z2*cos(theta_t) + Z1*cos(theta_i));
+        // Compute the reflection coefficient for a parallel polarization (equation 8.32)
+        complex Gamma_para = (Z2*cos(theta_t)-Z1*cos(theta_i))/(Z2*cos(theta_t)+Z1*cos(theta_i));
 
-        // Compute the reflection coefficient (equation 8.44)
-        complex transmission_orth = (1.0-pow(Gamma_orth,2.0))*exp(-gamma_m*s)/(1.0-pow(Gamma_orth,2.0)*exp(-2.0*gamma_m*s + gamma_0*2.0*s*sin(theta_t)*sin(theta_i)));
-        complex transmission_para = (1.0-pow(Gamma_para,2.0))*exp(-gamma_m*s)/(1.0-pow(Gamma_para,2.0)*exp(-2.0*gamma_m*s + gamma_0*2.0*s*sin(theta_t)*sin(theta_i)));
+        // Compute the transmission coefficient for the orthogonal polarization (equation 8.44)
+        complex transmission_orth =
+                (1.0 - pow(Gamma_orth, 2.0)) * exp(-gamma_m*s) /
+                (1.0 - pow(Gamma_orth, 2.0) *
+                 exp(-2.0*gamma_m*s + 2.0*gamma_0*s * sin(theta_t) * sin(theta_i)));
 
+        // Compute the transmission coefficient for the orthogonal polarization (equation 8.44)
+        complex transmission_para =
+                (1.0 - pow(Gamma_para, 2.0)) * exp(-gamma_m*s) /
+                (1.0 - pow(Gamma_para, 2.0) *
+                 exp(-2.0*gamma_m*s + 2.0*gamma_0*s * sin(theta_t) * sin(theta_i)));
+
+        // Return as a 3-D vector
         vector<complex> coeff = {
             transmission_para,
             transmission_para,
@@ -214,6 +246,7 @@ vector<complex> SimulationHandler::computeTransmissons(Emitter *em, QLineF ray, 
         };
 
         // Multiply the total transmission coefficient with this one
+        // The multiplication is made component by component (not a cross product).
         total_coeff *= coeff;
     }
 
@@ -372,10 +405,10 @@ RayPath *SimulationHandler::computeRayPath(
         rays.append(ray);
 
         // Compute the reflection coefficient for this reflection
+        // The multiplication is made component by component (not a cross product).
         coeff *= computeReflection(emitter, reflect_wall, ray);
 
-        // Compute the transmission coefficient for all transmissions
-        // undergone by the ray line.
+        // Compute the transmission coefficient for all transmissions undergone by the ray line.
         coeff *= computeTransmissons(emitter, ray, reflect_wall, target_wall);
 
         // The next target point is the current reflection point
@@ -405,6 +438,7 @@ RayPath *SimulationHandler::computeRayPath(
     // Compute the electric field for this ray path (equation 8.78)
     // rays.last() is the ray coming out from the emitter
     // rays.first() is the ray coming to the receiver
+    // The multiplication is made component by component (not a cross product).
     vector<complex> En = coeff * computeNominalElecField(emitter, rays.last(), rays.first(), dn);
 
     // Compute the power of the ray coming to the receiver (first ray in the list)
@@ -475,6 +509,10 @@ void SimulationHandler::recursiveReflection(
         }
     }
 }
+
+/**************************************************************************************************/
+// ---------------------------- SIMULATION MANAGEMENT FUNCTIONS --------------------------------- //
+/**************************************************************************************************/
 
 /**
  * @brief SimulationHandler::computeAllRays
