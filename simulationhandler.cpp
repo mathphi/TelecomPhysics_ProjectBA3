@@ -283,7 +283,7 @@ vector<complex> SimulationHandler::computeNominalElecField(
     double PTX = em->getPower();
     double omega = em->getFrequency()*2*M_PI;
 
-    // Compute the direction of the electric field at the receiver.
+    // Compute the direction of the parallel component of the electric field at the receiver.
     // This direction is a unit vector normal to the propagation vector in the incidence plane.
     QLineF E_unit = r_ray.normalVector().unitVector();
 
