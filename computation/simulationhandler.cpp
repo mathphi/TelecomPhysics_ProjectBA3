@@ -604,6 +604,7 @@ void SimulationHandler::computationUnitFinished() {
     // All computations done
     if (m_computation_units.size() == 0){
         qDebug() << "Time (ms):" << m_computation_timer.nsecsElapsed() / 1e6;
+        qDebug() << "Count:" << getRayPathsList().size();
 
         // Mark the simulation as stopped
         m_sim_started = false;
