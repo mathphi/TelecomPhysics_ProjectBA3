@@ -605,6 +605,8 @@ void SimulationHandler::computationUnitFinished() {
     if (m_computation_units.size() == 0){
         qDebug() << "Time (ms):" << m_computation_timer.nsecsElapsed() / 1e6;
         qDebug() << "Count:" << getRayPathsList().size();
+        qDebug() << "Receivers:" << m_receivers_list.size();
+        qDebug() << "Walls:" << m_simulation_data->getWallsList().size();
 
         // Mark the simulation as stopped
         m_sim_started = false;

@@ -176,7 +176,11 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
 void MainWindow::showEvent(QShowEvent *event) {
     event->accept();
-    resetView();
+
+    if (!isVisible()) {
+        resetView();
+
+    }
     updateSceneRect();
 }
 
