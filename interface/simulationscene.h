@@ -24,7 +24,7 @@ public:
 
 public slots:
     void viewRectChanged(const QRectF rect, const qreal scale);
-    void showDataLegend(ResultType::ResultType type, int min, int max);
+    void showDataLegend(ResultType::ResultType type, double min, double max);
     void hideDataLegend();
 
 protected:

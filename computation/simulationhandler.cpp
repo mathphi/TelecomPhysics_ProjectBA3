@@ -276,7 +276,7 @@ vector<complex> SimulationHandler::computeNominalElecField(
     double phi = em->getIncidentRayAngle(e_ray);
 
     // Get the polarization vector of the emitter
-    vector<double> polarization = em->getPolarization();
+    vector<complex> polarization = em->getPolarization();
 
     // Get properties from the emitter
     double GTX = em->getGain(phi);

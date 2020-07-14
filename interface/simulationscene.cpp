@@ -99,7 +99,7 @@ void SimulationScene::viewRectChanged(const QRectF rect, const qreal scale) {
     m_scale_legend->viewScaleChanged(scale);
 }
 
-void SimulationScene::showDataLegend(ResultType::ResultType type, int min, int max) {
+void SimulationScene::showDataLegend(ResultType::ResultType type, double min, double max) {
     m_data_legend->setDataType(type, min, max);
     m_data_legend->show();
     update();

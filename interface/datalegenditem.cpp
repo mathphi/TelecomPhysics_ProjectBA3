@@ -24,7 +24,7 @@ DataLegendItem::DataLegendItem() : QGraphicsItem()
     setDataType(ResultType::Bitrate, 54, 433);
 }
 
-void DataLegendItem::setDataType(ResultType::ResultType type, int min, int max) {
+void DataLegendItem::setDataType(ResultType::ResultType type, double min, double max) {
     m_result_type = type;
     m_data_min = min;
     m_data_max = max;
@@ -36,9 +36,9 @@ void DataLegendItem::setDataType(ResultType::ResultType type, int min, int max) 
         units = "dBm";
     }
 
-    m_data_start_str = QString("%1 %2").arg(max).arg(units);
-    m_data_mid_str = QString("%1 %2").arg((max+min)/2).arg(units);
-    m_data_end_str = QString("%1 %2").arg(min).arg(units);
+    m_data_start_str = QString("%1 %2").arg(max, 0, 'f', 0).arg(units);
+    m_data_mid_str = QString("%1 %2").arg((max+min)/2, 0, 'f', 0).arg(units);
+    m_data_end_str = QString("%1 %2").arg(min, 0, 'f', 0).arg(units);
 
     prepareGeometryChange();
     update();

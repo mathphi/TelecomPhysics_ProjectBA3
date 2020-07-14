@@ -183,7 +183,7 @@ vector<complex> HalfWaveDipoleVert::getEffectiveHeight(
  * Returns the vector describing the polarization.
  * The first component is the parallel, the second is the orthogonal.
  */
-vector<double> HalfWaveDipoleVert::getPolarization() const {
+vector<complex> HalfWaveDipoleVert::getPolarization() const {
     return {0, 1};
 }
 
@@ -292,7 +292,7 @@ vector<complex> HalfWaveDipoleHoriz::getEffectiveHeight(
  * Returns the vector describing the polarization.
  * The first component is the parallel, the second is the orthogonal.
  */
-vector<double> HalfWaveDipoleHoriz::getPolarization() const {
+vector<complex> HalfWaveDipoleHoriz::getPolarization() const {
     return {1, 0};
 }
 

@@ -180,7 +180,7 @@ double Emitter::getGain(double phi) const {
  *
  * Returns the antenna's polarization vector
  */
-vector<double> Emitter::getPolarization() const{
+vector<complex> Emitter::getPolarization() const{
     return m_antenna->getPolarization();
 }
 

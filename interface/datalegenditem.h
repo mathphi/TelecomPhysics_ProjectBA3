@@ -14,7 +14,7 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override;
 
 public slots:
-    void setDataType(ResultType::ResultType type, int min, int max);
+    void setDataType(ResultType::ResultType type, double min, double max);
 
 private:
     ResultType::ResultType m_result_type;
